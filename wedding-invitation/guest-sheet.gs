@@ -2,11 +2,12 @@
  * Receives RSVPs from the wedding invitation page and adds them as rows
  * to the first tab of this Google Sheet.
  *
- * Setup: open the sheet > Extensions > Apps Script > paste this file >
+ * Setup: create an Apps Script project, paste this file, then
  * Deploy > New deployment > type "Web app" > Execute as "Me",
  * Who has access "Anyone" > Deploy > copy the Web app URL.
  */
-const DAY_COLUMNS = 3;   // Day 1, Day 2, Day 3
+// The guest list sheet this script writes to. Leave '' if the script is created inside the sheet itself.
+const SHEET_ID = '1kkaNaMpsNaO66Pv_GmX34w09KTXV53hctwB9CqDnnGM';
 const CHECKED_IN_COL = 14;
 
 // Stops text such as "=1+1" from being read as a formula
@@ -23,7 +24,8 @@ function doPost(e) {
     const code = safe(d.code);
     if (!/^[A-Z0-9]{6}$/.test(code)) return reply({ ok: false, error: 'bad code' });
 
-    const sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    const ss = SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheets()[0];
     const last = sh.getLastRow();
     if (last > 1) {
       const codes = sh.getRange(2, 2, last - 1, 1).getValues().flat();
