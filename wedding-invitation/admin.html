@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Guest List — Nadeem & Dariya</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#021810; --panel:#07261a; --line:rgba(212,175,55,.28); --gold:#d4af37; --gold2:#f3e5ab; --ink:#faf9f6; --mute:#a9b8ae; --ok:#2fbf71; --warn:#e6b422; --bad:#e5534b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 'Plus Jakarta Sans',system-ui,sans-serif; padding:0 16px 48px; }
+  h1,h2,.cin { font-family:'Cinzel',serif; letter-spacing:.08em; }
+  button,input,select { font:inherit; color:inherit; }
+  .wrap { max-width:1200px; margin:0 auto; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:18px; color:var(--gold2); }
+  .btn { background:linear-gradient(90deg,#aa8823,#d4af37,#aa8823); color:#021810; border:0; border-radius:999px; padding:8px 18px; font-weight:600; cursor:pointer; }
+  .btn.ghost { background:transparent; color:var(--gold2); border:1px solid var(--line); }
+  .btn.sm { padding:4px 12px; font-size:12px; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--gold2); outline-offset:2px; }
+  input, select { background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:8px; padding:7px 10px; min-width:0; }
+  select option { background:#07261a; }
+  .tabs { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
+  .tab { padding:8px 18px; border-radius:999px; border:1px solid var(--line); background:transparent; cursor:pointer; color:var(--gold2); }
+  .tab[aria-selected=true] { background:var(--gold); color:#021810; font-weight:600; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:16px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .stat b { display:block; font:700 24px 'Cinzel',serif; color:var(--gold2); font-variant-numeric:tabular-nums; }
+  .stat span { color:var(--mute); font-size:12px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; }
+  .bar input[type=search] { flex:1 1 200px; }
+  .scroll { overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  table { border-collapse:collapse; width:100%; min-width:960px; }
+  th,td { padding:8px 10px; text-align:left; border-bottom:1px solid rgba(212,175,55,.12); vertical-align:middle; }
+  th { font:600 11px 'Cinzel',serif; letter-spacing:.12em; color:var(--gold); background:var(--panel); position:sticky; top:0; white-space:nowrap; }
+  td input { width:100%; min-width:70px; }
+  tr.out td { opacity:.45; }
+  tr.in td:first-child { box-shadow:inset 3px 0 0 var(--ok); }
+  .chip { display:inline-block; padding:1px 8px; border-radius:999px; border:1px solid var(--line); font-size:11px; margin-right:4px; color:var(--gold2); }
+  .code { font-family:ui-monospace,monospace; letter-spacing:.1em; color:var(--gold2); }
+  .muted { color:var(--mute); }
+  .empty { padding:36px 16px; text-align:center; color:var(--mute); }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  #login { max-width:380px; margin:12vh auto; text-align:center; }
+  #login input { width:100%; margin:14px 0; text-align:center; }
+  .err { color:var(--bad); min-height:1.4em; margin:6px 0 0; }
+  video { width:100%; max-width:420px; border-radius:14px; background:#000; display:block; margin:0 auto; aspect-ratio:1/1; object-fit:cover; }
+  .result { max-width:420px; margin:14px auto 0; padding:16px; border-radius:14px; text-align:center; border:2px solid var(--line); }
+  .result h2 { margin:0 0 4px; font-size:20px; }
+  .result.ok { border-color:var(--ok); background:rgba(47,191,113,.12); }
+  .result.already { border-color:var(--warn); background:rgba(230,180,34,.12); }
+  .result.bad { border-color:var(--bad); background:rgba(229,83,75,.12); }
+  .row { display:flex; flex-wrap:wrap; gap:10px; }
+  .row > label { flex:1 1 200px; display:flex; flex-direction:column; gap:4px; color:var(--mute); font-size:12px; }
+  .checks { display:flex; gap:14px; flex-wrap:wrap; margin:12px 0; }
+  .checks label { display:flex; gap:6px; align-items:center; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="login" class="panel" hidden>
+    <h1 class="cin" style="color:var(--gold2);font-size:20px;margin:0">Guest List</h1>
+    <p class="muted">Nadeem &amp; Dariya · Admin</p>
+    <form id="loginForm">
+      <input id="key" type="password" autocomplete="current-password" placeholder="Admin passphrase" aria-label="Admin passphrase" required>
+      <button class="btn" type="submit">Sign in</button>
+      <p class="err" id="loginErr" role="alert"></p>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <header>
+      <h1>Guest List · Nadeem &amp; Dariya</h1>
+      <div class="row" style="gap:8px">
+        <button class="btn ghost sm" id="refresh">Refresh</button>
+        <button class="btn ghost sm" id="export">Export CSV</button>
+        <button class="btn ghost sm" id="logout">Sign out</button>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="guests" aria-selected="true">Guests</button>
+      <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door scanner</button>
+      <button class="tab" role="tab" data-tab="add" aria-selected="false">Add guest</button>
+    </div>
+
+    <!-- Guests -->
+    <section id="tab-guests">
+      <div class="stats" id="stats"></div>
+      <div class="bar">
+        <input type="search" id="q" placeholder="Search name, phone or pass code" aria-label="Search">
+        <select id="fDay" aria-label="Filter by day"><option value="">All days</option><option value="1">Day 1 · Thu 21 Jan</option><option value="2">Day 2 · Fri 22 Jan</option><option value="3">Day 3 · Sat 23 Jan</option></select>
+        <select id="fSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option></select>
+        <select id="fIn" aria-label="Filter by check-in"><option value="">All guests</option><option value="in">Checked in</option><option value="out">Not yet in</option></select>
+        <label class="muted"><input type="checkbox" id="fRemoved"> Show removed</label>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Side</th><th>Days</th><th>Guests</th><th>Table</th><th>Meal</th><th>Accommodation</th><th>Note</th><th>Code</th><th>Check-in</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+      <p class="muted" id="count"></p>
+    </section>
+
+    <!-- Scanner -->
+    <section id="tab-scan" hidden>
+      <div class="panel">
+        <p class="muted" style="margin-top:0">Point the camera at a guest's entry pass QR code. Each pass can be admitted once.</p>
+        <video id="cam" playsinline muted></video>
+        <canvas id="grab" hidden></canvas>
+        <div style="text-align:center;margin:12px 0"><button class="btn" id="camBtn">Start camera</button></div>
+        <form id="manual" class="row" style="justify-content:center">
+          <input id="manualCode" placeholder="or type pass code" maxlength="6" autocapitalize="characters" aria-label="Pass code" style="text-transform:uppercase;max-width:200px">
+          <button class="btn ghost" type="submit">Check in</button>
+        </form>
+        <div id="result" class="result" hidden aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Add guest -->
+    <section id="tab-add" hidden>
+      <form id="addForm" class="panel">
+        <p class="muted" style="margin-top:0">For guests who confirm by phone or in person. A pass code is created for them.</p>
+        <div class="row">
+          <label>Name<input id="aName" required maxlength="100"></label>
+          <label>Phone<input id="aPhone" maxlength="30" inputmode="tel"></label>
+          <label>Side<select id="aSide"><option>Groom's Guest</option><option>Bride's Guest</option></select></label>
+          <label>Guests<input id="aGuests" type="number" min="1" max="15" value="1"></label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" name="aDay" value="1" checked> Day 1 · Thu 21 Jan</label>
+          <label><input type="checkbox" name="aDay" value="2" checked> Day 2 · Fri 22 Jan</label>
+          <label><input type="checkbox" name="aDay" value="3" checked> Day 3 · Sat 23 Jan</label>
+        </div>
+        <label class="muted" style="display:block;margin-bottom:12px">Note<input id="aNote" maxlength="500" style="width:100%"></label>
+        <button class="btn" type="submit">Add guest</button>
+        <p class="err" id="addMsg" role="status"></p>
+      </form>
+    </section>
+  </main>
+</div>
+
+<script src="jsQR.js"></script>
+<script>
+const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Prl5rew1ifRF7WyYNopZSA_wt-JaT4a';
+const DAYS = { 1: 'Thu 21 Jan', 2: 'Fri 22 Jan', 3: 'Sat 23 Jan' };
+const $ = id => document.getElementById(id);
+const el = (tag, props, ...kids) => { const e = document.createElement(tag); Object.assign(e, props || {}); kids.forEach(k => e.append(k)); return e; };
+
+let KEY = ''; try { KEY = sessionStorage.getItem('nd27-admin') || ''; } catch (e) {}
+let guests = [], timer = null;
+
+async function rpc(fn, args) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ p_key: KEY }, args || {})) });
+  if (r.status === 403 || r.status === 401) { signOut(); throw new Error('forbidden'); }
+  if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+  return r.json();
+}
+
+// ---------- sign in ----------
+function showLogin(msg) { $('app').hidden = true; $('login').hidden = false; $('loginErr').textContent = msg || ''; $('key').focus(); }
+function signOut() { KEY = ''; try { sessionStorage.removeItem('nd27-admin'); } catch (e) {} clearInterval(timer); stopCam(); showLogin(); }
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); KEY = $('key').value.trim(); $('loginErr').textContent = 'Checking...';
+  try { guests = await rpc('admin_list'); try { sessionStorage.setItem('nd27-admin', KEY); } catch (e2) {} $('key').value = ''; enter(); }
+  catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
+});
+$('logout').onclick = signOut;
+function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows')) load(); }, 30000); }
+async function load() { try { guests = await rpc('admin_list'); render(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
+$('refresh').onclick = load;
+function flash(msg) { $('count').textContent = msg; }
+
+// ---------- list ----------
+const active = () => guests.filter(g => !g.removed);
+function stats() {
+  const a = active(), sum = (arr) => arr.reduce((n, g) => n + g.guests, 0);
+  const items = [
+    [a.length, 'RSVPs'], [sum(a), 'Total guests'],
+    [sum(a.filter(g => g.days.includes(1))), 'Day 1 · Thu 21'], [sum(a.filter(g => g.days.includes(2))), 'Day 2 · Fri 22'], [sum(a.filter(g => g.days.includes(3))), 'Day 3 · Sat 23'],
+    [sum(a.filter(g => /groom/i.test(g.side))), "Groom's side"], [sum(a.filter(g => /bride/i.test(g.side))), "Bride's side"],
+    [sum(a.filter(g => g.checked_in)) + ' / ' + sum(a), 'Checked in']
+  ];
+  $('stats').replaceChildren(...items.map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+}
+function filtered() {
+  const q = $('q').value.trim().toLowerCase(), d = $('fDay').value, s = $('fSide').value, i = $('fIn').value, rm = $('fRemoved').checked;
+  return guests.filter(g => (rm || !g.removed) && (!q || (g.name + ' ' + g.phone + ' ' + g.pass_code).toLowerCase().includes(q))
+    && (!d || g.days.includes(+d)) && (!s || new RegExp(s, 'i').test(g.side)) && (!i || (i === 'in') === g.checked_in));
+}
+function field(g, key, ph) {
+  const inp = el('input', { value: g[key] || '', placeholder: ph, maxLength: 100 }); inp.setAttribute('aria-label', key.replace('_', ' ') + ' for ' + g.name);
+  inp.addEventListener('change', async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { [key]: inp.value } }); g[key] = inp.value; inp.style.borderColor = 'var(--ok)'; setTimeout(() => inp.style.borderColor = '', 900); } catch (e) { inp.style.borderColor = 'var(--bad)'; } });
+  return inp;
+}
+function render() {
+  stats();
+  const list = filtered(), body = $('rows');
+  if (!list.length) { body.replaceChildren(el('tr', {}, el('td', { colSpan: 12, className: 'empty', textContent: guests.length ? 'No guests match these filters.' : 'No RSVPs yet. They will appear here as guests respond.' }))); }
+  else body.replaceChildren(...list.map(g => {
+    const tr = el('tr', { className: (g.removed ? 'out ' : '') + (g.checked_in ? 'in' : '') });
+    const wa = (g.phone || '').replace(/[^\d]/g, '');
+    const phone = el('td', {}, wa ? el('a', { href: 'https://wa.me/' + wa, target: '_blank', rel: 'noopener', textContent: g.phone, style: 'color:var(--gold2)' }) : '');
+    const days = el('td', {}, ...g.days.map(d => el('span', { className: 'chip', textContent: 'D' + d, title: DAYS[d] })));
+    const noteTd = el('td', { className: 'muted', textContent: g.note, style: 'max-width:200px' });
+    const ci = el('button', { className: 'btn sm' + (g.checked_in ? '' : ' ghost'), textContent: g.checked_in ? 'In ✓' : 'Check in' });
+    ci.onclick = async () => { try { await rpc('admin_checkin', { p_code: g.pass_code, p_undo: g.checked_in }); await load(); } catch (e) {} };
+    const rm = el('button', { className: 'btn ghost sm', textContent: g.removed ? 'Restore' : 'Remove' });
+    rm.onclick = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { removed: !g.removed } }); await load(); } catch (e) {} };
+    tr.append(el('td', { textContent: g.name, style: 'font-weight:600' }), phone, el('td', { textContent: g.side.replace(' Guest', '') }), days,
+      el('td', { textContent: g.guests, style: 'text-align:center' }),
+      el('td', {}, field(g, 'table_no', 'Table')), el('td', {}, field(g, 'meal', 'Meal')), el('td', {}, field(g, 'accommodation', 'Room / hotel')),
+      noteTd, el('td', { className: 'code', textContent: g.pass_code }), el('td', {}, ci), el('td', {}, rm));
+    return tr;
+  }));
+  $('count').textContent = 'Showing ' + list.length + ' of ' + guests.length + ' records';
+}
+['q', 'fDay', 'fSide', 'fIn', 'fRemoved'].forEach(id => $(id).addEventListener('input', render));
+
+// ---------- CSV ----------
+const csvCell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+$('export').onclick = () => {
+  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Thu 21 Jan)', 'Day 2 (Fri 22 Jan)', 'Day 3 (Sat 23 Jan)', 'Guests', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
+  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
+  const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-guest-list.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
+  ['guests', 'scan', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load();
+}));
+
+// ---------- add guest ----------
+$('addForm').addEventListener('submit', async e => {
+  e.preventDefault(); const days = [...document.querySelectorAll('input[name=aDay]:checked')].map(c => +c.value), msg = $('addMsg');
+  if (!days.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Pick at least one day.'; return; }
+  try {
+    const g = await rpc('admin_add', { p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: +$('aGuests').value || 1, p_note: $('aNote').value });
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + '. Pass code ' + g.pass_code + '.'; e.target.reset(); await load();
+  } catch (err) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add guest.'; }
+});
+
+// ---------- door scanner ----------
+let stream = null, scanning = false, lastCode = '', lastAt = 0;
+function showResult(kind, title, lines) {
+  const box = $('result'); box.hidden = false; box.className = 'result ' + kind;
+  box.replaceChildren(el('h2', { className: 'cin', textContent: title }), ...lines.map(t => el('div', { textContent: t })));
+}
+function when(ts) { return ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; }
+async function checkIn(code) {
+  code = code.toUpperCase().trim(); if (!/^[A-Z0-9]{6}$/.test(code)) return showResult('bad', 'Not a valid pass', ['Please ask the guest for their entry pass.']);
+  try {
+    const r = await rpc('admin_checkin', { p_code: code }), g = r.guest;
+    if (r.status === 'not_found') return showResult('bad', 'Pass not found', ['Code ' + code + ' is not on the guest list.']);
+    const info = [g.name, 'Party of ' + g.guests, 'Days: ' + g.days.map(d => DAYS[d]).join(', '), g.table_no ? 'Table ' + g.table_no : ''].filter(Boolean);
+    if (g.removed) return showResult('bad', 'Guest was removed', info);
+    if (r.status === 'already') return showResult('already', 'Already checked in', info.concat(['At ' + when(g.checked_in_at)]));
+    showResult('ok', 'Welcome!', info); load();
+  } catch (e) { if (e.message !== 'forbidden') showResult('bad', 'Connection problem', ['Could not reach the server. Try again.']); }
+}
+$('manual').addEventListener('submit', e => { e.preventDefault(); checkIn($('manualCode').value); $('manualCode').value = ''; });
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const v = $('cam'); v.srcObject = stream; await v.play(); scanning = true; $('camBtn').textContent = 'Stop camera'; requestAnimationFrame(tick);
+  } catch (e) { showResult('bad', 'Camera unavailable', ['Allow camera access, or type the pass code below.']); }
+}
+function stopCam() { scanning = false; if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; $('camBtn').textContent = 'Start camera'; }
+function tick() {
+  if (!scanning) return; const v = $('cam'), c = $('grab');
+  if (v.readyState >= 2 && v.videoWidth) {
+    const s = 480 / Math.max(v.videoWidth, v.videoHeight); c.width = v.videoWidth * s; c.height = v.videoHeight * s;
+    const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(v, 0, 0, c.width, c.height);
+    const q = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height), m = q && /^NDW27-([A-Z0-9]{6})-/.exec(q.data);
+    if (m && (m[1] !== lastCode || Date.now() - lastAt > 4000)) { lastCode = m[1]; lastAt = Date.now(); checkIn(m[1]); }
+  }
+  setTimeout(() => requestAnimationFrame(tick), 120);
+}
+$('camBtn').onclick = () => scanning ? stopCam() : startCam();
+
+// ---------- boot ----------
+if (KEY) { rpc('admin_list').then(r => { guests = r; enter(); }).catch(() => showLogin()); } else showLogin();
+</script>
+</body>
+</html>
