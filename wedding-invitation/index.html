@@ -70,7 +70,27 @@
         ::-webkit-scrollbar { width:8px; } ::-webkit-scrollbar-track { background:#021810; }
         ::-webkit-scrollbar-thumb { background:#d4af37; border-radius:4px; }
 
+        /* Envelope intro */
+        #intro { transition:opacity .7s ease; }
+        .stage { grid-area:1/1; transition:opacity .8s ease, transform .8s ease; }
+        .env { position:relative; width:min(86vw,24rem); aspect-ratio:3/2; perspective:1200px; }
+        .env-back { position:absolute; inset:0; background:#0b3a28; border:1px solid rgba(212,175,55,.6); border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(212,175,55,.15); }
+        .env-paper { position:absolute; left:6%; right:6%; top:8%; bottom:8%; z-index:1; border-radius:4px; background:linear-gradient(#fffdfa,#f3f0e6); display:flex; align-items:center; justify-content:center; transition:transform .9s ease .8s; }
+        .env-front { position:absolute; inset:0; z-index:2; background:linear-gradient(160deg,#0f4a33,#082a1c); clip-path:polygon(0 0,50% 54%,100% 0,100% 100%,0 100%); }
+        .env-flap { position:absolute; left:0; right:0; top:0; height:54%; z-index:3; transform-origin:top center; background:linear-gradient(#115238,#0a3322); clip-path:polygon(0 0,100% 0,50% 100%); transition:transform .8s ease, z-index 0s .4s; }
+        .env.open .env-flap { transform:rotateX(180deg); z-index:0; }
+        .env.open .env-paper { transform:translateY(-58%); }
+        .seal { position:absolute; left:50%; top:54%; z-index:4; width:3.6rem; height:3.6rem; margin:-1.8rem 0 0 -1.8rem; border-radius:50%; border:0; cursor:pointer; background:radial-gradient(circle at 35% 30%,#f3e5ab,#d4af37 55%,#806313); color:#3a2a06; font-family:'Great Vibes',cursive; font-size:1.5rem; box-shadow:0 4px 14px rgba(0,0,0,.5); animation:pulse 2s ease-in-out infinite; transition:opacity .4s; }
+        .env.open .seal { opacity:0; pointer-events:none; animation:none; }
+        @keyframes pulse { 50% { box-shadow:0 0 0 12px rgba(212,175,55,.18), 0 4px 14px rgba(0,0,0,.5); } }
+        #scratch-card { opacity:0; pointer-events:none; transform:scale(.92); }
+        #intro.stage2 .env-wrap { opacity:0; pointer-events:none; transform:translateY(40px); }
+        #intro.stage2 #scratch-card { opacity:1; pointer-events:auto; transform:none; }
+        #scratch-cv { transition:opacity .9s ease; touch-action:none; }
+        #scratch-cv.gone { opacity:0; pointer-events:none; }
         @media (prefers-reduced-motion: reduce) {
+            .env-flap, .env-paper, .stage, #intro { transition:none; }
+            .seal { animation:none; }
             html { scroll-behavior:auto; }
             .reveal { opacity:1; transform:none; transition:none; }
             .ambient, .fade-up, .shimmer { animation:none; }
@@ -78,6 +98,43 @@
     </style>
 </head>
 <body class="selection:bg-gold-500 selection:text-emerald-950">
+
+    <!-- Envelope intro -->
+    <div id="intro" class="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-[radial-gradient(ellipse_at_center,#052419,#021810_75%)]" role="dialog" aria-label="Wedding invitation">
+        <div class="absolute inset-0 opacity-[.12] geo pointer-events-none"></div>
+        <button type="button" id="skip-intro" class="absolute top-4 right-4 font-cinzel text-[11px] tracking-[.25em] text-gold-400/80 hover:text-gold-300 px-3 py-2">SKIP</button>
+        <div class="relative grid place-items-center w-full">
+            <div class="stage env-wrap text-center">
+                <p class="font-cinzel text-gold-400 tracking-[.3em] text-[11px] sm:text-xs mb-14">YOU HAVE RECEIVED AN INVITATION</p>
+                <div class="env mx-auto" id="env">
+                    <div class="env-back"></div>
+                    <div class="env-paper"><span class="font-script text-4xl text-emerald-950">N &amp; D</span></div>
+                    <div class="env-front"></div>
+                    <div class="env-flap"></div>
+                    <button type="button" class="seal" id="seal" aria-label="Open the envelope">N&amp;D</button>
+                </div>
+                <p class="font-cinzel text-ivory-200/60 tracking-[.25em] text-[10px] mt-12">TAP THE SEAL TO OPEN</p>
+            </div>
+
+            <div class="stage text-center" id="scratch-card" style="width:min(90vw,24rem)">
+                <div class="arch px-6 pt-14 pb-8 bg-emerald-900/70">
+                    <p class="font-arabic text-2xl gold-text" dir="rtl" lang="ar">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                    <p class="font-script text-4xl sm:text-5xl gold-text mt-3">Nadeem &amp; Dariya</p>
+                    <p class="text-xs text-ivory-200/80 tracking-wide mt-2">request the honour of your presence at their wedding</p>
+                    <div class="relative h-28 mt-6 rounded-xl overflow-hidden border border-gold-500/50">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950">
+                            <span class="font-cinzel text-xl sm:text-2xl font-bold gold-text tracking-wider">JANUARY 21 · 22 · 23</span>
+                            <span class="font-cinzel text-[11px] tracking-[.3em] text-gold-400 mt-1">2027 · BENGALURU</span>
+                        </div>
+                        <canvas id="scratch-cv" class="absolute inset-0 w-full h-full cursor-pointer" aria-label="Scratch to reveal the date"></canvas>
+                    </div>
+                    <p id="scratch-hint" class="font-cinzel text-[11px] tracking-[.25em] text-gold-400 mt-4">SCRATCH THE GOLD TO REVEAL THE DATE</p>
+                    <button type="button" id="reveal-link" class="text-[11px] text-ivory-200/50 underline mt-2">or tap here to reveal</button>
+                    <button type="button" id="enter-btn" class="btn-gold hidden w-full mt-5 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">OPEN INVITATION</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <canvas id="dust" aria-hidden="true"></canvas>
 
@@ -99,7 +156,7 @@
                 <a href="#itinerary" class="hover:text-gold-400 transition-colors">ITINERARY</a>
                 <a href="#venues" class="hover:text-gold-400 transition-colors">VENUES</a>
             </div>
-            <button onclick="openRsvp()" class="btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
+            <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
         </div>
     </nav>
 
@@ -142,8 +199,9 @@
 
             <div class="relative flex flex-wrap justify-center gap-4">
                 <a href="#itinerary" class="glass glow-hover px-6 py-3 rounded-full text-gold-300 font-cinzel text-xs font-bold tracking-widest hover:bg-gold-500 hover:text-emerald-950">VIEW ITINERARY</a>
-                <button onclick="openRsvp()" class="btn-gold px-6 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
+                <button onclick="openRsvp()" class="rsvp-cta btn-gold px-6 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
             </div>
+            <p class="relative mt-5 max-w-sm text-[11px] sm:text-xs text-gold-300/90 font-cinzel tracking-[.15em] leading-relaxed">RSVP IS MANDATORY · YOUR ENTRY PASS IS YOUR TICKET IN</p>
         </section>
 
         <!-- Quranic verse -->
@@ -216,6 +274,7 @@
                 <div class="text-center mb-2">
                     <p class="font-cinzel text-xs text-gold-400 tracking-widest uppercase">Kindly Respond</p>
                     <h3 id="rsvp-title" class="font-cinzel text-2xl font-bold gold-text mt-1">Wedding RSVP</h3>
+                    <p class="text-[11px] sm:text-xs text-ivory-200/70 mt-2">RSVP is mandatory. You will receive an entry pass with a QR code. Please show it at the entrance.</p>
                 </div>
 
                 <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">FULL NAME *</span>
@@ -255,15 +314,21 @@
                 <button type="submit" class="btn-gold w-full py-3 rounded-xl font-cinzel text-xs font-bold tracking-widest glow">CONFIRM RESERVATION</button>
             </form>
 
-            <div id="rsvp-success" class="hidden text-center py-8 space-y-3">
-                <div class="w-16 h-16 mx-auto rounded-full bg-gold-500/20 border border-gold-500/40 flex items-center justify-center text-gold-400 text-2xl glow"><i class="fas fa-check"></i></div>
-                <h4 class="font-cinzel text-xl font-bold gold-text">JazakAllah Khair!</h4>
-                <p class="text-xs sm:text-sm text-ivory-200/80">Your email app has opened with your RSVP — please press <strong>Send</strong> to confirm. We look forward to welcoming you in Bengaluru.</p>
-                <button onclick="closeRsvp()" class="btn-gold px-6 py-2 rounded-full font-cinzel text-xs font-bold tracking-widest mt-2">CLOSE</button>
+            <div id="rsvp-success" class="hidden text-center space-y-3">
+                <p class="font-cinzel text-xs text-gold-400 tracking-widest uppercase">JazakAllah Khair</p>
+                <h4 class="font-cinzel text-xl font-bold gold-text">Your Entry Pass</h4>
+                <canvas id="pass-cv" class="mx-auto w-full max-w-[20rem] rounded-2xl glow" aria-label="Your wedding entry pass"></canvas>
+                <p id="pass-email-note" class="text-xs text-ivory-200/80">Your email app has opened with your RSVP. Please press <strong>Send</strong> so the family has your reply.</p>
+                <p class="text-xs text-ivory-200/60">Save this pass to your phone and show it at the entrance. You can reopen it any time from this page.</p>
+                <div class="flex flex-wrap justify-center gap-3 pt-1">
+                    <button type="button" onclick="savePass()" class="btn-gold px-6 py-2 rounded-full font-cinzel text-xs font-bold tracking-widest">SAVE PASS</button>
+                    <button type="button" onclick="closeRsvp()" class="glass px-6 py-2 rounded-full text-gold-300 font-cinzel text-xs tracking-widest">CLOSE</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="qrcode.js"></script>
     <script>
         // ---------- Content (edit here) ----------
         const RSVP_EMAIL = 'moonlightsolutionsteam@gmail.com'; // RSVPs open the guest's email app, prefilled
@@ -416,28 +481,179 @@
             })(0);
         })();
 
-        // ---------- RSVP ----------
+        // ---------- RSVP + entry pass ----------
         const modal = document.getElementById('rsvp-modal'), form = document.getElementById('rsvp-form');
-        function openRsvp() { modal.classList.remove('opacity-0', 'pointer-events-none'); document.body.style.overflow = 'hidden'; form.querySelector('input').focus(); }
+        const PASS_KEY = 'nd27-pass';
+        const PASS_EVENTS = [
+            { day: 'THU 21 JAN', name: 'Haldi, Mehendi & Sufi Night' },
+            { day: 'FRI 22 JAN', name: 'Nikah Ceremony & Royal Dawat' },
+            { day: 'SAT 23 JAN', name: 'Grand Walima Reception' }
+        ];
+        const loadPass = () => { try { return JSON.parse(localStorage.getItem(PASS_KEY)); } catch (e) { return null; } };
+        const storePass = p => { try { localStorage.setItem(PASS_KEY, JSON.stringify(p)); } catch (e) {} };
+        function updateCtas() { const has = !!loadPass(); document.querySelectorAll('.rsvp-cta').forEach(b => b.textContent = has ? 'MY ENTRY PASS' : 'RSVP NOW'); }
+
+        function showForm() { form.classList.remove('hidden'); document.getElementById('rsvp-success').classList.add('hidden'); }
+        function showPass(p, justSent) {
+            form.classList.add('hidden');
+            document.getElementById('rsvp-success').classList.remove('hidden');
+            document.getElementById('pass-email-note').classList.toggle('hidden', !justSent);
+            drawPass(document.getElementById('pass-cv'), p);
+        }
+        function openRsvp() {
+            const p = loadPass();
+            if (p) showPass(p, false); else showForm();
+            modal.classList.remove('opacity-0', 'pointer-events-none'); document.body.style.overflow = 'hidden';
+            if (!p) form.querySelector('input').focus();
+        }
         function closeRsvp() {
             modal.classList.add('opacity-0', 'pointer-events-none'); document.body.style.overflow = '';
-            setTimeout(() => { form.reset(); form.classList.remove('hidden'); document.getElementById('rsvp-success').classList.add('hidden'); document.getElementById('rsvp-error').textContent = ''; }, 300);
+            document.getElementById('rsvp-error').textContent = '';
         }
         addEventListener('keydown', e => { if (e.key === 'Escape') closeRsvp(); });
         modal.addEventListener('click', e => { if (e.target === modal) closeRsvp(); });
         function step(n) { const g = document.getElementById('guests'); g.value = Math.min(15, Math.max(1, (+g.value || 1) + n)); }
 
+        function newCode() {
+            const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = new Uint8Array(6);
+            (window.crypto || window.msCrypto).getRandomValues(r);
+            return Array.from(r, v => abc[v % abc.length]).join('');
+        }
+
         function submitRsvp(e) {
             e.preventDefault();
             const f = e.target, err = document.getElementById('rsvp-error');
-            const events = [...f.querySelectorAll('input[name=event]:checked')].map(c => c.value);
-            if (!events.length) { err.textContent = 'Please select at least one event you will attend.'; return; }
+            const boxes = [...f.querySelectorAll('input[name=event]')];
+            const idx = boxes.map((c, i) => c.checked ? i : -1).filter(i => i >= 0);
+            if (!idx.length) { err.textContent = 'Please select at least one event you will attend.'; return; }
             err.textContent = '';
-            const body = ['Name: ' + f.name.value.trim(), 'Phone: ' + f.phone.value.trim(), 'Guest of: ' + f.side.value,
-                'Events: ' + events.join('; '), 'Guests: ' + f.guests.value, 'Note: ' + f.note.value.trim()].join('\n');
-            location.href = 'mailto:' + RSVP_EMAIL + '?subject=' + encodeURIComponent('RSVP - Nadeem & Dariya Wedding') + '&body=' + encodeURIComponent(body);
-            f.classList.add('hidden'); document.getElementById('rsvp-success').classList.remove('hidden');
+            const pass = { code: newCode(), name: f.name.value.trim(), guests: +f.guests.value, idx, side: f.side.value };
+            storePass(pass);
+            const body = ['Name: ' + pass.name, 'Phone: ' + f.phone.value.trim(), 'Guest of: ' + pass.side,
+                'Events: ' + idx.map(i => PASS_EVENTS[i].day + ' ' + PASS_EVENTS[i].name).join('; '), 'Guests: ' + pass.guests,
+                'Entry pass code: ' + pass.code, 'Note: ' + f.note.value.trim()].join('\n');
+            showPass(pass, true);
+            updateCtas();
+            location.href = 'mailto:' + RSVP_EMAIL + '?subject=' + encodeURIComponent('RSVP - Nadeem & Dariya Wedding - ' + pass.code) + '&body=' + encodeURIComponent(body);
         }
+
+        // Entry pass drawn on a canvas so it can be saved as an image and shown at the entrance
+        function drawPass(cv, p) {
+            const fonts = ['600 24px Cinzel', '64px "Great Vibes"', '28px "Plus Jakarta Sans"'];
+            Promise.all(fonts.map(f => document.fonts ? document.fonts.load(f).catch(() => {}) : 0)).then(() => paint(cv, p));
+        }
+        function paint(cv, p) {
+            const W = 640, H = 1020; cv.width = W; cv.height = H;
+            const c = cv.getContext('2d'), gold = c.createLinearGradient(0, 0, W, 0);
+            gold.addColorStop(0, '#f3e5ab'); gold.addColorStop(.5, '#d4af37'); gold.addColorStop(1, '#aa8823');
+            const bg = c.createRadialGradient(W / 2, 200, 40, W / 2, 400, 800); bg.addColorStop(0, '#0a3624'); bg.addColorStop(1, '#021810');
+            c.fillStyle = bg; c.fillRect(0, 0, W, H);
+            c.strokeStyle = gold; c.lineWidth = 3; c.strokeRect(20, 20, W - 40, H - 40);
+            c.lineWidth = 1; c.strokeRect(32, 32, W - 64, H - 64);
+            const text = (t, y, font, fill, spacing) => {
+                c.font = font; c.fillStyle = fill; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+                if ('letterSpacing' in c) c.letterSpacing = (spacing || 0) + 'px';
+                c.fillText(t, W / 2 + (spacing || 0) / 2, y);
+                if ('letterSpacing' in c) c.letterSpacing = '0px';
+            };
+            const fit = (t, y, size, font, fill, max) => { let s = size; do { c.font = s + 'px ' + font; s -= 2; } while (c.measureText(t).width > max && s > 14); text(t, y, (s + 2) + 'px ' + font, fill); };
+            text('ENTRY PASS', 92, '600 22px Cinzel, serif', gold, 8);
+            text('Nadeem & Dariya', 168, '66px "Great Vibes", cursive', gold);
+            text('JANUARY 21 · 22 · 23, 2027', 214, '600 17px Cinzel, serif', '#f3e5ab', 3);
+            text('BENGALURU', 242, '500 14px Cinzel, serif', '#d4af37', 6);
+            c.fillStyle = gold; c.fillRect(W / 2 - 60, 266, 120, 2);
+            text('ADMIT', 312, '500 13px "Plus Jakarta Sans", sans-serif', '#d4af37', 6);
+            fit(p.name, 362, 38, '"Plus Jakarta Sans", sans-serif', '#fffdfa', W - 120);
+            text(p.guests > 1 ? 'Party of ' + p.guests : 'Single entry', 396, '500 18px "Plus Jakarta Sans", sans-serif', '#f3e5ab');
+            p.idx.forEach((i, n) => {
+                const y = 448 + n * 34, ev = PASS_EVENTS[i] || { day: '', name: '' };
+                text(ev.day + '  ·  ' + ev.name, y, '400 15px "Plus Jakarta Sans", sans-serif', '#faf9f6');
+            });
+            // QR code on a light tile so scanners can read it
+            const qy = 570, qs = 280, qx = (W - qs) / 2;
+            c.fillStyle = '#faf9f6'; c.beginPath(); c.roundRect ? c.roundRect(qx - 18, qy - 18, qs + 36, qs + 36, 14) : c.rect(qx - 18, qy - 18, qs + 36, qs + 36); c.fill();
+            try {
+                const qr = qrcode(0, 'M'); qr.addData('NDW27-' + p.code + '-G' + p.guests + '-E' + p.idx.map(i => i + 1).join('')); qr.make();
+                const n = qr.getModuleCount(), m = Math.floor(qs / n), off = (qs - m * n) / 2;
+                c.fillStyle = '#021810';
+                for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(qx + off + k * m, qy + off + r * m, m, m);
+            } catch (err) { text('QR unavailable', qy + qs / 2, '16px sans-serif', '#021810'); }
+            text('PASS CODE', 906, '500 12px "Plus Jakarta Sans", sans-serif', '#d4af37', 6);
+            text(p.code, 950, '600 36px Cinzel, serif', gold, 8);
+            text('Please show this pass at the entrance', 992, 'italic 15px "Plus Jakarta Sans", sans-serif', '#f3e5ab');
+        }
+        function savePass() {
+            const cv = document.getElementById('pass-cv');
+            cv.toBlob(b => {
+                if (!b) return;
+                const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'Nadeem-Dariya-entry-pass.png';
+                document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+            }, 'image/png');
+        }
+        updateCtas();
+
+        // ---------- Envelope intro with scratch-to-reveal date ----------
+        (function () {
+            const intro = document.getElementById('intro'), env = document.getElementById('env');
+            const cv = document.getElementById('scratch-cv'), enter = document.getElementById('enter-btn');
+            let seen = false; try { seen = !!sessionStorage.getItem('nd27-intro'); } catch (e) {}
+            if (seen) { intro.remove(); return; }
+            document.body.style.overflow = 'hidden';
+
+            let revealed = false, stage2 = false;
+            function finish() {
+                try { sessionStorage.setItem('nd27-intro', '1'); } catch (e) {}
+                document.body.style.overflow = '';
+                intro.style.opacity = '0'; intro.style.pointerEvents = 'none';
+                setTimeout(() => intro.remove(), 800);
+                const a = document.getElementById('bg-music');
+                if (a && !playing) a.play().then(() => { playing = true; document.getElementById('music-icon').className = 'fas fa-pause'; }).catch(() => {});
+            }
+            function reveal() {
+                if (revealed) return; revealed = true;
+                cv.classList.add('gone');
+                document.getElementById('reveal-link').classList.add('hidden');
+                document.getElementById('scratch-hint').textContent = 'YOU ARE INVITED';
+                enter.classList.remove('hidden');
+            }
+            const dpr = Math.min(window.devicePixelRatio || 1, 2); let ctx, W, H;
+            function foil() {
+                const r = cv.getBoundingClientRect(); W = cv.width = Math.max(1, r.width * dpr); H = cv.height = Math.max(1, r.height * dpr);
+                ctx = cv.getContext('2d');
+                const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#f3e5ab'); g.addColorStop(.5, '#d4af37'); g.addColorStop(1, '#aa8823');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                ctx.strokeStyle = 'rgba(128,99,19,.35)'; ctx.lineWidth = 1 * dpr;
+                for (let x = -H; x < W; x += 14 * dpr) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
+                ctx.fillStyle = '#3a2a06'; ctx.font = '600 ' + 13 * dpr + 'px Cinzel, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('SCRATCH HERE', W / 2, H / 2);
+            }
+            function cleared() {
+                const d = ctx.getImageData(0, 0, W, H).data; let n = 0, t = 0;
+                for (let i = 3; i < d.length; i += 4 * 37) { t++; if (d[i] < 128) n++; }
+                return n / t;
+            }
+            let down = false, lx, ly, lastCheck = 0;
+            const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * dpr, (e.clientY - r.top) * dpr]; };
+            cv.addEventListener('pointerdown', e => { down = true; cv.setPointerCapture(e.pointerId); [lx, ly] = pos(e); scratch(lx, ly, lx, ly); });
+            cv.addEventListener('pointermove', e => { if (!down) return; const [x, y] = pos(e); scratch(lx, ly, x, y); lx = x; ly = y; });
+            const up = () => { if (!down) return; down = false; if (cleared() > .45) reveal(); };
+            cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+            function scratch(x0, y0, x1, y1) {
+                ctx.globalCompositeOperation = 'destination-out'; ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = 34 * dpr;
+                ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+                const now = Date.now(); if (now - lastCheck > 350) { lastCheck = now; if (cleared() > .45) reveal(); }
+            }
+
+            function openEnvelope() {
+                if (stage2 || env.classList.contains('open')) return;
+                env.classList.add('open');
+                setTimeout(() => { stage2 = true; intro.classList.add('stage2'); requestAnimationFrame(foil); }, 2200);
+            }
+            document.getElementById('seal').addEventListener('click', openEnvelope);
+            document.getElementById('reveal-link').addEventListener('click', reveal);
+            enter.addEventListener('click', finish);
+            document.getElementById('skip-intro').addEventListener('click', finish);
+        })();
 
         // ---------- Audio ----------
         let playing = false;
