@@ -152,7 +152,6 @@
             <a href="#hero" class="font-cinzel text-lg md:text-xl font-bold tracking-wider gold-text">N &amp; D</a>
             <div class="hidden md:flex space-x-8 font-cinzel text-xs tracking-widest text-ivory-100/80">
                 <a href="#hero" class="hover:text-gold-400 transition-colors">HOME</a>
-                <a href="#gallery" class="hover:text-gold-400 transition-colors">OUR STORY</a>
                 <a href="#itinerary" class="hover:text-gold-400 transition-colors">ITINERARY</a>
                 <a href="#venues" class="hover:text-gold-400 transition-colors">VENUES</a>
             </div>
@@ -212,16 +211,6 @@
                 <p class="mt-6 text-sm sm:text-lg italic text-ivory-200/85 leading-relaxed">“And among His signs is that He created for you mates from among yourselves, that you may find tranquility in them; and He placed between you affection and mercy.”</p>
                 <p class="mt-3 font-cinzel text-xs tracking-[.3em] text-gold-400">QURAN · SURAH AR-RUM 30:21</p>
             </div>
-        </section>
-
-        <!-- Our Story / Photos -->
-        <section id="gallery" class="py-16 px-4 max-w-5xl mx-auto">
-            <div class="text-center mb-10 reveal">
-                <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Two Hearts, One Journey</p>
-                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Nadeem &amp; Dariya</h2>
-                <div class="w-20 h-px mx-auto bg-gradient-to-r from-transparent via-gold-500 to-transparent mt-4"></div>
-            </div>
-            <div id="photo-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"></div>
         </section>
 
         <!-- Itinerary -->
@@ -425,26 +414,6 @@
             a.innerHTML = '<i class="fas fa-directions mr-2"></i>'; a.append('GET DIRECTIONS (GOOGLE MAPS)');
             card.append(top, a);
             document.getElementById('venue-grid').append(card);
-        });
-
-        // ---------- Photos (drop files into wedding-invitation/photos/ and list them here) ----------
-        const PHOTOS = [
-            { src: 'photos/couple-1.jpg', alt: 'Nadeem and Dariya' },
-            { src: 'photos/couple-2.jpg', alt: 'Nadeem and Dariya' },
-            { src: 'photos/couple-3.jpg', alt: 'Nadeem and Dariya' }
-        ];
-        PHOTOS.forEach((p, i) => {
-            const frame = el('figure', 'relative aspect-[3/4] overflow-hidden glow-hover reveal ' + (i % 2 ? 'mt-6 sm:mt-10' : ''));
-            frame.style.borderRadius = '999px 999px 1rem 1rem';
-            frame.style.border = '1px solid rgba(212,175,55,.5)';
-            const ph = el('div', 'absolute inset-0 flex flex-col items-center justify-center glass text-gold-400');
-            ph.append(el('span', 'font-script text-5xl gold-text', 'N & D'), el('span', 'font-cinzel text-[10px] tracking-[.3em] mt-2 text-gold-400/70', 'PHOTO'));
-            const img = new Image();
-            img.alt = p.alt; img.loading = 'lazy'; img.className = 'absolute inset-0 w-full h-full object-cover';
-            img.onload = () => { ph.remove(); frame.append(img); };
-            img.src = p.src;
-            frame.append(ph);
-            document.getElementById('photo-grid').append(frame);
         });
 
         // ---------- Countdown (16:00 IST, 21 Jan 2027) ----------
