@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wedding Invitation | Moonlight Solutions</title>
+  <meta name="description" content="You are warmly invited to celebrate our wedding.">
+  <meta name="theme-color" content="#14213d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Great+Vibes&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="hero" id="top">
+    <p class="eyebrow">Together with their families</p>
+    <h1 class="names"><span id="name1">Partner One</span><span class="amp">&amp;</span><span id="name2">Partner Two</span></h1>
+    <p class="lead">request the pleasure of your company at their wedding</p>
+    <p class="date" id="heroDate"></p>
+    <p class="place" id="heroPlace"></p>
+    <div class="countdown" id="countdown" aria-live="polite"></div>
+    <a href="#rsvp" class="btn">RSVP</a>
+    <a href="#details" class="scroll" aria-label="Scroll to details">&#8595;</a>
+  </header>
+
+  <main>
+    <section class="section" id="message">
+      <h2>Our Invitation</h2>
+      <p class="prose" id="message-text"></p>
+    </section>
+
+    <section class="section alt" id="details">
+      <h2>The Celebration</h2>
+      <div class="cards" id="events"></div>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="addCal">Add to Calendar</button>
+        <a class="btn ghost" id="mapLink" target="_blank" rel="noopener">View Map</a>
+      </div>
+    </section>
+
+    <section class="section" id="schedule">
+      <h2>Order of the Day</h2>
+      <ol class="timeline" id="timeline"></ol>
+    </section>
+
+    <section class="section alt" id="rsvp">
+      <h2>RSVP</h2>
+      <p class="prose" id="rsvp-note"></p>
+      <form id="rsvpForm" class="form" novalidate>
+        <label>Full name
+          <input name="name" required autocomplete="name">
+        </label>
+        <label>Number of guests
+          <input name="guests" type="number" min="1" max="10" value="1" required>
+        </label>
+        <fieldset>
+          <legend>Will you attend?</legend>
+          <label class="radio"><input type="radio" name="attending" value="Joyfully accepts" checked> Joyfully accept</label>
+          <label class="radio"><input type="radio" name="attending" value="Regretfully declines"> Regretfully decline</label>
+        </fieldset>
+        <label>Dietary needs or a message for the couple
+          <textarea name="note" rows="3"></textarea>
+        </label>
+        <button class="btn" type="submit">Send RSVP</button>
+        <p class="status" id="rsvpStatus" role="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="script" id="footerNames"></p>
+    <p>Invitation designed by <strong>Moonlight Solutions</strong></p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
