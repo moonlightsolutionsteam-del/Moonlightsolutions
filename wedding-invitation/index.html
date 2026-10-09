@@ -321,8 +321,10 @@
     <script>
         // ---------- Content (edit here) ----------
         const RSVP_EMAIL = 'moonlightsolutionsteam@gmail.com'; // fallback: opens the guest's email app, prefilled
-        // Google Sheet endpoint (see guest-sheet.gs). Leave '' to use email only.
-        const RSVP_ENDPOINT = '';
+        // Guest list database (Supabase). The publishable key is meant to be public: it can only submit RSVPs.
+        // Set SUPABASE_URL to '' to fall back to email only.
+        const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Prl5rew1ifRF7WyYNopZSA_wt-JaT4a';
         const mapUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
 
         const DAYS = [
@@ -508,13 +510,15 @@
             const emailRsvp = () => {
             location.href = 'mailto:' + RSVP_EMAIL + '?subject=' + encodeURIComponent('RSVP - Nadeem & Dariya Wedding - ' + pass.code) + '&body=' + encodeURIComponent(body);
             };
-            if (!RSVP_ENDPOINT) return emailRsvp();
+            if (!SUPABASE_URL) return emailRsvp();
             const note = document.getElementById('pass-email-note');
             note.textContent = 'Sending your RSVP...';
-            fetch(RSVP_ENDPOINT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({ code: pass.code, name: pass.name, phone: f.phone.value.trim(), side: pass.side,
-                    events: pass.idx.map(i => i + 1), guests: pass.guests, note: f.note.value.trim() }) })
-                .then(() => { note.textContent = 'Your RSVP has been received. Please save your entry pass below.'; })
+            fetch(SUPABASE_URL + '/rest/v1/rpc/submit_rsvp', {
+                method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ p_code: pass.code, p_name: pass.name, p_phone: f.phone.value.trim(), p_side: pass.side,
+                    p_events: pass.idx.map(i => i + 1), p_guests: pass.guests, p_note: f.note.value.trim() }) })
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .then(j => { if (!j || !j.ok) throw new Error('rejected'); note.textContent = 'Your RSVP has been received. Please save your entry pass below.'; })
                 .catch(() => { note.textContent = 'We could not reach the server, so your email app is opening instead. Please press Send.'; emailRsvp(); });
         }
 
