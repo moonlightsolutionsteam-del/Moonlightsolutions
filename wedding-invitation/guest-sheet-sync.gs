@@ -9,7 +9,7 @@
  * edit > Version: New version, or the live URL keeps running the old code.
  */
 const SYNC_SECRET = 'PASTE_THE_SECRET_HERE';
-const HEADERS = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20)', 'Nikah (Thu AM)', 'Reception (Thu PM)', 'Guests', 'Note',
+const HEADERS = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20)', 'Nikah (Thu AM)', 'Reception (Thu PM)', 'Guests', 'Family Members', 'Note',
   'Table', 'Meal', 'Accommodation', 'Checked In', 'Checked In At', 'Removed', 'Submitted', 'Last Synced'];
 
 function doPost(e) {
@@ -24,7 +24,7 @@ function doPost(e) {
     const days = Array.isArray(r.days) ? r.days : [];
     const row = [r.pass_code, r.name, r.phone, r.side,
       days.indexOf(1) !== -1 ? 'Yes' : '', days.indexOf(2) !== -1 ? 'Yes' : '', days.indexOf(3) !== -1 ? 'Yes' : '',
-      r.guests, r.note, r.table_no, r.meal, r.accommodation,
+      r.guests, (Array.isArray(r.members) ? r.members : []).map(m => m.name + (m.phone ? ' (' + m.phone + ')' : '')).join('; '), r.note, r.table_no, r.meal, r.accommodation,
       r.checked_in ? 'Yes' : '', r.checked_in_at ? new Date(r.checked_in_at) : '',
       r.removed ? 'Yes' : '', r.created_at ? new Date(r.created_at) : '', new Date()]
       .map((v, i) => (i !== 2 && typeof v === 'string' && /^[=+\-@]/.test(v)) ? "'" + v : (v == null ? '' : v));

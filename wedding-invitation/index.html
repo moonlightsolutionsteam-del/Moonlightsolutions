@@ -286,7 +286,7 @@
                     </div>
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-bed text-gold-400 mt-1 w-5 text-center"></i>
-                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Who stays overnight</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Rooms and cottages are shared equally between both families and assigned by name. Only guests on your family&#x27;s room list can stay overnight; everyone else is welcome for the day.</p></div>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Who stays overnight</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1"><strong class="text-gold-300">Rooms are assigned by the family.</strong> Rooms and cottages are shared equally between both families and allotted by name; we will confirm with you directly if you have one. Please do not book or request rooms at the resort yourself. Only guests on your family&#x27;s room list can stay overnight; everyone else is welcome for the day.</p></div>
                     </div>
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-cloud-moon text-gold-400 mt-1 w-5 text-center"></i>
@@ -376,11 +376,11 @@
                     <p class="text-[11px] sm:text-xs text-ivory-200/70 mt-2">Kindly respond by <strong class="text-gold-300">15 December 2026</strong>. RSVP is mandatory. You will receive an entry pass with a QR code. Please show it at the entrance.</p>
                 </div>
 
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">FULL NAME *</span>
+                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOUR FULL NAME *</span>
                     <input class="gold-input" type="text" name="name" required autocomplete="name" placeholder="e.g. Mohsin Khan"></label>
 
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">PHONE NUMBER *</span>
-                    <input class="gold-input" type="tel" name="phone" required autocomplete="tel" inputmode="tel" pattern="[0-9+\s()\-]{7,}" placeholder="+91 98765 43210"></label>
+                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOUR PHONE NUMBER *</span>
+                    <input class="gold-input" type="tel" name="phone" required autocomplete="tel" inputmode="tel" pattern="[0-9+\s\(\)\-]{7,}" placeholder="+91 98765 43210"></label>
 
                 <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOU ARE *</span>
                     <select class="gold-input" name="side" required>
@@ -398,14 +398,16 @@
                     </div>
                 </fieldset>
 
-                <div>
-                    <span class="block font-cinzel text-xs text-gold-300 mb-1">NUMBER OF GUESTS (incl. you) *</span>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="step(-1)" class="glass w-10 h-10 rounded-full text-gold-300 text-lg hover:bg-gold-500 hover:text-emerald-950" aria-label="Fewer guests">−</button>
-                        <input id="guests" class="gold-input text-center w-20" type="number" name="guests" min="1" max="15" value="1" required aria-label="Number of guests">
-                        <button type="button" onclick="step(1)" class="glass w-10 h-10 rounded-full text-gold-300 text-lg hover:bg-gold-500 hover:text-emerald-950" aria-label="More guests">+</button>
+                <fieldset>
+                    <legend class="font-cinzel text-xs text-gold-300 mb-1">FAMILY MEMBERS COMING WITH YOU</legend>
+                    <p class="text-[11px] text-ivory-200/55 mb-2">Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.</p>
+                    <div id="members" class="space-y-2"></div>
+                    <div class="flex items-center justify-between gap-3 mt-2">
+                        <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2 rounded-full text-gold-300 font-cinzel text-[11px] tracking-widest hover:border-gold-500/60">+ ADD FAMILY MEMBER</button>
+                        <span id="party-total" class="text-xs text-ivory-200/80" aria-live="polite">Total guests: 1</span>
                     </div>
-                </div>
+                </fieldset>
+                <p class="text-[11px] text-ivory-200/55">Rooms and cottages are assigned by the family. We will confirm with you directly if you have a room; please do not book or ask the resort for one.</p>
 
                 <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">WARM NOTE / BLESSINGS</span>
                     <textarea class="gold-input" name="note" rows="3" placeholder="Write your warm blessings..."></textarea></label>
@@ -671,7 +673,29 @@
         }
         addEventListener('keydown', e => { if (e.key === 'Escape') closeRsvp(); });
         modal.addEventListener('click', e => { if (e.target === modal) closeRsvp(); });
-        function step(n) { const g = document.getElementById('guests'); g.value = Math.min(15, Math.max(1, (+g.value || 1) + n)); }
+        // Family members on one RSVP (up to 14 besides the person replying)
+        const MAX_MEMBERS = 14, membersEl = document.getElementById('members');
+        function memberRows() { return [...membersEl.children]; }
+        function updateParty() {
+            const n = memberRows().length;
+            document.getElementById('party-total').textContent = 'Total guests: ' + (n + 1);
+            document.getElementById('add-member').classList.toggle('hidden', n >= MAX_MEMBERS);
+            memberRows().forEach((row, i) => row.querySelector('.m-num').textContent = (i + 2) + '.');
+        }
+        function addMember() {
+            if (memberRows().length >= MAX_MEMBERS) return;
+            const row = el('div', 'flex items-start gap-2');
+            const name = el('input', 'gold-input m-name'); name.type = 'text'; name.required = true; name.maxLength = 100; name.placeholder = 'Full name'; name.setAttribute('aria-label', 'Family member name');
+            const phone = el('input', 'gold-input m-phone'); phone.type = 'tel'; phone.inputMode = 'tel'; phone.maxLength = 30; phone.pattern = '[0-9+\\s\\(\\)\\-]{7,}'; phone.placeholder = 'Phone (optional)'; phone.setAttribute('aria-label', 'Family member phone');
+            const fields = el('div', 'flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2'); fields.append(name, phone);
+            const rm = el('button', 'glass w-9 h-9 shrink-0 rounded-full text-gold-300 hover:text-red-300', '×'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove this person');
+            rm.onclick = () => { row.remove(); updateParty(); };
+            row.append(el('span', 'm-num font-cinzel text-xs text-gold-400 w-5 pt-3 shrink-0'), fields, rm);
+            membersEl.append(row); updateParty(); name.focus();
+        }
+        function readMembers() {
+            return memberRows().map(row => ({ name: row.querySelector('.m-name').value.trim(), phone: row.querySelector('.m-phone').value.trim() })).filter(m => m.name);
+        }
 
         function newCode() {
             const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = new Uint8Array(6);
@@ -686,10 +710,12 @@
             const idx = boxes.map((c, i) => c.checked ? i : -1).filter(i => i >= 0);
             if (!idx.length) { err.textContent = 'Please select at least one event you will attend.'; return; }
             err.textContent = '';
-            const pass = { code: newCode(), name: f.name.value.trim(), guests: +f.guests.value, idx, side: f.side.value };
+            const members = readMembers();
+            const pass = { code: newCode(), name: f.name.value.trim(), guests: members.length + 1, idx, side: f.side.value };
             storePass(pass);
             const body = ['Name: ' + pass.name, 'Phone: ' + f.phone.value.trim(), 'Guest of: ' + pass.side,
                 'Events: ' + idx.map(i => PASS_EVENTS[i].day + ' ' + PASS_EVENTS[i].name).join('; '), 'Guests: ' + pass.guests,
+                'Family members: ' + (members.length ? members.map(m => m.name + (m.phone ? ' (' + m.phone + ')' : '')).join('; ') : 'none'),
                 'Entry pass code: ' + pass.code, 'Note: ' + f.note.value.trim()].join('\n');
             showPass(pass, true);
             updateCtas();
@@ -702,7 +728,7 @@
             fetch(SUPABASE_URL + '/rest/v1/rpc/submit_rsvp', {
                 method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ p_code: pass.code, p_name: pass.name, p_phone: f.phone.value.trim(), p_side: pass.side,
-                    p_events: pass.idx.map(i => i + 1), p_guests: pass.guests, p_note: f.note.value.trim() }) })
+                    p_events: pass.idx.map(i => i + 1), p_guests: pass.guests, p_note: f.note.value.trim(), p_members: members }) })
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .then(j => { if (!j || !j.ok) throw new Error('rejected'); note.textContent = 'Your RSVP has been received. Please save your entry pass below.'; })
                 .catch(() => { note.textContent = 'We could not reach the server, so your email app is opening instead. Please press Send.'; emailRsvp(); });

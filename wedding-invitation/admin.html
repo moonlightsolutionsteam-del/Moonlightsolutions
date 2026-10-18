@@ -190,7 +190,7 @@ function stats() {
 }
 function filtered() {
   const q = $('q').value.trim().toLowerCase(), d = $('fDay').value, s = $('fSide').value, i = $('fIn').value, rm = $('fRemoved').checked;
-  return guests.filter(g => (rm || !g.removed) && (!q || (g.name + ' ' + g.phone + ' ' + g.pass_code).toLowerCase().includes(q))
+  return guests.filter(g => (rm || !g.removed) && (!q || (g.name + ' ' + g.phone + ' ' + g.pass_code + ' ' + (g.members || []).map(m => m.name + ' ' + m.phone).join(' ')).toLowerCase().includes(q))
     && (!d || g.days.includes(+d)) && (!s || new RegExp(s, 'i').test(g.side)) && (!i || (i === 'in') === g.checked_in));
 }
 function field(g, key, ph) {
@@ -212,7 +212,13 @@ function render() {
     ci.onclick = async () => { try { await rpc('admin_checkin', { p_code: g.pass_code, p_undo: g.checked_in }); await load(); } catch (e) {} };
     const rm = el('button', { className: 'btn ghost sm', textContent: g.removed ? 'Restore' : 'Remove' });
     rm.onclick = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { removed: !g.removed } }); await load(); } catch (e) {} };
-    tr.append(el('td', { textContent: g.name, style: 'font-weight:600' }), phone, el('td', { textContent: g.side.replace(' Guest', '') }), days,
+    const nameTd = el('td', {}, el('div', { textContent: g.name, style: 'font-weight:600' }));
+    (g.members || []).forEach(m => {
+      const mw = (m.phone || '').replace(/[^\d]/g, ''), line = el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px' }, '+ ' + m.name);
+      if (mw) line.append(' · ', el('a', { href: 'https://wa.me/' + mw, target: '_blank', rel: 'noopener', textContent: m.phone, style: 'color:var(--gold2)' }));
+      nameTd.append(line);
+    });
+    tr.append(nameTd, phone, el('td', { textContent: g.side.replace(' Guest', '') }), days,
       el('td', { textContent: g.guests, style: 'text-align:center' }),
       el('td', {}, field(g, 'table_no', 'Table')), el('td', {}, field(g, 'meal', 'Meal')), el('td', {}, field(g, 'accommodation', 'Room / hotel')),
       noteTd, el('td', { className: 'code', textContent: g.pass_code }), el('td', {}, ci), el('td', {}, rm));
@@ -223,10 +229,11 @@ function render() {
 ['q', 'fDay', 'fSide', 'fIn', 'fRemoved'].forEach(id => $(id).addEventListener('input', render));
 
 // ---------- CSV ----------
+const memberText = g => (g.members || []).map(m => m.name + (m.phone ? ' (' + m.phone + ')' : '')).join('; ');
 const csvCell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
 $('export').onclick = () => {
-  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20 Jan)', 'Nikah (Thu 21 Jan AM)', 'Reception (Thu 21 Jan PM)', 'Guests', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
-  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
+  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20 Jan)', 'Nikah (Thu 21 Jan AM)', 'Reception (Thu 21 Jan PM)', 'Guests', 'Family Members', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
+  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, memberText(g), g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
   const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-guest-list.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
@@ -260,7 +267,7 @@ async function checkIn(code) {
   try {
     const r = await rpc('admin_checkin', { p_code: code }), g = r.guest;
     if (r.status === 'not_found') return showResult('bad', 'Pass not found', ['Code ' + code + ' is not on the guest list.']);
-    const info = [g.name, 'Party of ' + g.guests, 'Days: ' + g.days.map(d => DAYS[d]).join(', '), g.table_no ? 'Table ' + g.table_no : ''].filter(Boolean);
+    const info = [g.name, 'Party of ' + g.guests, (g.members || []).length ? 'With: ' + g.members.map(m => m.name).join(', ') : '', 'Days: ' + g.days.map(d => DAYS[d]).join(', '), g.table_no ? 'Table ' + g.table_no : ''].filter(Boolean);
     if (g.removed) return showResult('bad', 'Guest was removed', info);
     if (r.status === 'already') return showResult('already', 'Already checked in', info.concat(['At ' + when(g.checked_in_at)]));
     showResult('ok', 'Welcome!', info); load();
