@@ -6,6 +6,14 @@
     <title>Nadeem & Dariya — Wedding Invitation</title>
     <meta name="description" content="Together with their families, Nadeem Khan & Dariya invite you to celebrate their wedding, January 20–21, 2027, at Greenwood Resort, Bengaluru.">
     <meta name="theme-color" content="#021810">
+    <!-- Link preview (WhatsApp, iMessage, Facebook). Once the site has its address, make og:image a full URL, e.g. https://your-site/og.jpg -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Nadeem & Dariya · Wedding Invitation">
+    <meta property="og:description" content="20–21 January 2027 · Greenwood Resort, Bengaluru. Please RSVP for your entry pass.">
+    <meta property="og:image" content="og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -265,6 +273,10 @@
                         <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">RSVP is mandatory</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">RSVP on this page as early as you can. You will get an entry pass with a QR code. Save it on your phone and show it at the entrance.</p></div>
                     </div>
                     <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-clock text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Coming for one function only</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Tick only what you will attend when you RSVP. For the Nikah, please reach the resort by 9:30 AM (seated by 9:50 AM); you are welcome to stay for lunch. For the Reception, please reach by 6:15 PM; the couple enters at 7:15 PM and dinner is from 8:00 PM.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-car text-gold-400 mt-1 w-5 text-center"></i>
                         <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Travel &amp; parking</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please arrange your own travel to Greenwood Resort on Kanakapura Road. Carpool where you can; parking is available at the resort.</p></div>
                     </div>
@@ -408,6 +420,7 @@
                 <canvas id="pass-cv" class="mx-auto w-full max-w-[20rem] rounded-2xl glow" aria-label="Your wedding entry pass"></canvas>
                 <p id="pass-email-note" class="text-xs text-ivory-200/80">Your email app has opened with your RSVP. Please press <strong>Send</strong> so the family has your reply.</p>
                 <p class="text-xs text-ivory-200/60">Save this pass to your phone and show it at the entrance. You can reopen it any time from this page.</p>
+                <div id="cal-links" class="glass rounded-xl p-3 text-xs text-ivory-200/85 space-y-2 text-left"></div>
                 <div class="flex flex-wrap justify-center gap-3 pt-1">
                     <button type="button" onclick="savePass()" class="btn-gold px-6 py-2 rounded-full font-cinzel text-xs font-bold tracking-widest">SAVE PASS</button>
                     <button type="button" onclick="closeRsvp()" class="glass px-6 py-2 rounded-full text-gold-300 font-cinzel text-xs tracking-widest">CLOSE</button>
@@ -442,12 +455,12 @@
             { id:'day2', tab:'DAY 2 • JAN 21', date:'Thursday, January 21st, 2027', title:'Nikah, Julwa & Reception', venue:'Greenwood Resort',
               events:[
                 { icon:'fa-mug-hot', name:'Breakfast', time:'7:30 AM – 9:00 AM', place:'Covered shed', desc:'Idli, vada, sambar, chutney, upma, fruit, tea and coffee for staying guests.' },
-                { icon:'fa-mosque', name:'Nikah', time:'10:00 AM – 11:30 AM', place:'Lawn', dress:'Traditional festive ethnic / pastel formals', desc:'Please be seated by 9:50 AM. Khutbah, Ijab-o-Qubool, Nikahnama signing and dua, with the bride and groom seated facing each other and the Qazi between them.' },
+                { icon:'fa-mosque', name:'Nikah', time:'10:00 AM – 11:30 AM', place:'Lawn', dress:'Traditional festive ethnic / pastel formals', desc:'Please be seated by 9:50 AM; if you are driving in that morning, aim to reach the resort by 9:30 AM. Khutbah, Ijab-o-Qubool, Nikahnama signing and dua, with the bride and groom seated facing each other and the Qazi between them.' },
                 { icon:'fa-camera', name:'Post-Nikah Refreshments & Photos', time:'11:30 AM – 12:15 PM', place:'Lawn', desc:'Dates, sharbat and family photographs.' },
                 { icon:'fa-utensils', name:'Nikah Lunch', time:'1:00 PM – 2:30 PM', place:'Covered shed', desc:'Mutton Kacchi Biryani, Dum ka Chicken, Sheermal and Zafrani Kheer.' },
                 { icon:'fa-heart', name:'Julwa (Arsi Mushaf)', time:'3:00 PM – 4:00 PM', place:'Covered area', desc:'The mirror and Quran ritual under a dupatta canopy, with blessings from the elders.' },
                 { icon:'fa-mug-saucer', name:'Sundowner Tea', time:'5:30 PM – 6:30 PM', place:'Lawn', desc:'Tea as the fairy lights come on.' },
-                { icon:'fa-star', name:'Reception / Walima', time:'6:30 PM – 9:30 PM', place:'Lawn', dress:'Royal black, emerald or formal bespoke wear', desc:"Guests arrive from 6:30 PM and the couple enters at 7:15 PM. Expect a few surprises from the groom, then dinner from 8:00 PM: Mutton Dum Biryani, Mutton Marag with naan, Mirchi ka Salan and Kaddu ka Halwa." },
+                { icon:'fa-star', name:'Reception / Walima', time:'6:30 PM – 9:30 PM', place:'Lawn', dress:'Royal black, emerald or formal bespoke wear', desc:"Coming just for the evening? Please reach the resort by 6:15 PM, park and show your entry pass at the entrance. Guests are seated from 6:30 PM and the couple enters at 7:15 PM. Expect a few surprises from the groom, then dinner from 8:00 PM: Mutton Dum Biryani, Mutton Marag with naan, Mirchi ka Salan and Kaddu ka Halwa." },
                 { icon:'fa-door-open', name:'Farewell & Checkout', time:'10:00 PM', place:'Front desk', desc:'Please return room keys before you leave.' }
               ] }
         ];
@@ -601,6 +614,39 @@
             { day: 'THU 21 JAN', name: 'Nikah & Julwa (morning)' },
             { day: 'THU 21 JAN', name: 'Reception (evening)' }
         ];
+        // Calendar entries for each RSVP choice (times in UTC; IST is UTC+5:30)
+        const CAL_EVENTS = [
+            { title: 'Nadeem & Dariya: Day 1 (Haldi, Shukrana & DJ Night)', start: '20270120T063000Z', end: '20270120T173000Z', note: 'Arrival from 12:00 PM. Haldi & Mehendi 4:45 PM, Shukrana 6:45 PM, DJ Night 8:00 PM.' },
+            { title: 'Nadeem & Dariya: Nikah', start: '20270121T043000Z', end: '20270121T090000Z', note: 'Please be seated by 9:50 AM. Nikah at 10:00 AM, lunch at 1:00 PM.' },
+            { title: 'Nadeem & Dariya: Reception / Walima', start: '20270121T130000Z', end: '20270121T160000Z', note: 'Please arrive by 6:15 PM. Couple enters at 7:15 PM, dinner from 8:00 PM.' }
+        ];
+        const CAL_PLACE = 'Greenwood Resort, Kanakapura Road, Bengaluru';
+        function googleCal(e) {
+            return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(e.title) + '&dates=' + e.start + '/' + e.end +
+                '&details=' + encodeURIComponent(e.note + ' Bring your entry pass. Map: https://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9') + '&location=' + encodeURIComponent(CAL_PLACE);
+        }
+        function icsCal(idx) {
+            const esc = t => t.replace(/[\\,;]/g, m => '\\' + m), stamp = new Date().toISOString().replace(/[-:]|\.\d+/g, '');
+            const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Nadeem & Dariya//Wedding//EN', 'CALSCALE:GREGORIAN'];
+            idx.forEach(i => { const e = CAL_EVENTS[i]; lines.push('BEGIN:VEVENT', 'UID:ndw27-' + (i + 1) + '@nadeem-dariya', 'DTSTAMP:' + stamp, 'DTSTART:' + e.start, 'DTEND:' + e.end,
+                'SUMMARY:' + esc(e.title), 'LOCATION:' + esc(CAL_PLACE), 'DESCRIPTION:' + esc(e.note + ' Bring your entry pass.'), 'END:VEVENT'); });
+            lines.push('END:VCALENDAR');
+            const a = el('a'); a.href = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar' })); a.download = 'Nadeem-Dariya-Wedding.ics';
+            document.body.append(a); a.click(); a.remove();
+        }
+        function renderCal(p) {
+            const box = document.getElementById('cal-links'), idx = p.idx.filter(i => CAL_EVENTS[i]);
+            box.replaceChildren(el('p', 'font-cinzel text-gold-400 tracking-widest text-center', 'ADD TO YOUR CALENDAR'));
+            idx.forEach(i => {
+                const row = el('div', 'flex flex-wrap items-center justify-between gap-2'), g = el('a', 'underline text-gold-300', 'Google');
+                g.href = googleCal(CAL_EVENTS[i]); g.target = '_blank'; g.rel = 'noopener';
+                row.append(el('span', '', CAL_EVENTS[i].title.replace('Nadeem & Dariya: ', '')), g);
+                box.append(row);
+            });
+            const all = el('button', 'w-full mt-1 glass rounded-full py-1.5 text-gold-300 font-cinzel tracking-widest', 'APPLE / OUTLOOK (.ICS)');
+            all.type = 'button'; all.onclick = () => icsCal(idx);
+            box.append(all);
+        }
         const loadPass = () => { try { return JSON.parse(localStorage.getItem(PASS_KEY)); } catch (e) { return null; } };
         const storePass = p => { try { localStorage.setItem(PASS_KEY, JSON.stringify(p)); } catch (e) {} };
         function updateCtas() { const has = !!loadPass(); document.querySelectorAll('.rsvp-cta').forEach(b => b.textContent = has ? 'MY ENTRY PASS' : 'RSVP NOW'); }
@@ -611,6 +657,7 @@
             document.getElementById('rsvp-success').classList.remove('hidden');
             document.getElementById('pass-email-note').classList.toggle('hidden', !justSent);
             drawPass(document.getElementById('pass-cv'), p);
+            renderCal(p);
         }
         function openRsvp() {
             const p = loadPass();
