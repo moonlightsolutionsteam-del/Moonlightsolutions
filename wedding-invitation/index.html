@@ -153,6 +153,7 @@
             <div class="hidden md:flex space-x-8 font-cinzel text-xs tracking-widest text-ivory-100/80">
                 <a href="#hero" class="hover:text-gold-400 transition-colors">HOME</a>
                 <a href="#itinerary" class="hover:text-gold-400 transition-colors">ITINERARY</a>
+                <a href="#menu" class="hover:text-gold-400 transition-colors">MENU</a>
                 <a href="#venues" class="hover:text-gold-400 transition-colors">VENUES</a>
                 <a href="#guide" class="hover:text-gold-400 transition-colors">GOOD TO KNOW</a>
             </div>
@@ -224,6 +225,17 @@
 
             <div class="flex justify-center mb-10 gap-2 sm:gap-4 reveal" role="tablist" id="tabs"></div>
             <div id="tab-panel" class="reveal" role="tabpanel" aria-live="polite"></div>
+        </section>
+
+        <!-- Menu -->
+        <section id="menu" class="py-20 px-4 max-w-5xl mx-auto">
+            <div class="text-center mb-10 reveal">
+                <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Food &amp; Refreshments</p>
+                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Menu</h2>
+                <div class="w-20 h-px mx-auto bg-gradient-to-r from-transparent via-gold-500 to-transparent mt-4"></div>
+                <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">Everything is halal and cooked fresh at the resort. Drinking water is available around the lawn all day. The menu may change slightly closer to the date.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6" id="menu-grid"></div>
         </section>
 
         <!-- Venues -->
@@ -438,6 +450,24 @@
               ] }
         ];
 
+        // Menu: edit dishes here; the Menu section is built from this list
+        const MENU = [
+            { day:'Day 1 · Wednesday, January 20', meals:[
+                { time:'12:00 PM', name:'Welcome Drinks', items:'Tender coconut water, rose sharbat, nimbu pani, roasted dry fruits' },
+                { time:'1:30 PM', name:'Arrival Lunch', items:'Ghee rice, dal fry, kadai paneer, chicken curry, salad, papad, gulab jamun' },
+                { time:'4:45 PM', name:'High Tea (during Haldi)', items:'Kulhad masala chai, filter coffee, samosas, kachoris, biscuits' },
+                { time:'6:45 PM', name:'Shukrana', items:'Rooh Afza sharbat, dates, sweets' },
+                { time:'8:00 PM', name:'DJ Night Dinner', items:'Mutton dum biryani, mirchi ka salan, burani raita, double ka meetha' }
+            ] },
+            { day:'Day 2 · Thursday, January 21', meals:[
+                { time:'7:30 AM', name:'Breakfast', items:'Idli, vada, sambar, coconut chutney, upma, fresh fruit, tea & coffee' },
+                { time:'11:30 AM', name:'Post-Nikah Refreshments', items:'Dates, Rooh Afza or mint sharbat, dry-fruit sweets' },
+                { time:'1:00 PM', name:'Nikah Lunch', items:'Mutton kacchi biryani, dum ka chicken, sheermal, mirchi ka salan, zafrani kheer' },
+                { time:'5:30 PM', name:'Sundowner Tea', items:'Tea, filter coffee, cookies' },
+                { time:'8:00 PM', name:'Reception Dinner', items:'Mutton dum biryani, mutton marag with naan, mirchi ka salan, kaddu ka halwa' }
+            ] }
+        ];
+
         const VENUES = [
             { badge:'DAYS 1 & 2', icon:'fa-hotel', name:'Greenwood Resort', url:'https://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9',
               desc:'Kanakapura Road, Bengaluru. Every function on both days takes place here, with rooms and cottages for both families.',
@@ -495,6 +525,21 @@
             tabsEl.append(b);
         });
         switchTab('day1');
+
+        MENU.forEach(d => {
+            const card = el('div', 'glass-deep rounded-2xl p-6 reveal');
+            card.append(el('h3', 'font-cinzel text-lg font-bold text-gold-300 mb-4', d.day));
+            const list = el('div', 'space-y-4');
+            d.meals.forEach(m => {
+                const row = el('div', 'flex gap-4');
+                row.append(el('span', 'font-cinzel text-xs tracking-wider text-gold-400 w-20 shrink-0 pt-0.5', m.time));
+                const body = el('div', 'min-w-0');
+                body.append(el('p', 'font-semibold text-ivory-50 text-sm', m.name), el('p', 'text-xs sm:text-sm text-ivory-200/75 leading-relaxed', m.items));
+                row.append(body); list.append(row);
+            });
+            card.append(list);
+            document.getElementById('menu-grid').append(card);
+        });
 
         VENUES.forEach(v => {
             const card = el('div', 'glass-deep rounded-2xl p-6 flex flex-col justify-between glow-hover reveal');
