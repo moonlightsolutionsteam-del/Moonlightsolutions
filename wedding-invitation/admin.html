@@ -93,7 +93,7 @@
       <div class="bar">
         <input type="search" id="q" placeholder="Search name, phone or pass code" aria-label="Search">
         <select id="fDay" aria-label="Filter by day"><option value="">All days</option><option value="1">Day 1 · Wed 20 Jan</option><option value="2">Nikah · Thu 21 Jan AM</option><option value="3">Reception · Thu 21 Jan PM</option></select>
-        <select id="fSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option></select>
+        <select id="fSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option><option value="Vendor">Vendors</option></select>
         <select id="fIn" aria-label="Filter by check-in"><option value="">All guests</option><option value="in">Checked in</option><option value="out">Not yet in</option></select>
         <label class="muted"><input type="checkbox" id="fRemoved"> Show removed</label>
       </div>
@@ -126,7 +126,7 @@
         <div class="row">
           <label>Name<input id="aName" required maxlength="100"></label>
           <label>Phone<input id="aPhone" maxlength="30" inputmode="tel"></label>
-          <label>Side<select id="aSide"><option>Groom's Guest</option><option>Bride's Guest</option></select></label>
+          <label>Side<select id="aSide"><option>Groom's Guest</option><option>Bride's Guest</option><option>Vendor · Photography &amp; Video</option><option>Vendor · Decor &amp; Flowers</option><option>Vendor · Catering</option><option>Vendor · DJ &amp; Sound</option><option>Vendor · Other</option></select></label>
           <label>Guests<input id="aGuests" type="number" min="1" max="15" value="1"></label>
         </div>
         <div class="checks">
@@ -178,13 +178,16 @@ function flash(msg) { $('count').textContent = msg; }
 // ---------- list ----------
 const active = () => guests.filter(g => !g.removed);
 function stats() {
-  const a = active(), sum = (arr) => arr.reduce((n, g) => n + g.guests, 0);
+  const all = active(), sum = (arr) => arr.reduce((n, g) => n + g.guests, 0);
+  // Guest counts leave out vendors; their crew is counted on its own
+  const a = all.filter(g => !/^vendor/i.test(g.side)), v = all.filter(g => /^vendor/i.test(g.side));
   const items = [
     [a.length, 'RSVPs'], [sum(a), 'Total guests'],
     [sum(a.filter(g => g.days.includes(1))), 'Day 1 · Wed 20'], [sum(a.filter(g => g.days.includes(2))), 'Nikah · Thu AM'],
     [sum(a.filter(g => g.days.includes(3))), 'Reception · Thu PM'],
     [sum(a.filter(g => /groom/i.test(g.side))), "Groom's side"], [sum(a.filter(g => /bride/i.test(g.side))), "Bride's side"],
-    [sum(a.filter(g => g.checked_in)) + ' / ' + sum(a), 'Checked in']
+    [sum(v) + ' (' + v.length + ')', 'Vendor crew (teams)'],
+    [sum(all.filter(g => g.checked_in)) + ' / ' + sum(all), 'Checked in']
   ];
   $('stats').replaceChildren(...items.map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
 }

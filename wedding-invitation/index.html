@@ -383,10 +383,29 @@
                     <input class="gold-input" type="tel" name="phone" required autocomplete="tel" inputmode="tel" pattern="[0-9+\s\(\)\-]{7,}" placeholder="+91 98765 43210"></label>
 
                 <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOU ARE *</span>
-                    <select class="gold-input" name="side" required>
+                    <select class="gold-input" name="side" required onchange="toggleVendor()">
                         <option>Groom's Guest</option>
                         <option>Bride's Guest</option>
+                        <option value="Vendor">Vendor / Service Team</option>
                     </select></label>
+
+                <div id="vendor-fields" class="hidden space-y-4">
+                    <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">SERVICE *</span>
+                        <select class="gold-input" name="vtype">
+                            <option>Photography &amp; Video</option>
+                            <option>Decor &amp; Flowers</option>
+                            <option>Catering</option>
+                            <option>DJ &amp; Sound</option>
+                            <option>Mehendi Artist</option>
+                            <option>Makeup &amp; Hair</option>
+                            <option>Qazi</option>
+                            <option>Event Coordination</option>
+                            <option>Transport</option>
+                            <option>Other</option>
+                        </select></label>
+                    <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">COMPANY / BUSINESS NAME *</span>
+                        <input class="gold-input" type="text" name="company" maxlength="80" placeholder="e.g. Lens &amp; Light Studio"></label>
+                </div>
 
                 <fieldset>
                     <legend class="font-cinzel text-xs text-gold-300 mb-2">ATTENDING EVENTS *</legend>
@@ -399,15 +418,15 @@
                 </fieldset>
 
                 <fieldset>
-                    <legend class="font-cinzel text-xs text-gold-300 mb-1">FAMILY MEMBERS COMING WITH YOU</legend>
-                    <p class="text-[11px] text-ivory-200/55 mb-2">Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.</p>
+                    <legend id="members-title" class="font-cinzel text-xs text-gold-300 mb-1">FAMILY MEMBERS COMING WITH YOU</legend>
+                    <p id="members-help" class="text-[11px] text-ivory-200/55 mb-2">Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.</p>
                     <div id="members" class="space-y-2"></div>
                     <div class="flex items-center justify-between gap-3 mt-2">
-                        <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2 rounded-full text-gold-300 font-cinzel text-[11px] tracking-widest hover:border-gold-500/60">+ ADD FAMILY MEMBER</button>
+                        <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2 rounded-full text-gold-300 font-cinzel text-[11px] tracking-widest hover:border-gold-500/60">+ ADD <span id="member-word">FAMILY MEMBER</span></button>
                         <span id="party-total" class="text-xs text-ivory-200/80" aria-live="polite">Total guests: 1</span>
                     </div>
                 </fieldset>
-                <p class="text-[11px] text-ivory-200/55">Rooms and cottages are assigned by the family. We will confirm with you directly if you have a room; please do not book or ask the resort for one.</p>
+                <p id="rooms-note" class="text-[11px] text-ivory-200/55">Rooms and cottages are assigned by the family. We will confirm with you directly if you have a room; please do not book or ask the resort for one.</p>
 
                 <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">WARM NOTE / BLESSINGS</span>
                     <textarea class="gold-input" name="note" rows="3" placeholder="Write your warm blessings..."></textarea></label>
@@ -693,6 +712,19 @@
             row.append(el('span', 'm-num font-cinzel text-xs text-gold-400 w-5 pt-3 shrink-0'), fields, rm);
             membersEl.append(row); updateParty(); name.focus();
         }
+        // Vendors and service teams RSVP too, so every crew member is on the door list
+        const isVendor = () => form.side.value === 'Vendor';
+        function toggleVendor() {
+            const v = isVendor();
+            document.getElementById('vendor-fields').classList.toggle('hidden', !v);
+            form.company.required = v;
+            document.getElementById('rooms-note').classList.toggle('hidden', v);
+            document.getElementById('members-title').textContent = v ? 'CREW MEMBERS COMING WITH YOU' : 'FAMILY MEMBERS COMING WITH YOU';
+            document.getElementById('member-word').textContent = v ? 'CREW MEMBER' : 'FAMILY MEMBER';
+            document.getElementById('members-help').textContent = v
+                ? 'Add everyone in your team who will be on site, with a phone number, so they can be let in at the entrance.'
+                : 'Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.';
+        }
         function readMembers() {
             return memberRows().map(row => ({ name: row.querySelector('.m-name').value.trim(), phone: row.querySelector('.m-phone').value.trim() })).filter(m => m.name);
         }
@@ -711,12 +743,15 @@
             if (!idx.length) { err.textContent = 'Please select at least one event you will attend.'; return; }
             err.textContent = '';
             const members = readMembers();
-            const pass = { code: newCode(), name: f.name.value.trim(), guests: members.length + 1, idx, side: f.side.value };
+            const vendor = isVendor(), company = vendor ? f.company.value.trim() : '';
+            const side = vendor ? 'Vendor · ' + f.vtype.value : f.side.value;
+            const noteText = (company ? 'Company: ' + company + (f.note.value.trim() ? ' | ' : '') : '') + f.note.value.trim();
+            const pass = { code: newCode(), name: f.name.value.trim(), guests: members.length + 1, idx, side, company };
             storePass(pass);
             const body = ['Name: ' + pass.name, 'Phone: ' + f.phone.value.trim(), 'Guest of: ' + pass.side,
                 'Events: ' + idx.map(i => PASS_EVENTS[i].day + ' ' + PASS_EVENTS[i].name).join('; '), 'Guests: ' + pass.guests,
                 'Family members: ' + (members.length ? members.map(m => m.name + (m.phone ? ' (' + m.phone + ')' : '')).join('; ') : 'none'),
-                'Entry pass code: ' + pass.code, 'Note: ' + f.note.value.trim()].join('\n');
+                'Entry pass code: ' + pass.code, 'Note: ' + noteText].join('\n');
             showPass(pass, true);
             updateCtas();
             const emailRsvp = () => {
@@ -728,7 +763,7 @@
             fetch(SUPABASE_URL + '/rest/v1/rpc/submit_rsvp', {
                 method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ p_code: pass.code, p_name: pass.name, p_phone: f.phone.value.trim(), p_side: pass.side,
-                    p_events: pass.idx.map(i => i + 1), p_guests: pass.guests, p_note: f.note.value.trim(), p_members: members }) })
+                    p_events: pass.idx.map(i => i + 1), p_guests: pass.guests, p_note: noteText, p_members: members }) })
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .then(j => { if (!j || !j.ok) throw new Error('rejected'); note.textContent = 'Your RSVP has been received. Please save your entry pass below.'; })
                 .catch(() => { note.textContent = 'We could not reach the server, so your email app is opening instead. Please press Send.'; emailRsvp(); });
@@ -761,7 +796,8 @@
             c.fillStyle = gold; c.fillRect(W / 2 - 60, 266, 120, 2);
             text('ADMIT', 312, '500 13px "Plus Jakarta Sans", sans-serif', '#d4af37', 6);
             fit(p.name, 362, 38, '"Plus Jakarta Sans", sans-serif', '#fffdfa', W - 120);
-            text(p.guests > 1 ? 'Party of ' + p.guests : 'Single entry', 396, '500 18px "Plus Jakarta Sans", sans-serif', '#f3e5ab');
+            if (/^Vendor/.test(p.side || '')) fit([p.company, p.side.replace('Vendor · ', ''), p.guests > 1 ? 'Crew of ' + p.guests : ''].filter(Boolean).join('  ·  '), 396, 18, '"Plus Jakarta Sans", sans-serif', '#f3e5ab', W - 120);
+            else text(p.guests > 1 ? 'Party of ' + p.guests : 'Single entry', 396, '500 18px "Plus Jakarta Sans", sans-serif', '#f3e5ab');
             p.idx.forEach((i, n) => {
                 const y = 448 + n * 34, ev = PASS_EVENTS[i] || { day: '', name: '' };
                 text(ev.day + '  ·  ' + ev.name, y, '400 15px "Plus Jakarta Sans", sans-serif', '#faf9f6');
