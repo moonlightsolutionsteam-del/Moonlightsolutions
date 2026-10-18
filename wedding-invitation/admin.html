@@ -92,7 +92,7 @@
       <div class="stats" id="stats"></div>
       <div class="bar">
         <input type="search" id="q" placeholder="Search name, phone or pass code" aria-label="Search">
-        <select id="fDay" aria-label="Filter by day"><option value="">All days</option><option value="1">Day 1 · Thu 21 Jan</option><option value="2">Day 2 · Fri 22 Jan</option><option value="3">Day 3 · Sat 23 Jan</option></select>
+        <select id="fDay" aria-label="Filter by day"><option value="">All days</option><option value="1">Day 1 · Wed 20 Jan</option><option value="2">Day 2 · Thu 21 Jan</option></select>
         <select id="fSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option></select>
         <select id="fIn" aria-label="Filter by check-in"><option value="">All guests</option><option value="in">Checked in</option><option value="out">Not yet in</option></select>
         <label class="muted"><input type="checkbox" id="fRemoved"> Show removed</label>
@@ -130,9 +130,8 @@
           <label>Guests<input id="aGuests" type="number" min="1" max="15" value="1"></label>
         </div>
         <div class="checks">
-          <label><input type="checkbox" name="aDay" value="1" checked> Day 1 · Thu 21 Jan</label>
-          <label><input type="checkbox" name="aDay" value="2" checked> Day 2 · Fri 22 Jan</label>
-          <label><input type="checkbox" name="aDay" value="3" checked> Day 3 · Sat 23 Jan</label>
+          <label><input type="checkbox" name="aDay" value="1" checked> Day 1 · Wed 20 Jan</label>
+          <label><input type="checkbox" name="aDay" value="2" checked> Day 2 · Thu 21 Jan</label>
         </div>
         <label class="muted" style="display:block;margin-bottom:12px">Note<input id="aNote" maxlength="500" style="width:100%"></label>
         <button class="btn" type="submit">Add guest</button>
@@ -146,7 +145,7 @@
 <script>
 const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Prl5rew1ifRF7WyYNopZSA_wt-JaT4a';
-const DAYS = { 1: 'Thu 21 Jan', 2: 'Fri 22 Jan', 3: 'Sat 23 Jan' };
+const DAYS = { 1: 'Wed 20 Jan', 2: 'Thu 21 Jan' };
 const $ = id => document.getElementById(id);
 const el = (tag, props, ...kids) => { const e = document.createElement(tag); Object.assign(e, props || {}); kids.forEach(k => e.append(k)); return e; };
 
@@ -180,7 +179,7 @@ function stats() {
   const a = active(), sum = (arr) => arr.reduce((n, g) => n + g.guests, 0);
   const items = [
     [a.length, 'RSVPs'], [sum(a), 'Total guests'],
-    [sum(a.filter(g => g.days.includes(1))), 'Day 1 · Thu 21'], [sum(a.filter(g => g.days.includes(2))), 'Day 2 · Fri 22'], [sum(a.filter(g => g.days.includes(3))), 'Day 3 · Sat 23'],
+    [sum(a.filter(g => g.days.includes(1))), 'Day 1 · Wed 20'], [sum(a.filter(g => g.days.includes(2))), 'Day 2 · Thu 21'],
     [sum(a.filter(g => /groom/i.test(g.side))), "Groom's side"], [sum(a.filter(g => /bride/i.test(g.side))), "Bride's side"],
     [sum(a.filter(g => g.checked_in)) + ' / ' + sum(a), 'Checked in']
   ];
@@ -223,8 +222,8 @@ function render() {
 // ---------- CSV ----------
 const csvCell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
 $('export').onclick = () => {
-  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Thu 21 Jan)', 'Day 2 (Fri 22 Jan)', 'Day 3 (Sat 23 Jan)', 'Guests', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
-  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
+  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20 Jan)', 'Day 2 (Thu 21 Jan)', 'Guests', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
+  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.guests, g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
   const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-guest-list.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
