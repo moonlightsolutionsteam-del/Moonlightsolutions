@@ -65,6 +65,34 @@
         .ambient { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; animation:drift 14s ease-in-out infinite alternate; }
         @keyframes drift { to { transform:translate(40px,-30px) scale(1.15); } }
 
+        /* Artwork: peacock feathers, flowers, lanterns and the N&D crest (SVG sprite at the top of <body>) */
+        .art { display:block; pointer-events:none; }
+        .arch { isolation:isolate; }
+        .divider { width:min(15rem,70vw); height:2rem; margin:1rem auto 0; }
+        .cluster { position:absolute; z-index:-1; width:clamp(7.5rem,26vw,13.5rem); aspect-ratio:240/210; bottom:-2.4rem; pointer-events:none; }
+        .cluster.l { left:-2.6rem; }
+        .cluster.r { right:-2.6rem; transform:scaleX(-1); }
+        .env-flora { position:absolute; z-index:3; width:34%; aspect-ratio:240/210; bottom:-10%; pointer-events:none; }
+        .env-flora.l { left:-8%; } .env-flora.r { right:-8%; transform:scaleX(-1); }
+        .lanterns { position:absolute; inset:0 0 auto 0; height:0; z-index:1; pointer-events:none; }
+        .lantern { position:absolute; top:0; display:flex; flex-direction:column; align-items:center; transform-origin:top center; animation:sway 5s ease-in-out infinite alternate; }
+        .lantern i { display:block; width:1px; background:linear-gradient(rgba(255,207,77,0),#ffcf4d); }
+        .lantern svg { width:var(--w); height:calc(var(--w) * 2.3); filter:drop-shadow(0 0 10px rgba(255,207,77,.55)); }
+        @keyframes sway { from { transform:rotate(-3deg); } to { transform:rotate(3deg); } }
+        .a-flicker { animation:flicker 2.6s ease-in-out infinite alternate; }
+        @keyframes flicker { 50% { opacity:.7; } }
+        .names { font-family:'Great Vibes',cursive; line-height:1.15; padding:0 .15em .1em; }
+        .petal-cv { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:130; }
+
+        /* Alternating full-width bands with a jaali (lattice) border top and bottom */
+        .band { position:relative; background:var(--band); box-shadow:0 0 0 100vmax var(--band); clip-path:inset(0 -100vmax); }
+        .band-deep { --band:rgba(3,58,66,.32); }
+        .band-light { --band:rgba(255,255,255,.07); }
+        .band::before, .band::after { content:""; position:absolute; left:50%; width:100vw; transform:translateX(-50%); height:22px; opacity:.6; pointer-events:none;
+            background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='22'%3E%3Cg fill='none' stroke='%23ffcf4d' stroke-width='1'%3E%3Cpath d='M0 1.5H44M0 20.5H44'/%3E%3Crect x='17' y='6' width='10' height='10'/%3E%3Crect x='17' y='6' width='10' height='10' transform='rotate(45 22 11)'/%3E%3Cpath d='M0 7.5L3.5 11L0 14.5M44 7.5L40.5 11L44 14.5'/%3E%3C/g%3E%3C/svg%3E") repeat-x center / 44px 22px; }
+        .band::before { top:0; } .band::after { bottom:0; }
+        footer.band::before { display:none; }
+
         /* Scroll reveal */
         .reveal { opacity:0; transform:translateY(24px); transition:opacity .9s ease, transform .9s ease; }
         .reveal.in { opacity:1; transform:none; }
@@ -88,7 +116,7 @@
         .env-flap { position:absolute; left:0; right:0; top:0; height:54%; z-index:3; transform-origin:top center; background:linear-gradient(#1bbab4,#0d8a91); clip-path:polygon(0 0,100% 0,50% 100%); transition:transform .8s ease, z-index 0s .4s; }
         .env.open .env-flap { transform:rotateX(180deg); z-index:0; }
         .env.open .env-paper { transform:translateY(-58%); }
-        .seal { position:absolute; left:50%; top:54%; z-index:4; width:3.6rem; height:3.6rem; margin:-1.8rem 0 0 -1.8rem; border-radius:50%; border:0; cursor:pointer; background:radial-gradient(circle at 35% 30%,#fff0b8,#f5b82e 55%,#a87300); color:#3a2a06; font-family:'Great Vibes',cursive; font-size:1.5rem; box-shadow:0 4px 14px rgba(0,0,0,.5); animation:pulse 2s ease-in-out infinite; transition:opacity .4s; }
+        .seal { position:absolute; left:50%; top:54%; z-index:4; width:4.6rem; height:4.6rem; margin:-2.3rem 0 0 -2.3rem; border-radius:50%; border:0; padding:0; cursor:pointer; background:none; color:#3a2a06; font-family:'Great Vibes',cursive; font-size:1.5rem; box-shadow:0 4px 14px rgba(0,0,0,.5); animation:pulse 2s ease-in-out infinite; transition:opacity .4s; }
         .env.open .seal { opacity:0; pointer-events:none; animation:none; }
         @keyframes pulse { 50% { box-shadow:0 0 0 12px rgba(245,184,46,.18), 0 4px 14px rgba(0,0,0,.5); } }
         #scratch-card { opacity:0; pointer-events:none; transform:scale(.92); }
@@ -97,6 +125,7 @@
         #scratch-cv { transition:opacity .9s ease; touch-action:none; }
         #scratch-cv.gone { opacity:0; pointer-events:none; }
         @media (prefers-reduced-motion: reduce) {
+            .lantern, .a-flicker { animation:none; }
             .env-flap, .env-paper, .stage, #intro { transition:none; }
             .seal { animation:none; }
             html { scroll-behavior:auto; }
@@ -106,6 +135,7 @@
     </style>
 </head>
 <body class="selection:bg-gold-500 selection:text-emerald-950">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs> <linearGradient id="a-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#ffcf4d"/><stop offset="1" stop-color="#d99a12"/></linearGradient> <radialGradient id="a-vane" cx=".5" cy=".38" r=".62"><stop offset="0" stop-color="#49c98f"/><stop offset=".55" stop-color="#169c8f" stop-opacity=".85"/><stop offset="1" stop-color="#0d7f86" stop-opacity="0"/></radialGradient> <radialGradient id="a-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7a0" stop-opacity=".95"/><stop offset=".5" stop-color="#ffc94d" stop-opacity=".35"/><stop offset="1" stop-color="#ffc94d" stop-opacity="0"/></radialGradient> <radialGradient id="a-rosegrad" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#ff8fb8"/><stop offset="1" stop-color="#c2185b"/></radialGradient> </defs> <symbol id="a-feather" viewBox="0 0 60 200"> <path d="M30 6 C60 30 58 100 30 160 C2 100 0 30 30 6Z" fill="url(#a-vane)"/> <g stroke="#9cf0d2" stroke-opacity=".75" stroke-width=".8" fill="none"><path d="M30 30 Q25.9 26 21.8 18"/><path d="M30 30 Q34.1 26 38.2 18"/><path d="M30 33 Q25.2 29 20.3 21"/><path d="M30 33 Q34.8 29 39.7 21"/><path d="M30 36 Q24.5 32 18.9 24"/><path d="M30 36 Q35.5 32 41.1 24"/><path d="M30 39 Q23.8 35 17.7 27"/><path d="M30 39 Q36.2 35 42.3 27"/><path d="M30 42 Q23.2 38 16.5 30"/><path d="M30 42 Q36.8 38 43.5 30"/><path d="M30 45 Q22.7 41 15.4 33"/><path d="M30 45 Q37.3 41 44.6 33"/><path d="M30 48 Q22.2 44 14.4 36"/><path d="M30 48 Q37.8 44 45.6 36"/><path d="M30 51 Q21.7 47 13.5 39"/><path d="M30 51 Q38.3 47 46.5 39"/><path d="M30 54 Q21.3 50 12.7 42"/><path d="M30 54 Q38.7 50 47.3 42"/><path d="M30 57 Q21 53 11.9 45"/><path d="M30 57 Q39 53 48.1 45"/><path d="M30 60 Q20.6 56 11.3 48"/><path d="M30 60 Q39.4 56 48.7 48"/><path d="M30 63 Q20.3 59 10.7 51"/><path d="M30 63 Q39.7 59 49.3 51"/><path d="M30 66 Q20.1 62 10.2 54"/><path d="M30 66 Q39.9 62 49.8 54"/><path d="M30 69 Q19.9 65 9.7 57"/><path d="M30 69 Q40.1 65 50.3 57"/><path d="M30 72 Q19.7 68 9.4 60"/><path d="M30 72 Q40.3 68 50.6 60"/><path d="M30 75 Q19.6 71 9.1 63"/><path d="M30 75 Q40.4 71 50.9 63"/><path d="M30 78 Q19.5 74 8.9 66"/><path d="M30 78 Q40.5 74 51.1 66"/><path d="M30 81 Q19.4 77 8.8 69"/><path d="M30 81 Q40.6 77 51.2 69"/><path d="M30 84 Q19.4 80 8.7 72"/><path d="M30 84 Q40.6 80 51.3 72"/><path d="M30 87 Q19.4 83 8.7 75"/><path d="M30 87 Q40.6 83 51.3 75"/><path d="M30 90 Q19.4 86 8.8 78"/><path d="M30 90 Q40.6 86 51.2 78"/><path d="M30 93 Q19.5 89 9 81"/><path d="M30 93 Q40.5 89 51 81"/><path d="M30 96 Q19.6 92 9.2 84"/><path d="M30 96 Q40.4 92 50.8 84"/><path d="M30 99 Q19.8 95 9.5 87"/><path d="M30 99 Q40.2 95 50.5 87"/><path d="M30 102 Q19.9 98 9.9 90"/><path d="M30 102 Q40.1 98 50.1 90"/><path d="M30 105 Q20.1 101 10.3 93"/><path d="M30 105 Q39.9 101 49.7 93"/><path d="M30 108 Q20.4 104 10.7 96"/><path d="M30 108 Q39.6 104 49.3 96"/><path d="M30 111 Q20.6 107 11.3 99"/><path d="M30 111 Q39.4 107 48.7 99"/><path d="M30 114 Q20.9 110 11.8 102"/><path d="M30 114 Q39.1 110 48.2 102"/><path d="M30 117 Q21.2 113 12.5 105"/><path d="M30 117 Q38.8 113 47.5 105"/><path d="M30 120 Q21.6 116 13.1 108"/><path d="M30 120 Q38.4 116 46.9 108"/><path d="M30 123 Q21.9 119 13.9 111"/><path d="M30 123 Q38.1 119 46.1 111"/><path d="M30 126 Q22.3 122 14.6 114"/><path d="M30 126 Q37.7 122 45.4 114"/><path d="M30 129 Q22.7 125 15.5 117"/><path d="M30 129 Q37.3 125 44.5 117"/><path d="M30 132 Q23.2 128 16.3 120"/><path d="M30 132 Q36.8 128 43.7 120"/><path d="M30 135 Q23.6 131 17.2 123"/><path d="M30 135 Q36.4 131 42.8 123"/><path d="M30 138 Q24.1 134 18.1 126"/><path d="M30 138 Q35.9 134 41.9 126"/><path d="M30 141 Q24.5 137 19.1 129"/><path d="M30 141 Q35.5 137 40.9 129"/><path d="M30 144 Q25 140 20.1 132"/><path d="M30 144 Q35 140 39.9 132"/><path d="M30 147 Q25.6 143 21.1 135"/><path d="M30 147 Q34.4 143 38.9 135"/><path d="M30 150 Q26.1 146 22.2 138"/><path d="M30 150 Q33.9 146 37.8 138"/><path d="M30 153 Q26.6 149 23.3 141"/><path d="M30 153 Q33.4 149 36.7 141"/><path d="M30 156 Q27.2 152 24.4 144"/><path d="M30 156 Q32.8 152 35.6 144"/><path d="M30 159 Q27.8 155 25.6 147"/><path d="M30 159 Q32.2 155 34.4 147"/><path d="M30 162 Q28.4 158 26.8 150"/><path d="M30 162 Q31.6 158 33.2 150"/><path d="M30 165 Q29.1 161 28.2 153"/><path d="M30 165 Q30.9 161 31.8 153"/></g> <path d="M30 200 L30 30" stroke="#f3dc8f" stroke-width="1.4" stroke-linecap="round"/> <ellipse cx="30" cy="58" rx="17" ry="23" fill="#f5b82e"/> <ellipse cx="30" cy="60" rx="13.5" ry="18.5" fill="#2fae6e"/> <ellipse cx="30" cy="62" rx="9.5" ry="13.5" fill="#1d7fd1"/> <ellipse cx="30" cy="64" rx="5.5" ry="8" fill="#0d2b5c"/> <ellipse cx="27.5" cy="58" rx="1.8" ry="3" fill="#fff" fill-opacity=".55"/> </symbol> <symbol id="a-marigold" viewBox="-20 -20 40 40"> <ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(0)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(20)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(40)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(60)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(80)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(100)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(120)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(140)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(160)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(180)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(200)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(220)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(240)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(260)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(280)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(300)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(320)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(340)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(12)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(37.7)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(63.4)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(89.1)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(114.9)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(140.6)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(166.3)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(192)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(217.7)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(243.4)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(269.1)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(294.9)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(320.6)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(346.3)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(6)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(42)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(78)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(114)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(150)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(186)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(222)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(258)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(294)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(330)"/> <circle r="3" fill="#e8710a"/><circle r="1.2" fill="#a84a00"/> </symbol> <symbol id="a-rose" viewBox="-20 -20 40 40"> <g fill="url(#a-rosegrad)"><circle cx="0" cy="-7" r="9"/><circle cx="6.7" cy="-2.2" r="9"/><circle cx="4.1" cy="5.7" r="9"/><circle cx="-4.1" cy="5.7" r="9"/><circle cx="-6.7" cy="-2.2" r="9"/></g> <circle r="9" fill="#f06292"/> <path d="M0 -6 C6 -6 7 3 1 5 C-5 7 -8 -1 -3 -4 C1 -6 4 -1 1 1 C-1 2 -3 0 -1 -1" fill="none" stroke="#a3124a" stroke-width="1.3" stroke-linecap="round"/> </symbol> <symbol id="a-leaf" viewBox="0 0 40 16"> <path d="M0 8 Q18 -5 40 8 Q18 21 0 8Z" fill="#2fa36f"/><path d="M1 8 L38 8" stroke="#1d7a52" stroke-width=".8"/> </symbol> <symbol id="a-lantern" viewBox="0 0 40 92"> <circle cx="20" cy="46" r="26" fill="url(#a-glow)" class="a-flicker"/> <circle cx="20" cy="4" r="3" fill="none" stroke="#ffcf4d" stroke-width="1.6"/> <path d="M20 7 L20 11" stroke="#ffcf4d" stroke-width="1.6"/> <path d="M8 22 Q20 4 32 22Z" fill="url(#a-gold)"/> <rect x="5" y="22" width="30" height="4" rx="1" fill="url(#a-gold)"/> <path d="M7 26 L33 26 L37 50 L31 72 L9 72 L3 50Z" fill="#ffcf6b" fill-opacity=".28" stroke="#ffcf4d" stroke-width="1.4"/> <path d="M14 30 Q20 24 26 30 L27 62 L13 62Z" fill="#ffe7a0" fill-opacity=".85" class="a-flicker"/> <path d="M20 26 L20 72 M7 26 L13 62 M33 26 L27 62 M3 50 L37 50" stroke="#ffcf4d" stroke-width=".9" fill="none"/> <rect x="8" y="72" width="24" height="4" rx="1" fill="url(#a-gold)"/> <path d="M12 76 L28 76 L20 86Z" fill="url(#a-gold)"/><circle cx="20" cy="88.5" r="2.4" fill="url(#a-gold)"/> </symbol> <symbol id="a-crest" viewBox="-52 -52 104 104"> <g fill="url(#a-gold)"><circle cx="43" cy="0" r="6"/><circle cx="41.9" cy="9.6" r="6"/><circle cx="38.7" cy="18.7" r="6"/><circle cx="33.6" cy="26.8" r="6"/><circle cx="26.8" cy="33.6" r="6"/><circle cx="18.7" cy="38.7" r="6"/><circle cx="9.6" cy="41.9" r="6"/><circle cx="0" cy="43" r="6"/><circle cx="-9.6" cy="41.9" r="6"/><circle cx="-18.7" cy="38.7" r="6"/><circle cx="-26.8" cy="33.6" r="6"/><circle cx="-33.6" cy="26.8" r="6"/><circle cx="-38.7" cy="18.7" r="6"/><circle cx="-41.9" cy="9.6" r="6"/><circle cx="-43" cy="0" r="6"/><circle cx="-41.9" cy="-9.6" r="6"/><circle cx="-38.7" cy="-18.7" r="6"/><circle cx="-33.6" cy="-26.8" r="6"/><circle cx="-26.8" cy="-33.6" r="6"/><circle cx="-18.7" cy="-38.7" r="6"/><circle cx="-9.6" cy="-41.9" r="6"/><circle cx="-0" cy="-43" r="6"/><circle cx="9.6" cy="-41.9" r="6"/><circle cx="18.7" cy="-38.7" r="6"/><circle cx="26.8" cy="-33.6" r="6"/><circle cx="33.6" cy="-26.8" r="6"/><circle cx="38.7" cy="-18.7" r="6"/><circle cx="41.9" cy="-9.6" r="6"/><circle r="43"/></g> <circle r="36" fill="#0b7d86" stroke="#fff3c4" stroke-width="1.2"/> <circle r="31.5" fill="none" stroke="#ffcf4d" stroke-width=".8" stroke-dasharray="1.5 2.5"/> <path d="M-4 -22 a6 6 0 1 0 6 7 a4.6 4.6 0 1 1 -6 -7Z" fill="#ffcf4d"/> <text x="0" y="12" text-anchor="middle" font-family="'Great Vibes', cursive" font-size="27" fill="#fff0b8">N&amp;D</text> <use href="#a-leaf" x="-17" y="17" width="16" height="6.4" transform="rotate(-12 -9 20)"/> <g transform="translate(17 20) scale(-1 1) rotate(-12)"><use href="#a-leaf" x="0" y="-3.2" width="16" height="6.4"/></g> </symbol> <symbol id="a-divider" viewBox="0 0 240 32"> <path d="M8 16 H86 M154 16 H232" stroke="#ffcf4d" stroke-width="1"/> <circle cx="8" cy="16" r="1.6" fill="#ffcf4d"/><circle cx="232" cy="16" r="1.6" fill="#ffcf4d"/> <use href="#a-leaf" x="84" y="9" width="24" height="9.6" transform="rotate(-14 96 14)"/> <g transform="translate(156 14) scale(-1 1) rotate(-14)"><use href="#a-leaf" x="0" y="-4.8" width="24" height="9.6"/></g> <use href="#a-leaf" x="88" y="16" width="20" height="8" transform="rotate(18 98 20)"/> <g transform="translate(152 20) scale(-1 1) rotate(18)"><use href="#a-leaf" x="0" y="-4" width="20" height="8"/></g> <use href="#a-rose" x="99" y="6" width="20" height="20"/> <use href="#a-rose" x="121" y="6" width="20" height="20"/> <use href="#a-marigold" x="106" y="2" width="28" height="28"/> </symbol> <symbol id="a-cluster" viewBox="0 0 240 210"> <g transform="translate(30 205) rotate(18) scale(0.95)"><use href="#a-feather" x="-30" y="-200" width="60" height="200"/></g> <g transform="translate(30 205) rotate(44) scale(0.85)"><use href="#a-feather" x="-30" y="-200" width="60" height="200"/></g> <g transform="translate(30 205) rotate(68) scale(0.72)"><use href="#a-feather" x="-30" y="-200" width="60" height="200"/></g> <g transform="translate(40 195) rotate(30) scale(1.6)"><use href="#a-leaf" x="-20" y="-16" width="40" height="16"/></g> <g transform="translate(56 196) rotate(70) scale(1.5)"><use href="#a-leaf" x="-20" y="-16" width="40" height="16"/></g> <g transform="translate(30 190) rotate(-12) scale(1.4)"><use href="#a-leaf" x="-20" y="-16" width="40" height="16"/></g> <use href="#a-marigold" x="18" y="150" width="50" height="50"/> <use href="#a-rose" x="54" y="164" width="42" height="42"/> <use href="#a-marigold" x="88" y="176" width="32" height="32"/> <use href="#a-rose" x="0" y="176" width="30" height="30"/> </symbol> </svg>
 
     <!-- Envelope intro -->
     <div id="intro" class="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-[radial-gradient(ellipse_at_center,#17b3ae,#0a7480_75%)]" role="dialog" aria-label="Wedding invitation">
@@ -116,16 +146,19 @@
                 <p class="font-cinzel text-gold-400 tracking-[.3em] text-[11px] sm:text-xs mb-14">YOU HAVE RECEIVED AN INVITATION</p>
                 <div class="env mx-auto" id="env">
                     <div class="env-back"></div>
-                    <div class="env-paper"><span class="font-script text-4xl text-emerald-950">N &amp; D</span></div>
+                    <div class="env-paper"><svg class="art w-16 h-16" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg></div>
                     <div class="env-front"></div>
+                    <svg class="env-flora l" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                    <svg class="env-flora r" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
                     <div class="env-flap"></div>
-                    <button type="button" class="seal" id="seal" aria-label="Open the envelope">N&amp;D</button>
+                    <button type="button" class="seal" id="seal" aria-label="Open the envelope"><svg class="art w-full h-full" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg></button>
                 </div>
                 <p class="font-cinzel text-ivory-200/60 tracking-[.25em] text-[10px] mt-12">TAP THE SEAL TO OPEN</p>
             </div>
 
             <div class="stage text-center" id="scratch-card" style="width:min(90vw,24rem)">
-                <div class="arch px-6 pt-14 pb-8 bg-emerald-900/70">
+                <div class="arch px-6 pt-10 pb-8 bg-emerald-900/70">
+                    <svg class="art w-12 h-12 mx-auto mb-3" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
                     <p class="font-arabic text-2xl gold-text" dir="rtl" lang="ar">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
                     <p class="font-script text-4xl sm:text-5xl gold-text mt-3">Nadeem &amp; Dariya</p>
                     <p class="text-xs text-ivory-200/80 tracking-wide mt-2">request the honour of your presence at their wedding</p>
@@ -157,7 +190,7 @@
     <!-- Nav -->
     <nav class="fixed top-0 left-0 w-full z-40 glass-deep border-b border-gold-500/20 px-4 py-3 md:px-8">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <a href="#hero" class="font-cinzel text-lg md:text-xl font-bold tracking-wider gold-text">N &amp; D</a>
+            <a href="#hero" class="flex items-center gap-2 font-cinzel text-lg md:text-xl font-bold tracking-wider gold-text"><svg class="art w-8 h-8" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>N &amp; D</a>
             <div class="hidden md:flex space-x-8 font-cinzel text-xs tracking-widest text-ivory-100/80">
                 <a href="#hero" class="hover:text-gold-400 transition-colors">HOME</a>
                 <a href="#itinerary" class="hover:text-gold-400 transition-colors">ITINERARY</a>
@@ -175,15 +208,26 @@
             <div class="absolute inset-0 opacity-[.12] geo pointer-events-none"></div>
             <div class="ambient w-72 h-72 bg-gold-500/20 -top-10 -left-10"></div>
             <div class="ambient w-80 h-80 bg-[#ff4f93]/25 bottom-0 -right-16" style="animation-delay:-6s"></div>
+            <div class="lanterns" aria-hidden="true">
+                <div class="lantern" style="left:4%;--w:2.3rem;animation-duration:5.5s;animation-delay:0s"><i style="height:5rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+                <div class="lantern" style="left:15%;--w:1.6rem;animation-duration:4.2s;animation-delay:-2s"><i style="height:8rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+                <div class="lantern" style="right:5%;--w:2.5rem;animation-duration:6s;animation-delay:-1s"><i style="height:6rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+                <div class="lantern" style="right:16%;--w:1.5rem;animation-duration:4.8s;animation-delay:-3s"><i style="height:3.8rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+            </div>
 
-            <div class="relative arch w-full max-w-3xl px-5 sm:px-12 pt-24 sm:pt-32 pb-12 fade-up">
+            <div class="relative arch w-full max-w-3xl px-5 sm:px-12 pt-14 sm:pt-20 pb-12 fade-up">
+                <svg class="cluster l" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                <svg class="cluster r" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                <svg class="art w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
                 <p class="font-arabic text-3xl sm:text-5xl gold-text leading-relaxed shimmer" dir="rtl" lang="ar">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
                 <p class="font-cinzel text-gold-400 text-[10px] sm:text-xs tracking-[.25em] uppercase mt-3">In the name of Allah, the Most Gracious, the Most Merciful</p>
-                <div class="w-24 h-px mx-auto my-6 bg-gradient-to-r from-transparent via-gold-500 to-transparent"></div>
+                <svg class="divider art my-3" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
 
-                <h1 class="font-cinzel font-extrabold gold-text tracking-tight leading-tight text-4xl sm:text-6xl md:text-7xl">Nadeem Khan</h1>
-                <div class="font-script text-4xl sm:text-6xl text-gold-300 my-1">&amp;</div>
-                <h1 class="font-cinzel font-extrabold gold-text tracking-tight leading-tight text-4xl sm:text-6xl md:text-7xl">Dariya</h1>
+                <h1 class="text-6xl sm:text-7xl md:text-8xl">
+                    <span class="names block gold-text shimmer">Nadeem Khan</span>
+                    <span class="block font-cinzel text-xl sm:text-2xl tracking-[.4em] text-gold-300 my-1" aria-label="and">&amp;</span>
+                    <span class="names block gold-text shimmer">Dariya</span>
+                </h1>
 
                 <p class="max-w-md mx-auto text-ivory-200/80 text-sm sm:text-base font-light tracking-wide my-6">
                     Together with their families, invite you to celebrate their wedding.
@@ -214,7 +258,7 @@
         </section>
 
         <!-- Quranic verse -->
-        <section id="ayah" class="py-20 px-4 text-center">
+        <section id="ayah" class="band band-deep py-20 px-4 text-center">
             <div class="max-w-2xl mx-auto reveal">
                 <div class="w-14 h-14 mx-auto mb-6 rotate-45 border border-gold-500/60 flex items-center justify-center"><span class="-rotate-45 font-arabic text-2xl gold-text">۞</span></div>
                 <p class="font-arabic text-2xl sm:text-4xl leading-[2] gold-text" dir="rtl" lang="ar">وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً</p>
@@ -228,31 +272,36 @@
             <div class="text-center mb-10 reveal">
                 <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">The Wedding Itinerary</p>
                 <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Two Days of Celebration</h2>
-                <div class="w-20 h-px mx-auto bg-gradient-to-r from-transparent via-gold-500 to-transparent mt-4"></div>
+                <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
             </div>
 
-            <div class="flex justify-center mb-10 gap-2 sm:gap-4 reveal" role="tablist" id="tabs"></div>
+            <div class="flex justify-center mb-5 gap-2 sm:gap-4 reveal" role="tablist" id="tabs"></div>
+            <div class="flex flex-wrap justify-center gap-x-5 gap-y-2 mb-8 text-[11px] sm:text-xs text-ivory-200/85 reveal" aria-label="Colour key">
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle" style="background:#ffb020"></span>Haldi &amp; Mehendi</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle" style="background:#fff1c9"></span>Nikah &amp; prayers</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle" style="background:#ff4f93"></span>Celebrations</span>
+            </div>
             <div id="tab-panel" class="reveal" role="tabpanel" aria-live="polite"></div>
         </section>
 
         <!-- Menu -->
-        <section id="menu" class="py-20 px-4 max-w-5xl mx-auto">
+        <section id="menu" class="band band-light py-20 px-4 max-w-5xl mx-auto">
             <div class="text-center mb-10 reveal">
                 <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Food &amp; Refreshments</p>
                 <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Menu</h2>
-                <div class="w-20 h-px mx-auto bg-gradient-to-r from-transparent via-gold-500 to-transparent mt-4"></div>
+                <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
                 <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">Everything is halal and cooked fresh at the resort. Drinking water is available around the lawn all day. The menu may change slightly closer to the date.</p>
             </div>
             <div class="grid md:grid-cols-2 gap-6" id="menu-grid"></div>
         </section>
 
         <!-- Venues -->
-        <section id="venues" class="py-16 px-4 border-y border-gold-500/20 bg-emerald-900/40">
+        <section id="venues" class="band band-deep py-20 px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 reveal">
                     <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Locations &amp; Directions</p>
                     <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Venue</h2>
-                    <div class="w-20 h-px mx-auto bg-gradient-to-r from-transparent via-gold-500 to-transparent mt-4"></div>
+                    <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
                 </div>
                 <div class="max-w-xl mx-auto" id="venue-grid"></div>
             </div>
@@ -263,7 +312,7 @@
                 <div class="text-center mb-4 reveal">
                     <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Guest Guidelines</p>
                     <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Good to Know</h2>
-                    <div class="w-20 h-px mx-auto bg-gradient-to-r from-transparent via-gold-500 to-transparent mt-4"></div>
+                    <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
                     <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">A few things that help both days run smoothly. Please share them with everyone in your family who is coming.</p>
                 </div>
                 <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">Before you come</h3>
@@ -347,7 +396,7 @@
         </section>
 
         <!-- Dua for the newlyweds -->
-        <section id="dua" class="py-20 px-4 text-center">
+        <section id="dua" class="band band-light py-20 px-4 text-center">
             <div class="max-w-2xl mx-auto reveal">
                 <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-5">Your Duas Are Our Greatest Gift</p>
                 <p class="font-arabic text-2xl sm:text-4xl leading-[2] gold-text" dir="rtl" lang="ar">بَارَكَ اللَّهُ لَكَ وَبَارَكَ عَلَيْكَ وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ</p>
@@ -357,7 +406,8 @@
         </section>
     </main>
 
-    <footer class="py-12 px-4 text-center border-t border-gold-500/20 bg-emerald-950">
+    <footer class="band py-14 px-4 text-center" style="--band:#086670">
+        <svg class="art w-16 h-16 mx-auto mb-3" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
         <p class="font-script text-4xl gold-text mb-1">Nadeem &amp; Dariya</p>
         <p class="text-xs text-ivory-200/60 font-cinzel tracking-widest mb-4">JANUARY 20–21, 2027 • GREENWOOD RESORT, BENGALURU</p>
         <p class="text-[11px] text-ivory-200/40">Crafted with warm wishes for our cherished family &amp; friends.</p>
@@ -469,19 +519,19 @@
                 { icon:'fa-shoe-prints', name:'Shoe Game & Musical Chairs', time:'2:30 PM – 3:15 PM', place:'Lawn', desc:"Groom's side vs bride's side. Everyone plays." },
                 { icon:'fa-person-swimming', name:'Swimming Pool Session', time:'3:15 PM – 4:15 PM', place:'Pool', dress:'Swimwear (optional)', desc:'Optional pool games. Children only with an adult in the water, and no swimming outside this session.' },
                 { icon:'fa-key', name:'Rooms Handed Over', time:'4:00 PM', place:'Rooms & cottages', desc:'Settle in and change for the Haldi.' },
-                { icon:'fa-sun', name:'Haldi & Mehendi', time:'4:45 PM – 6:30 PM', place:'Lawn', dress:'Yellow, mustard, green or floral ethnic', desc:'Marigolds, dhol, a petal shower and henna, with high tea: kulhad masala chai, filter coffee and samosas or kachoris. Wear clothes you don\'t mind getting turmeric on.' },
-                { icon:'fa-hands-praying', name:'Shukrana', time:'6:45 PM – 7:30 PM', place:'Covered area', dress:'Modest whites or pastels', desc:'A prayer of gratitude and family duas on floor seating, with sharbat, dates and sweets.' },
-                { icon:'fa-music', name:'DJ Night & Dinner', time:'8:00 PM – 11:00 PM', place:'Covered shed & lawn', dress:'Royal maroon, velvet or festive ethnic', desc:'Fairy lights, family dance entries and the DJ. Dinner: Mutton Dum Biryani, Mirchi ka Salan, Burani Raita and Double ka Meetha.' }
+                { tone:'marigold', swatch:[['#f7c600','Yellow'],['#d49a00','Mustard'],['#3aa655','Green'],['#f48fb1','Floral pink']], icon:'fa-sun', name:'Haldi & Mehendi', time:'4:45 PM – 6:30 PM', place:'Lawn', dress:'Yellow, mustard, green or floral ethnic', desc:'Marigolds, dhol, a petal shower and henna, with high tea: kulhad masala chai, filter coffee and samosas or kachoris. Wear clothes you don\'t mind getting turmeric on.' },
+                { tone:'ivory', swatch:[['#ffffff','White'],['#f8d7e3','Pastel pink'],['#cfe6f7','Pastel blue'],['#d5f0e0','Mint']], icon:'fa-hands-praying', name:'Shukrana', time:'6:45 PM – 7:30 PM', place:'Covered area', dress:'Modest whites or pastels', desc:'A prayer of gratitude and family duas on floor seating, with sharbat, dates and sweets.' },
+                { tone:'fuchsia', swatch:[['#800020','Maroon'],['#5a1846','Velvet wine'],['#1f2a6b','Royal blue'],['#d4af37','Gold']], icon:'fa-music', name:'DJ Night & Dinner', time:'8:00 PM – 11:00 PM', place:'Covered shed & lawn', dress:'Royal maroon, velvet or festive ethnic', desc:'Fairy lights, family dance entries and the DJ. Dinner: Mutton Dum Biryani, Mirchi ka Salan, Burani Raita and Double ka Meetha.' }
               ] },
             { id:'day2', tab:'DAY 2 • JAN 21', date:'Thursday, January 21st, 2027', title:'Nikah, Julwa & Reception', venue:'Greenwood Resort',
               events:[
                 { icon:'fa-mug-hot', name:'Breakfast', time:'7:30 AM – 9:00 AM', place:'Covered shed', desc:'Idli, vada, sambar, chutney, upma, fruit, tea and coffee for staying guests.' },
-                { icon:'fa-mosque', name:'Nikah', time:'10:00 AM – 11:30 AM', place:'Lawn', dress:'Traditional festive ethnic / pastel formals', desc:'Please be seated by 9:50 AM; if you are driving in that morning, aim to reach the resort by 9:30 AM. Khutbah, Ijab-o-Qubool, Nikahnama signing and dua, with the bride and groom seated facing each other and the Qazi between them.' },
+                { tone:'ivory', swatch:[['#fff4dc','Ivory'],['#d4af37','Gold'],['#f8d3c5','Peach'],['#c8e0cf','Sage']], icon:'fa-mosque', name:'Nikah', time:'10:00 AM – 11:30 AM', place:'Lawn', dress:'Traditional festive ethnic / pastel formals', desc:'Please be seated by 9:50 AM; if you are driving in that morning, aim to reach the resort by 9:30 AM. Khutbah, Ijab-o-Qubool, Nikahnama signing and dua, with the bride and groom seated facing each other and the Qazi between them.' },
                 { icon:'fa-camera', name:'Post-Nikah Refreshments & Photos', time:'11:30 AM – 12:15 PM', place:'Lawn', desc:'Dates, sharbat and family photographs.' },
                 { icon:'fa-utensils', name:'Nikah Lunch', time:'1:00 PM – 2:30 PM', place:'Covered shed', desc:'Mutton Kacchi Biryani, Dum ka Chicken, Sheermal and Zafrani Kheer.' },
-                { icon:'fa-heart', name:'Julwa (Arsi Mushaf)', time:'3:00 PM – 4:00 PM', place:'Covered area', desc:'The mirror and Quran ritual under a dupatta canopy, with blessings from the elders.' },
+                { tone:'ivory', icon:'fa-heart', name:'Julwa (Arsi Mushaf)', time:'3:00 PM – 4:00 PM', place:'Covered area', desc:'The mirror and Quran ritual under a dupatta canopy, with blessings from the elders.' },
                 { icon:'fa-mug-saucer', name:'Sundowner Tea', time:'5:30 PM – 6:30 PM', place:'Lawn', desc:'Tea as the fairy lights come on.' },
-                { icon:'fa-star', name:'Reception / Walima', time:'6:30 PM – 9:30 PM', place:'Lawn', dress:'Royal black, emerald or formal bespoke wear', desc:"Coming just for the evening? Please reach the resort by 6:15 PM, park and show your entry pass at the entrance. Guests are seated from 6:30 PM and the couple enters at 7:15 PM. Expect a few surprises from the groom, then dinner from 8:00 PM: Mutton Dum Biryani, Mutton Marag with naan, Mirchi ka Salan and Kaddu ka Halwa." },
+                { tone:'fuchsia', swatch:[['#111111','Black'],['#0b6e4f','Emerald'],['#d4af37','Gold']], icon:'fa-star', name:'Reception / Walima', time:'6:30 PM – 9:30 PM', place:'Lawn', dress:'Royal black, emerald or formal bespoke wear', desc:"Coming just for the evening? Please reach the resort by 6:15 PM, park and show your entry pass at the entrance. Guests are seated from 6:30 PM and the couple enters at 7:15 PM. Expect a few surprises from the groom, then dinner from 8:00 PM: Mutton Dum Biryani, Mutton Marag with naan, Mirchi ka Salan and Kaddu ka Halwa." },
                 { icon:'fa-door-open', name:'Farewell & Checkout', time:'10:00 PM', place:'Front desk', desc:'Please return room keys before you leave.' }
               ] }
         ];
@@ -513,6 +563,9 @@
         // ---------- Render ----------
         const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.textContent = h; return e; };
 
+        // Each function's colour in the itinerary (see the colour key above the timeline)
+        const TONES = { marigold: '#ffb020', ivory: '#fff1c9', fuchsia: '#ff4f93' };
+
         function renderDay(d) {
             const wrap = el('div', 'glass-deep rounded-2xl p-6 sm:p-8');
             const head = el('div', 'flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-gold-500/20 pb-4 mb-6');
@@ -531,10 +584,14 @@
                 dot.innerHTML = '<i class="fas ' + ev.icon + '"></i>';
                 const row = el('div', 'flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1');
                 row.append(el('h4', 'font-cinzel font-bold text-lg text-gold-300', ev.name), el('span', 'font-cinzel text-xs tracking-wider text-gold-400', ev.time));
+                const tone = TONES[ev.tone];
+                if (tone) { item.style.borderLeft = '3px solid ' + tone; dot.style.borderColor = tone; dot.style.color = tone; dot.style.boxShadow = '0 0 14px ' + tone + '80'; }
                 item.append(dot, row, el('p', 'text-xs text-ivory-200/60 mt-1', ev.place), el('p', 'text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-2', ev.desc));
                 if (ev.dress) {
                     const dc = el('p', 'mt-3 text-xs text-ivory-200/80');
-                    dc.append(el('span', 'font-cinzel text-gold-400 tracking-wider mr-2', 'DRESS CODE'), ev.dress);
+                    const dots = el('span', 'inline-flex gap-1 mr-2 align-middle');
+                    (ev.swatch || []).forEach(([c, n]) => { const sw = el('span', 'inline-block w-3.5 h-3.5 rounded-full border border-white/60'); sw.style.background = c; sw.title = n; dots.append(sw); });
+                    dc.append(el('span', 'font-cinzel text-gold-400 tracking-wider mr-2', 'DRESS CODE'), dots, ev.dress);
                     item.append(dc);
                 }
                 list.append(item);
@@ -627,6 +684,29 @@
             })(0);
         })();
 
+        // ---------- Rose petal shower (envelope opening and RSVP confirmation) ----------
+        function petals(ms) {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const cv = el('canvas', 'petal-cv'), ctx = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1);
+            cv.setAttribute('aria-hidden', 'true'); document.body.append(cv);
+            const W = innerWidth, H = innerHeight; cv.width = W * dpr; cv.height = H * dpr;
+            const cols = ['#ff4f93', '#ff8fb8', '#e0457b', '#ffcf4d', '#fff0f5', '#f39c12'];
+            const P = Array.from({ length: Math.min(90, Math.round(W / 6)) }, () => ({ x: Math.random() * W, y: -20 - Math.random() * H * .7,
+                s: 5 + Math.random() * 7, vy: 1.3 + Math.random() * 1.8, sw: Math.random() * 6.3, rot: Math.random() * 6.3, vr: (Math.random() - .5) * .08, c: cols[Math.random() * cols.length | 0] }));
+            const t0 = performance.now();
+            (function frame(t) {
+                const age = t - t0, fade = age > ms ? Math.max(0, 1 - (age - ms) / 1200) : 1;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.globalAlpha = fade;
+                P.forEach(p => {
+                    p.y += p.vy; p.sw += .03; p.x += Math.sin(p.sw) * .8; p.rot += p.vr;
+                    if (p.y > H + 20 && age < ms) p.y = -20;
+                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c;
+                    ctx.beginPath(); ctx.ellipse(0, 0, p.s * .55, p.s, 0, 0, 6.283); ctx.fill(); ctx.restore();
+                });
+                if (fade > 0) requestAnimationFrame(frame); else cv.remove();
+            })(t0);
+        }
+
         // ---------- RSVP + entry pass ----------
         const modal = document.getElementById('rsvp-modal'), form = document.getElementById('rsvp-form');
         const PASS_KEY = 'nd27-pass';
@@ -679,6 +759,7 @@
             document.getElementById('pass-email-note').classList.toggle('hidden', !justSent);
             drawPass(document.getElementById('pass-cv'), p);
             renderCal(p);
+            if (justSent) petals(3000);
         }
         function openRsvp() {
             const p = loadPass();
@@ -774,6 +855,15 @@
             const fonts = ['600 24px Cinzel', '64px "Great Vibes"', '28px "Plus Jakarta Sans"'];
             Promise.all(fonts.map(f => document.fonts ? document.fonts.load(f).catch(() => {}) : 0)).then(() => paint(cv, p));
         }
+        // The N&D crest, drawn to match the page's SVG crest
+        function crest(c, x, y, r, gold) {
+            c.save(); c.translate(x, y); c.fillStyle = gold;
+            c.beginPath(); c.arc(0, 0, r * .83, 0, 6.283); c.fill();
+            for (let i = 0; i < 28; i++) { const a = i * 6.283 / 28; c.beginPath(); c.arc(Math.cos(a) * r * .83, Math.sin(a) * r * .83, r * .115, 0, 6.283); c.fill(); }
+            c.beginPath(); c.arc(0, 0, r * .69, 0, 6.283); c.fillStyle = '#0b7d86'; c.fill(); c.strokeStyle = '#fff3c4'; c.lineWidth = 1.2; c.stroke();
+            c.font = Math.round(r * .55) + 'px "Great Vibes", cursive'; c.fillStyle = '#fff0b8'; c.textAlign = 'center'; c.textBaseline = 'middle';
+            c.fillText('N&D', 0, r * .06); c.restore();
+        }
         function paint(cv, p) {
             const W = 640, H = 1020; cv.width = W; cv.height = H;
             const c = cv.getContext('2d'), gold = c.createLinearGradient(0, 0, W, 0);
@@ -782,6 +872,7 @@
             c.fillStyle = bg; c.fillRect(0, 0, W, H);
             c.strokeStyle = gold; c.lineWidth = 3; c.strokeRect(20, 20, W - 40, H - 40);
             c.lineWidth = 1; c.strokeRect(32, 32, W - 64, H - 64);
+            crest(c, W / 2, 34, 30, gold);
             const text = (t, y, font, fill, spacing) => {
                 c.font = font; c.fillStyle = fill; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
                 if ('letterSpacing' in c) c.letterSpacing = (spacing || 0) + 'px';
@@ -880,6 +971,7 @@
             function openEnvelope() {
                 if (stage2 || env.classList.contains('open')) return;
                 env.classList.add('open');
+                petals(3500);
                 setTimeout(() => { stage2 = true; intro.classList.add('stage2'); requestAnimationFrame(foil); }, 2200);
             }
             document.getElementById('seal').addEventListener('click', openEnvelope);
