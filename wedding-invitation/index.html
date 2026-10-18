@@ -379,8 +379,10 @@
                 <fieldset>
                     <legend class="font-cinzel text-xs text-gold-300 mb-2">ATTENDING EVENTS *</legend>
                     <div class="space-y-2 text-xs sm:text-sm text-ivory-200/85">
-                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="event" value="Day 1 (Wed Jan 20) - Arrival, Haldi & Mehendi, Shukrana, DJ Night" checked class="accent-[#d4af37] w-4 h-4"> Day 1 · Wed, Jan 20 — Arrival, Haldi &amp; Mehendi, Shukrana &amp; DJ Night</label>
-                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="event" value="Day 2 (Thu Jan 21) - Nikah, Julwa & Reception" checked class="accent-[#d4af37] w-4 h-4"> Day 2 · Thu, Jan 21 — Nikah, Julwa &amp; Reception / Walima</label>
+                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Day 1 (Wed Jan 20) - Haldi & Mehendi, Shukrana, DJ Night" checked class="accent-[#d4af37] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Day 1 · Wed, Jan 20</b> — Arrival, Haldi &amp; Mehendi, Shukrana &amp; DJ Night</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Nikah (Thu Jan 21, morning) - Nikah, Lunch & Julwa" checked class="accent-[#d4af37] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Nikah · Thu, Jan 21, morning</b> — Nikah at 10:00 AM, lunch &amp; Julwa</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Reception (Thu Jan 21, evening) - Reception / Walima" checked class="accent-[#d4af37] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Reception · Thu, Jan 21, evening</b> — Reception / Walima from 6:30 PM</span></label>
+                        <p class="text-[11px] text-ivory-200/55 pt-1">Tick every part you will attend, so we know how many people to expect at each.</p>
                     </div>
                 </fieldset>
 
@@ -596,7 +598,8 @@
         const PASS_KEY = 'nd27-pass';
         const PASS_EVENTS = [
             { day: 'WED 20 JAN', name: 'Haldi, Shukrana & DJ Night' },
-            { day: 'THU 21 JAN', name: 'Nikah, Julwa & Reception' }
+            { day: 'THU 21 JAN', name: 'Nikah & Julwa (morning)' },
+            { day: 'THU 21 JAN', name: 'Reception (evening)' }
         ];
         const loadPass = () => { try { return JSON.parse(localStorage.getItem(PASS_KEY)); } catch (e) { return null; } };
         const storePass = p => { try { localStorage.setItem(PASS_KEY, JSON.stringify(p)); } catch (e) {} };
