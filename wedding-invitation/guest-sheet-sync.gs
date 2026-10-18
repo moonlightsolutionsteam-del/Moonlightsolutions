@@ -3,8 +3,10 @@
  * The database sends every new or changed RSVP here; rows are matched by pass code.
  *
  * Setup: in the sheet, Extensions > Apps Script, paste this file, set SYNC_SECRET to the
- * value Claude gave you, then Deploy > New deployment > Web app,
- * Execute as "Me", Who has access "Anyone" > Deploy, and share the Web app URL.
+ * value Claude gave you and save. Run setupSheet once to write the headings. Then
+ * Deploy > New deployment > Web app, Execute as "Me", Who has access "Anyone" > Deploy,
+ * and share the Web app URL. After any later code change, use Deploy > Manage deployments >
+ * edit > Version: New version, or the live URL keeps running the old code.
  */
 const SYNC_SECRET = 'PASTE_THE_SECRET_HERE';
 const HEADERS = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20)', 'Nikah (Thu AM)', 'Reception (Thu PM)', 'Guests', 'Note',
@@ -17,9 +19,7 @@ function doPost(e) {
     const d = JSON.parse(e.postData.contents);
     if (d.secret !== SYNC_SECRET) return reply({ ok: false, error: 'forbidden' });
     const r = d.record || {};
-    const sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
-    sh.setFrozenRows(1);
+    const sh = writeHeaders();
 
     const days = Array.isArray(r.days) ? r.days : [];
     const row = [r.pass_code, r.name, r.phone, r.side,
@@ -41,6 +41,20 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Run this once from the editor (select setupSheet, press Run) to put in the current column headings.
+function setupSheet() {
+  writeHeaders();
+  SpreadsheetApp.getActiveSpreadsheet().toast('Guest list headings updated.');
+}
+
+function writeHeaders() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  if (sh.getMaxColumns() > HEADERS.length) sh.getRange(1, HEADERS.length + 1, 1, sh.getMaxColumns() - HEADERS.length).clearContent();
+  sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+  sh.setFrozenRows(1);
+  return sh;
 }
 
 function reply(o) {
