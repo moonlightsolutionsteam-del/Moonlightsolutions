@@ -93,7 +93,7 @@ def save_the_date():
 DAY1 = [('12:00 PM', 'Arrival & welcome drinks'), ('1:30 PM', 'Lunch'), ('2:30 PM', 'Family Face-Off games'), ('3:15 PM', 'Pool session'),
         ('4:45 PM', 'Haldi & Mehendi', '#ffb020'), ('6:45 PM', 'Shukrana', '#fff1c9'), ('8:00 PM', 'DJ Night & dinner', '#ff4f93')]
 DAY2 = [('7:30 AM', 'Breakfast'), ('10:00 AM', 'Nikah · seated by 9:50', '#fff1c9'), ('1:00 PM', 'Nikah lunch'), ('3:00 PM', 'Julwa', '#fff1c9'),
-        ('5:30 PM', 'Sundowner tea'), ('6:30 PM', 'Reception / Walima', '#ff4f93'), ('7:15 PM', 'Couple’s entry', '#ff4f93'), ('10:00 PM', 'Farewell & checkout')]
+        ('5:30 PM', 'Sundowner tea'), ('6:30 PM', 'Reception / Walima', '#ff4f93'), ('7:15 PM', 'Couple’s entry', '#ff4f93'), ('9:30 PM', 'Rukhsati & farewell', '#fff1c9')]
 def col(title, sub, rows):
     items = ''.join(f'''<div style="display:grid;grid-template-columns:170px 1fr;gap:18px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,207,77,.2)">
         <span class="cin" style="font-size:24px;color:#ffd36b;text-align:right">{r[0]}</span>
