@@ -114,7 +114,9 @@
     </div>
     <div class="tabs" role="tablist" aria-label="Planning" style="margin-top:-6px">
       <span class="tg">Planning</span>
+      <button class="tab" role="tab" data-tab="overview" aria-selected="false">Overview</button>
       <button class="tab" role="tab" data-tab="budget" aria-selected="false">Budget &amp; payments</button>
+      <button class="tab" role="tab" data-tab="menu" aria-selected="false">Menu</button>
       <button class="tab" role="tab" data-tab="vendors" aria-selected="false">Vendors</button>
       <button class="tab" role="tab" data-tab="todo" aria-selected="false">To-do &amp; team</button>
     </div>
@@ -208,6 +210,24 @@
       <p class="muted" id="fMsg"></p>
     </section>
 
+    <!-- Overview: the whole wedding at a glance -->
+    <section id="tab-overview" hidden>
+      <div class="stats" id="oStats"></div>
+      <div id="oCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- Catering menu: dishes, plates and both families' approval -->
+    <section id="tab-menu" hidden>
+      <div class="stats" id="mStats"></div>
+      <div class="row" style="gap:8px;margin-bottom:12px"><button class="btn sm" id="mCopy">Copy menu for the caterer</button><span class="muted" id="mMsg" style="align-self:center"></span></div>
+      <div id="mCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- Receipt viewer -->
+    <div id="rcpt" hidden style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px" onclick="this.hidden=true">
+      <img id="rcptImg" alt="Receipt" style="max-width:100%;max-height:100%;border-radius:10px">
+    </div>
+
     <!-- Budget & payments -->
     <section id="tab-budget" hidden>
       <div class="stats" id="bStats"></div>
@@ -216,23 +236,34 @@
         <thead><tr><th>Item</th><th class="money">Budget</th><th class="money">Agreed price</th><th class="money">Paid</th><th class="money">Balance</th><th>Status</th><th>Vendor / notes</th><th></th></tr></thead>
         <tbody id="bRows"></tbody>
       </table></div>
-      <p class="muted" style="font-size:12px">Shared costs are split 50/50. The agreed price is what you finally settle on; until it is filled in, the budget is used for totals. Not included: mehr, outfits, jewellery, bridal makeup, gifts and personal travel.</p>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px">Who pays what</h2>
+      <p class="muted" style="margin:0 0 8px;font-size:13px">Each line's split between the families. Shared lines start at 50/50; change the groom's family % on any line (for example 60 for a 60/40 split).</p>
+      <div class="scroll"><table style="min-width:980px">
+        <thead><tr><th>Item</th><th class="money">Cost</th><th>Groom's %</th><th class="money">Groom's share</th><th class="money">Bride's share</th><th class="money">Groom's paid</th><th class="money">Bride's paid</th><th class="money">Groom's due</th><th class="money">Bride's due</th></tr></thead>
+        <tbody id="wRows"></tbody>
+      </table></div>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px">Who has paid, person by person</h2>
+      <div id="people" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"></div>
+      <p class="muted" style="font-size:12px">Shared costs are split 50/50 unless you change the split above. The agreed price is what you finally settle on; until it is filled in, the budget is used for totals. Not included: mehr, outfits, jewellery, bridal makeup, gifts and personal travel.</p>
 
       <div class="panel" style="margin-top:16px">
         <p class="cin" style="margin:0 0 10px;color:var(--gold2)">Record a payment</p>
         <div class="row" style="gap:8px;align-items:flex-end">
           <label class="muted" style="flex:3 1 260px">For<select id="pItem" style="width:100%"></select></label>
           <label class="muted" style="flex:1 1 110px">Amount (₹)<input id="pAmt" type="number" min="1" style="width:100%"></label>
-          <label class="muted" style="flex:1 1 150px">Paid by<select id="pBy" style="width:100%"><option>Groom's family</option><option>Bride's family</option></select></label>
+          <label class="muted" style="flex:1 1 150px">Family<select id="pBy" style="width:100%"><option>Groom's family</option><option>Bride's family</option></select></label>
+          <label class="muted" style="flex:1 1 140px">Person who paid<input id="pPerson" maxlength="40" placeholder="e.g. Nadeem" style="width:100%"></label>
           <label class="muted" style="flex:1 1 140px">Date<input id="pDate" type="date" style="width:100%"></label>
           <label class="muted" style="flex:1 1 120px">How<select id="pHow" style="width:100%"><option>UPI</option><option>Cash</option><option>Bank transfer</option><option>Card</option><option>Cheque</option></select></label>
-          <label class="muted" style="flex:2 1 180px">Note<input id="pNote" maxlength="120" placeholder="e.g. advance, receipt no." style="width:100%"></label>
+          <label class="muted" style="flex:1 1 160px">UTR / reference no.<input id="pRef" maxlength="40" placeholder="UPI or bank reference" style="width:100%"></label>
+          <label class="muted" style="flex:2 1 180px">Note<input id="pNote" maxlength="120" placeholder="e.g. advance, balance" style="width:100%"></label>
+          <label class="muted" style="flex:1 1 170px">Receipt photo (optional)<input id="pFile" type="file" accept="image/*" style="width:100%"></label>
           <button class="btn sm" id="pAdd">Add payment</button>
         </div>
         <p class="err" id="pMsg" role="status"></p>
       </div>
       <div class="scroll" style="margin-top:10px"><table style="min-width:760px">
-        <thead><tr><th>Date</th><th>For</th><th class="money">Amount</th><th>Paid by</th><th>How</th><th>Note</th><th></th></tr></thead>
+        <thead><tr><th>Date</th><th>For</th><th class="money">Amount</th><th>Paid by</th><th>How / reference</th><th>Note</th><th>Receipt</th><th></th></tr></thead>
         <tbody id="pRows"></tbody>
       </table></div>
       <div class="row" style="gap:10px;align-items:center;margin-top:14px">
@@ -797,10 +828,32 @@ showWho();
 let plan = [], cap = 300000, emergency = {};
 const inr = n => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
 const items = k => plan.filter(x => x.kind === k && !x.removed);
+let receipts = [];
+// Shrink a photo to a JPEG of at most 1400px so it stores quickly
+function compress(file) {
+  return new Promise((ok, bad) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); let q = .75, d = c.toDataURL('image/jpeg', q);
+      while (d.length > 850000 && q > .3) { q -= .15; d = c.toDataURL('image/jpeg', q); }
+      ok(d);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('Not an image')); };
+    img.src = url;
+  });
+}
+async function addReceipt(paymentId, file) {
+  const data = await compress(file);
+  await rpc('admin_receipt_add', { p_payment: paymentId, p_image: data, p_by: meLabel() });
+  receipts = await rpc('admin_receipts');
+}
+async function showReceipt(id) { try { $('rcptImg').src = await rpc('admin_receipt_get', { p_id: id }); $('rcpt').hidden = false; } catch (e) {} }
 async function loadPlan() {
   try {
-    const [rows, st] = await Promise.all([rpc('admin_plan'), rpc('admin_settings')]);
-    plan = rows;
+    const [rows, st, rc] = await Promise.all([rpc('admin_plan'), rpc('admin_settings'), rpc('admin_receipts')]);
+    plan = rows; receipts = rc;
     const b = st.find(x => x.key === 'budget'); cap = b && b.value && b.value.cap != null ? +b.value.cap : 300000;
     const em = st.find(x => x.key === 'emergency'); emergency = em ? em.value : {};
     const r = st.find(x => x.key === 'rooms'); if (r && Array.isArray(r.value)) rooms = r.value;
@@ -808,6 +861,8 @@ async function loadPlan() {
   } catch (e) { if (e.message !== 'forbidden') flash('Could not load the planning data.'); }
 }
 function renderPlan() {
+  if (!$('tab-overview').hidden) renderOverview();
+  if (!$('tab-menu').hidden) renderMenu();
   if (!$('tab-budget').hidden) renderBudget();
   if (!$('tab-vendors').hidden) renderVendors();
   if (!$('tab-todo').hidden) renderTodo();
@@ -849,14 +904,20 @@ const GROUPS = [['shared', 'Shared 50/50'], ['bride', "Bride's family"], ['groom
 const B_STATUS = ['To close', 'Quoted', 'Booked', 'Advance paid', 'Paid in full', 'Not needed'];
 const cost = it => it.data.status === 'Not needed' ? 0 : (it.data.agreed != null && it.data.agreed !== '' ? +it.data.agreed : +it.data.budget || 0);
 const paidFor = (id, fam) => items('payment').filter(p => p.data.item === id && (!fam || p.data.by === fam)).reduce((n, p) => n + (+p.data.amount || 0), 0);
+// The groom's family's % of a line: set per line, otherwise 50 for shared, 100 for groom's lines, 0 for bride's
+const gPct = it => it.data.split_groom != null && it.data.split_groom !== '' ? Math.min(100, Math.max(0, +it.data.split_groom)) : it.data.group === 'groom' ? 100 : it.data.group === 'bride' ? 0 : 50;
+function lineSplit(it) {
+  const c = cost(it), gs = Math.round(c * gPct(it) / 100), gp = paidFor(it.id, "Groom's family"), bp = paidFor(it.id, "Bride's family");
+  return { c, gs, bs: c - gs, gp, bp, gd: gs - gp, bd: c - gs - bp };
+}
 function money() {
-  const bl = items('budget'), sum = (arr, f) => arr.reduce((n, x) => n + f(x), 0);
+  const bl = items('budget'), sum = (arr, f) => arr.reduce((n, x) => n + f(x), 0), sp = bl.map(lineSplit);
   const g = k => bl.filter(x => x.data.group === k);
-  const shared = sum(g('shared'), cost), own = { bride: sum(g('bride'), cost), groom: sum(g('groom'), cost) };
-  const pay = items('payment'), byFam = (fam, grp) => sum(pay.filter(p => p.data.by === fam && (!grp || (bl.find(b => b.id === p.data.item) || { data: {} }).data.group === grp)), p => +p.data.amount || 0);
-  return { shared, own, total: { bride: shared / 2 + own.bride, groom: shared / 2 + own.groom },
-    paid: { bride: byFam("Bride's family"), groom: byFam("Groom's family") },
-    sharedPaid: { bride: byFam("Bride's family", 'shared'), groom: byFam("Groom's family", 'shared') } };
+  // Settling up: on what has been paid for each line, how far is each family from its agreed share
+  const fair = sum(bl, it => { const s = lineSplit(it), paid = s.gp + s.bp; return s.gp - paid * gPct(it) / 100; });
+  return { shared: sum(g('shared'), cost), own: { bride: sum(g('bride'), cost), groom: sum(g('groom'), cost) },
+    total: { groom: sum(sp, s => s.gs), bride: sum(sp, s => s.bs) },
+    paid: { groom: sum(sp, s => s.gp), bride: sum(sp, s => s.bp) }, settle: Math.round(fair) };
 }
 function renderBudget() {
   const m = money();
@@ -865,11 +926,11 @@ function renderBudget() {
     [inr(m.total.bride), "Bride's family total"], [inr(cap - m.total.bride), "Bride's buffer left (cap " + inr(cap) + ')'], [inr(m.paid.bride), "Paid by bride's family"],
     [inr(m.shared + m.own.bride + m.own.groom), 'Wedding total'], [inr(m.shared + m.own.bride + m.own.groom - m.paid.bride - m.paid.groom), 'Still to pay']]
     .map(([n, l]) => el('div', { className: 'stat', style: /buffer/.test(l) && /-/.test(n) ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
-  // Who owes whom on the shared costs paid so far
-  const sp = m.sharedPaid, half = (sp.bride + sp.groom) / 2, diff = Math.round(sp.groom - half);
-  $('bSettle').replaceChildren(el('b', { className: 'cin', textContent: 'Shared costs so far: ' }),
-    el('span', { textContent: 'paid ' + inr(sp.groom + sp.bride) + ' (groom\'s family ' + inr(sp.groom) + ', bride\'s family ' + inr(sp.bride) + '). ' }),
-    el('b', { style: 'color:' + (diff ? 'var(--warn)' : 'var(--ok)'), textContent: diff > 0 ? "Bride's family owes groom's family " + inr(diff) + ' to keep it 50/50.' : diff < 0 ? "Groom's family owes bride's family " + inr(-diff) + ' to keep it 50/50.' : 'Both families are even.' }));
+  // Who owes whom, on what has been paid so far, by each line's split
+  const diff = m.settle;
+  $('bSettle').replaceChildren(el('b', { className: 'cin', textContent: 'Settling up: ' }),
+    el('span', { textContent: 'groom\'s family has paid ' + inr(m.paid.groom) + ' of its ' + inr(m.total.groom) + ', bride\'s family ' + inr(m.paid.bride) + ' of its ' + inr(m.total.bride) + '. ' }),
+    el('b', { style: 'color:' + (diff ? 'var(--warn)' : 'var(--ok)'), textContent: diff > 0 ? "Bride's family owes groom's family " + inr(diff) + ' for its share of what has been paid.' : diff < 0 ? "Groom's family owes bride's family " + inr(-diff) + ' for its share of what has been paid.' : 'Both families are even on what has been paid.' }));
   const body = $('bRows'); body.replaceChildren();
   GROUPS.forEach(([k, label]) => {
     const list = items('budget').filter(x => x.data.group === k);
@@ -893,42 +954,156 @@ function renderBudget() {
     body.append(el('tr', { className: 'tot' }, el('td', {}, add), el('td', { className: 'money', textContent: inr(tb) }), el('td', { className: 'money', textContent: inr(tc) }),
       el('td', { className: 'money', textContent: inr(tp) }), el('td', { className: 'money', textContent: inr(tc - tp) }), el('td', { colSpan: 3 })));
   });
+  // Who pays what, line by line
+  const wb = $('wRows'); wb.replaceChildren();
+  const tot = { c: 0, gs: 0, bs: 0, gp: 0, bp: 0, gd: 0, bd: 0 };
+  GROUPS.forEach(([k, label]) => {
+    wb.append(el('tr', { className: 'grp' }, el('td', { colSpan: 9, textContent: label })));
+    items('budget').filter(x => x.data.group === k).forEach(it => {
+      const sv = lineSplit(it); Object.keys(tot).forEach(f => tot[f] += sv[f]);
+      const pct = cell(it, 'split_groom', { num: true, ph: String(gPct(it)) }); pct.max = 100; pct.style.maxWidth = '70px';
+      const due = v => el('td', { className: 'money', style: v > 0 ? 'color:var(--warn)' : v < 0 ? 'color:var(--ok)' : '', textContent: v < 0 ? inr(-v) + ' extra' : inr(v) });
+      wb.append(el('tr', {}, el('td', { textContent: it.data.item, style: 'max-width:280px' }), el('td', { className: 'money', textContent: inr(sv.c) }), el('td', {}, pct),
+        el('td', { className: 'money', textContent: inr(sv.gs) }), el('td', { className: 'money', textContent: inr(sv.bs) }),
+        el('td', { className: 'money', textContent: inr(sv.gp) }), el('td', { className: 'money', textContent: inr(sv.bp) }), due(sv.gd), due(sv.bd)));
+    });
+  });
+  wb.append(el('tr', { className: 'tot' }, el('td', { textContent: 'Total' }), el('td', { className: 'money', textContent: inr(tot.c) }), el('td'),
+    ...['gs', 'bs', 'gp', 'bp', 'gd', 'bd'].map(f => el('td', { className: 'money', textContent: inr(tot[f]) }))));
+  // Person by person, within each family
+  const pays0 = items('payment');
+  $('people').replaceChildren(...["Groom's family", "Bride's family"].map(fam => {
+    const mine = pays0.filter(p => p.data.by === fam), byP = {};
+    mine.forEach(p => { const k = (p.data.person || 'Not named').trim(); byP[k] = (byP[k] || 0) + (+p.data.amount || 0); });
+    const share = fam[0] === 'G' ? m.total.groom : m.total.bride, paid = fam[0] === 'G' ? m.paid.groom : m.paid.bride;
+    return el('div', { className: 'panel', style: 'padding:12px' }, el('b', { className: 'cin', textContent: fam }),
+      el('div', { className: 'muted', style: 'font-size:13px;margin:4px 0 8px', textContent: 'Share ' + inr(share) + ' · paid ' + inr(paid) + ' · still to pay ' + inr(share - paid) }),
+      ...(Object.keys(byP).length ? Object.entries(byP).sort((a, b) => b[1] - a[1]).map(([n, a]) => el('div', { className: 'row', style: 'justify-content:space-between;font-size:14px;margin:2px 0' }, el('span', { textContent: n }), el('b', { className: 'money', textContent: inr(a) }))) :
+        [el('p', { className: 'muted', style: 'margin:0;font-size:13px', textContent: 'No payments yet.' })]));
+  }));
   // Payment form and log
   const sel = $('pItem'), keep = sel.value; sel.replaceChildren();
   GROUPS.forEach(([k, label]) => { const og = el('optgroup', { label }); items('budget').filter(x => x.data.group === k).forEach(x => og.append(el('option', { value: x.id, textContent: x.data.item }))); sel.append(og); });
   if (keep) sel.value = keep;
   if (!$('pDate').value) $('pDate').value = new Date().toISOString().slice(0, 10);
-  if (ME && !$('pBy').dataset.set) { $('pBy').value = ME.fam; $('pBy').dataset.set = 1; }
+  if (ME && !$('pBy').dataset.set) { $('pBy').value = ME.fam; $('pPerson').value = ME.name; $('pBy').dataset.set = 1; }
   const pays = items('payment').sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)));
   $('pRows').replaceChildren(...(pays.length ? pays.map(p => {
     const b = plan.find(x => x.id === p.data.item), x = el('button', { className: 'mini', textContent: '×' });
     x.onclick = () => { if (confirm('Remove this payment of ' + inr(p.data.amount) + '?')) removePlan(p); };
+    const rs = receipts.filter(r => r.payment_id === p.id), rc = el('td', {});
+    rs.forEach((r, i) => { const v = el('button', { className: 'mini', textContent: 'View' + (rs.length > 1 ? ' ' + (i + 1) : '') }); v.onclick = () => showReceipt(r.id); rc.append(v, ' '); });
+    const up = el('label', { className: 'mini', style: 'cursor:pointer', textContent: rs.length ? '+ add' : '+ Upload' }), f = el('input', { type: 'file', accept: 'image/*', hidden: true });
+    f.onchange = async () => { if (f.files[0]) { up.textContent = 'Uploading…'; try { await addReceipt(p.id, f.files[0]); renderBudget(); } catch (e) { up.textContent = 'Failed, retry'; } } };
+    up.append(f); rc.append(up);
     return el('tr', {}, el('td', { className: 'muted', textContent: p.data.date }), el('td', { textContent: b ? b.data.item : '(removed item)' }), el('td', { className: 'money', textContent: inr(p.data.amount) }),
-      el('td', { textContent: p.data.by }), el('td', { className: 'muted', textContent: p.data.how }), el('td', {}, el('div', { textContent: p.data.note || '' }), stamp(p)), el('td', {}, x));
-  }) : [el('tr', {}, el('td', { colSpan: 7, className: 'empty', textContent: 'No payments recorded yet.' }))]));
+      el('td', {}, el('div', { textContent: p.data.person || '' }), el('div', { className: 'by', textContent: p.data.by })),
+      el('td', { className: 'muted' }, el('div', { textContent: p.data.how }), p.data.ref ? el('div', { className: 'code', style: 'font-size:12px', textContent: p.data.ref }) : ''),
+      el('td', {}, el('div', { textContent: p.data.note || '' }), stamp(p)), rc, el('td', {}, x));
+  }) : [el('tr', {}, el('td', { colSpan: 8, className: 'empty', textContent: 'No payments recorded yet.' }))]));
   $('capIn').value = cap;
   const rec = plan.filter(x => x.updated_by).sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))).slice(0, 8);
   $('recent').replaceChildren(...(rec.length ? rec.map(x => el('div', { style: 'font-size:13px;margin:3px 0' }, el('span', { className: 'muted', textContent: new Date(x.updated_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' · ' }),
-    el('b', { textContent: x.updated_by }), ' ' + (x.removed ? 'removed ' : 'updated ') + ({ budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty' }[x.kind]) + ': ' + (x.kind === 'payment' ? inr(x.data.amount) + ' by ' + x.data.by + ' for ' + ((plan.find(b => b.id === x.data.item) || { data: {} }).data.item || 'an item') : (x.data.item || x.data.title || x.data.area || x.data.role || '')))) :
+    el('b', { textContent: x.updated_by }), ' ' + (x.removed ? 'removed ' : 'updated ') + ({ budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' }[x.kind]) + ': ' + (x.kind === 'payment' ? inr(x.data.amount) + ' by ' + x.data.by + ' for ' + ((plan.find(b => b.id === x.data.item) || { data: {} }).data.item || 'an item') : (x.data.item || x.data.title || x.data.area || x.data.role || x.data.meal || '')))) :
     [el('p', { className: 'muted', style: 'margin:0', textContent: 'No changes yet.' })]));
 }
 $('pAdd').onclick = async () => {
   const amt = Math.round(+$('pAmt').value), msg = $('pMsg');
   if (!$('pItem').value || !(amt > 0)) { msg.style.color = 'var(--bad)'; msg.textContent = 'Choose what it was for and enter the amount.'; return; }
   try {
-    await savePlan(null, { item: $('pItem').value, amount: amt, by: $('pBy').value, date: $('pDate').value || new Date().toISOString().slice(0, 10), how: $('pHow').value, note: $('pNote').value.trim() }, 'payment');
-    msg.style.color = 'var(--ok)'; msg.textContent = 'Payment of ' + inr(amt) + ' recorded.'; $('pAmt').value = ''; $('pNote').value = ''; renderBudget();
+    const row = await savePlan(null, { item: $('pItem').value, amount: amt, by: $('pBy').value, person: $('pPerson').value.trim(), date: $('pDate').value || new Date().toISOString().slice(0, 10), how: $('pHow').value, ref: $('pRef').value.trim(), note: $('pNote').value.trim() }, 'payment');
+    const file = $('pFile').files[0];
+    if (file) { msg.textContent = 'Saving the receipt…'; await addReceipt(row.id, file); }
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Payment of ' + inr(amt) + ' recorded' + (file ? ' with its receipt.' : '.'); $('pAmt').value = ''; $('pNote').value = ''; $('pRef').value = ''; $('pFile').value = ''; renderBudget();
   } catch (e) { if (e.message !== 'who') { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not save. Try again.'; } }
 };
 $('capSave').onclick = async () => { const v = Math.max(0, Math.round(+$('capIn').value || 0)); try { await rpc('admin_setting_set', { p_name: 'budget', p_value: { cap: v } }); cap = v; renderBudget(); } catch (e) {} };
 $('bCsv').onclick = () => {
   const lines = [['Group', 'Item', 'Budget', 'Agreed', 'Paid', 'Balance', 'Status', 'Notes']];
   GROUPS.forEach(([k, label]) => items('budget').filter(x => x.data.group === k).forEach(x => lines.push([label, x.data.item, x.data.budget, x.data.agreed == null ? '' : x.data.agreed, paidFor(x.id), cost(x) - paidFor(x.id), x.data.status, x.data.notes])));
-  lines.push([], ['Payments'], ['Date', 'For', 'Amount', 'Paid by', 'How', 'Note']);
-  items('payment').forEach(p => { const b = plan.find(x => x.id === p.data.item); lines.push([p.data.date, b ? b.data.item : '', p.data.amount, p.data.by, p.data.how, p.data.note]); });
+  lines.push([], ['Who pays what'], ['Item', 'Cost', "Groom's %", "Groom's share", "Bride's share", "Groom's paid", "Bride's paid", "Groom's due", "Bride's due"]);
+  items('budget').forEach(x => { const sv = lineSplit(x); lines.push([x.data.item, sv.c, gPct(x), sv.gs, sv.bs, sv.gp, sv.bp, sv.gd, sv.bd]); });
+  lines.push([], ['Payments'], ['Date', 'For', 'Amount', 'Family', 'Person', 'How', 'Reference', 'Note', 'Receipt']);
+  items('payment').forEach(p => { const b = plan.find(x => x.id === p.data.item); lines.push([p.data.date, b ? b.data.item : '', p.data.amount, p.data.by, p.data.person, p.data.how, p.data.ref, p.data.note, receipts.some(r => r.payment_id === p.id) ? 'Yes' : '']); });
   const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-budget.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
+
+// ---------- menu ----------
+const M_STATUS = ['Draft', 'Tasting booked', 'Tasted', 'Final'];
+const PAYER = { shared: 'Shared 50/50', bride: "Bride's family", groom: "Groom's family" };
+// Plates from the RSVPs: guests coming to that function (Day 1 guests for breakfast), plus 5% spare
+function platesFor(it) {
+  const on = active().filter(g => !/^vendor/i.test(g.side) && g.days.includes(+it.data.event || 1));
+  const n = on.reduce((a, g) => a + g.guests, 0), veg = on.reduce((a, g) => a + Math.min(g.veg || 0, g.guests), 0);
+  const crew = active().filter(g => /^vendor/i.test(g.side) && g.days.includes(+it.data.event || 1)).reduce((a, g) => a + g.guests, 0);
+  const auto = Math.ceil(n * 1.05), set = it.data.plates != null && it.data.plates !== '' ? +it.data.plates : null;
+  return { n, veg, crew, auto, plates: set != null ? set : auto, manual: set != null };
+}
+function approve(it, fam) {
+  const k = fam === 'groom' ? 'ok_groom' : 'ok_bride', mineFam = ME && (ME.fam[0] === 'G' ? 'groom' : 'bride') === fam;
+  const done = it.data[k];
+  const b = el('button', { className: 'btn sm' + (done ? '' : ' ghost'), textContent: (done ? '✓ ' : '') + (fam === 'groom' ? "Groom's family" : "Bride's family") + (done ? ' approved' : ': approve') });
+  b.title = done ? done : mineFam ? 'Approve this menu for your family' : 'Only the ' + (fam === 'groom' ? "groom's" : "bride's") + ' family can approve this';
+  b.disabled = !mineFam && !done;
+  b.onclick = async () => { if (!mineFam) return; try { await savePlan(it, { [k]: done ? '' : ME.name + ' · ' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) }); renderMenu(); } catch (e) {} };
+  return el('div', {}, b, done ? el('div', { className: 'by', textContent: done }) : '');
+}
+function renderMenu() {
+  const ms = items('menu'), sum = f => ms.reduce((a, it) => a + f(it), 0);
+  const est = k => ms.filter(it => it.data.payer === k).reduce((a, it) => a + (+it.data.rate || 0) * platesFor(it).plates, 0);
+  $('mStats').replaceChildren(...[[ms.filter(it => it.data.status === 'Final').length + ' / ' + ms.length, 'Meals final'],
+    [ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' / ' + ms.length, 'Approved by both families'],
+    [inr(sum(it => (+it.data.rate || 0) * platesFor(it).plates)), 'Food estimate (plates × rate)'],
+    [inr(est('shared')) + ' / ' + inr(est('bride')) + ' / ' + inr(est('groom')), 'Shared / bride\'s / groom\'s']]
+    .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n, style: 'font-size:' + (String(n).length > 14 ? '16px' : '') }), el('span', { textContent: l }))));
+  $('mCards').replaceChildren(...ms.map(it => {
+    const pl = platesFor(it), lab = (t, node) => el('label', { className: 'muted', style: 'display:block;font-size:12px;margin-top:6px' }, t, node);
+    const pi = cell(it, 'plates', { num: true, ph: String(pl.auto) });
+    return el('div', { className: 'panel', style: 'padding:12px;' + (it.data.status === 'Final' ? 'border-color:var(--ok)' : '') },
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('div', {}, el('div', { className: 'by', textContent: it.data.when }), el('b', { className: 'cin', textContent: it.data.meal })), pick(it, 'status', M_STATUS)),
+      lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
+      lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t }))); s.value = it.data.payer; s.onchange = async () => { try { await savePlan(it, { payer: s.value }); renderMenu(); } catch (e) {} }; return s; })())),
+      el('div', { className: 'by', style: 'margin-top:4px', textContent: 'From RSVPs: ' + pl.n + ' guests (' + pl.veg + ' veg) + 5% spare = ' + pl.auto + ' plates' + (pl.crew ? ' · plus ' + pl.crew + ' vendor crew' : '') + ' · estimate ' + inr((+it.data.rate || 0) * pl.plates) }),
+      lab('Notes for the caterer', cell(it, 'notes', { area: true, rows: 2, max: 400 })),
+      el('div', { className: 'row', style: 'gap:8px;margin-top:8px' }, approve(it, 'groom'), approve(it, 'bride')),
+      el('div', { style: 'margin-top:6px' }, stamp(it)));
+  }));
+}
+$('mCopy').onclick = async () => {
+  const text = 'Nadeem & Dariya wedding: menu and plates (' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) + ')\n\n' + items('menu').map(it => {
+    const pl = platesFor(it);
+    return '*' + it.data.when + ' · ' + it.data.meal + '* (' + it.data.status + ')\n' + it.data.dishes + '\nVeg: ' + (it.data.veg || '-') + '\nPlates: ' + pl.plates + ' (' + pl.veg + ' veg)' + (pl.crew ? ' + ' + pl.crew + ' crew' : '') + ' · ₹' + (it.data.rate || 0) + ' a plate' + (it.data.notes ? '\nNote: ' + it.data.notes : '');
+  }).join('\n\n');
+  try { await navigator.clipboard.writeText(text); $('mMsg').textContent = 'Copied. Paste it into WhatsApp.'; } catch (e) { $('mMsg').textContent = text; }
+};
+
+// ---------- overview ----------
+function renderOverview() {
+  const m = money(), all = active(), gst = all.filter(g => !/^vendor/i.test(g.side)), sum = a => a.reduce((n, g) => n + g.guests, 0);
+  const days = Math.max(0, Math.floor((T(20, '12:00') - Date.now()) / 864e5));
+  const open = items('task').filter(t => !t.data.done), late = open.filter(t => t.data.due && t.data.due < today());
+  const ms = items('menu'), vs = items('vendor'), notBooked = vs.filter(v => /Enquiry|Quotes|To book/.test(v.data.status));
+  const staying = gst.filter(g => g.days.includes(1)), placed = staying.filter(g => g.accommodation);
+  $('oStats').replaceChildren(...[[days, 'Days to go'], [sum(gst), 'Guests RSVPed'], [inr(m.paid.groom + m.paid.bride) + ' / ' + inr(m.total.groom + m.total.bride), 'Paid of the total'], [late.length, 'Overdue to-dos']]
+    .map(([n, l]) => el('div', { className: 'stat', style: l === 'Overdue to-dos' && n ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  const card = (title, tab, lines) => {
+    const go = el('button', { className: 'mini', textContent: 'Open →' }); go.onclick = () => document.querySelector('.tab[data-tab="' + tab + '"]').click();
+    return el('div', { className: 'panel', style: 'padding:12px' }, el('div', { className: 'row', style: 'justify-content:space-between;align-items:center' }, el('b', { className: 'cin', textContent: title }), go),
+      ...lines.map(l => typeof l === 'string' ? el('div', { style: 'font-size:14px;margin-top:4px', textContent: l }) : l));
+  };
+  const warn = t => el('div', { style: 'font-size:14px;margin-top:4px;color:var(--warn)', textContent: t });
+  $('oCards').replaceChildren(
+    card('Guests', 'guests', ['Day 1: ' + sum(gst.filter(g => g.days.includes(1))) + ' of 100 planned', 'Nikah: ' + sum(gst.filter(g => g.days.includes(2))) + ' of 200 planned', 'Reception: ' + sum(gst.filter(g => g.days.includes(3))) + ' of 200 planned', 'RSVPs close on 15 December']),
+    card('Money', 'budget', ["Groom's family: " + inr(m.paid.groom) + ' paid of ' + inr(m.total.groom), "Bride's family: " + inr(m.paid.bride) + ' paid of ' + inr(m.total.bride),
+      ...(m.total.groom > cap ? [warn("Groom's family is " + inr(m.total.groom - cap) + ' over the cap')] : []), ...(m.total.bride > cap ? [warn("Bride's family is " + inr(m.total.bride - cap) + ' over the cap')] : []),
+      m.settle ? warn((m.settle > 0 ? "Bride's family owes groom's family " : "Groom's family owes bride's family ") + inr(Math.abs(m.settle))) : 'Families are even on payments so far']),
+    card('To-do', 'todo', [open.length + ' still to do · ' + late.length + ' overdue', ...open.sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9'))).slice(0, 4).map(t => (t.data.due < today() ? warn : (x => x))((t.data.due ? new Date(t.data.due).toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' · ' : '') + t.data.title + ' (' + t.data.owner + ')'))]),
+    card('Vendors', 'vendors', [vs.filter(v => /Booked|Paid|Advance/.test(v.data.status)).length + ' booked · ' + notBooked.length + ' still to close', ...notBooked.slice(0, 5).map(v => '• ' + v.data.area + ' (' + v.data.status + ')')]),
+    card('Menu', 'menu', [ms.filter(it => it.data.status === 'Final').length + ' of ' + ms.length + ' meals final', ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' approved by both families', ...ms.filter(it => !(it.data.ok_groom && it.data.ok_bride)).slice(0, 3).map(it => '• ' + it.data.meal + ': waiting for ' + [it.data.ok_groom ? '' : "groom's", it.data.ok_bride ? '' : "bride's"].filter(Boolean).join(' and ') + ' approval')]),
+    card('Rooms (Wednesday night)', 'rooms', [sum(placed) + ' of ' + sum(staying) + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
+}
 
 // ---------- vendors ----------
 const V_STATUS = ['Enquiry sent', 'Quotes in', 'To book', 'Booked', 'Advance paid', 'Paid in full', 'Own', 'Family'];
@@ -946,6 +1121,11 @@ function renderVendors() {
       el('div', { className: 'row', style: 'gap:6px;align-items:flex-end' }, lab('Phone', cell(v, 'phone', { max: 30 })),
         ph ? el('a', { className: 'mini', href: 'tel:+' + ph, textContent: 'Call' }) : '', ph ? el('a', { className: 'mini', href: 'https://wa.me/' + ph, target: '_blank', rel: 'noopener', textContent: 'WhatsApp' }) : ''),
       el('div', { className: 'row', style: 'gap:6px' }, lab('Quote / amount', cell(v, 'quote', { max: 80 })), lab('Handled by', pick(v, 'owner', ['Both', "Groom's family", "Bride's family"]))),
+      el('div', { className: 'row', style: 'gap:6px;align-items:flex-end' }, lab('UPI ID', cell(v, 'upi', { max: 60, ph: 'name@bank' })),
+        v.data.upi ? el('a', { className: 'mini', href: 'upi://pay?pa=' + encodeURIComponent(v.data.upi) + '&pn=' + encodeURIComponent(v.data.name || v.data.area) + '&cu=INR', textContent: 'Pay in UPI app' }) : '',
+        v.data.upi ? (() => { const c = el('button', { className: 'mini', textContent: 'Copy' }); c.onclick = () => navigator.clipboard && navigator.clipboard.writeText(v.data.upi); return c; })() : ''),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Bank account', cell(v, 'bank', { max: 40 })), lab('IFSC', cell(v, 'ifsc', { max: 20 }))),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Advance due by', cell(v, 'adv_due', { date: true })), lab('Balance due by', cell(v, 'bal_due', { date: true }))),
       lab('What they cover', cell(v, 'scope', { area: true, rows: 3, max: 600 })),
       lab('Notes (terms, advance, dates)', cell(v, 'notes', { area: true, rows: 2, max: 600 })),
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-top:8px' }, stamp(v), x));
@@ -990,13 +1170,13 @@ $('ntAdd').onclick = async () => {
   try { await savePlan(null, { title: t, owner: $('ntOwner').value, due: $('ntDue').value, area: $('ntArea').value, done: false, done_by: '', done_at: null }, 'task'); $('ntTitle').value = ''; renderTodo(); } catch (e) {}
 };
 // Keep both families' screens current while a planning tab is open (skip while someone is typing)
-setInterval(() => { const on = ['budget', 'vendors', 'todo'].some(n => !$('tab-' + n).hidden); if (on && KEY && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) loadPlan(); }, 60000);
+setInterval(() => { const on = ['overview', 'budget', 'menu', 'vendors', 'todo'].some(n => !$('tab-' + n).hidden); if (on && KEY && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) loadPlan(); }, 60000);
 
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'budget', 'vendors', 'todo'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
-  if (['budget', 'vendors', 'todo'].includes(t.dataset.tab)) { if (!ME) $('whoBtn').click(); loadPlan(); }
+  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (['overview', 'budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) { if (!ME) $('whoBtn').click(); loadPlan(); }
   if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') renderAnnounce();
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
