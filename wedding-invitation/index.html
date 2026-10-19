@@ -710,10 +710,31 @@
                 list.append(item);
             });
             wrap.append(list);
+            // At the end of a day, jump straight to the next (or previous) day without scrolling back up
+            const at = DAYS.indexOf(d), next = DAYS[at + 1], prev = DAYS[at - 1];
+            const nav = el('div', 'mt-8 flex flex-col sm:flex-row gap-3 justify-center');
+            if (next) {
+                const b = el('button', 'btn-gold glow px-6 py-3.5 rounded-full text-sm font-semibold tracking-wide');
+                b.type = 'button'; b.textContent = 'See Day ' + (at + 2) + ' →';
+                b.addEventListener('click', () => goDay(next.id));
+                nav.append(b);
+            }
+            if (prev) {
+                const b = el('button', 'glass glow-hover px-6 py-3.5 rounded-full text-gold-300 text-sm font-semibold tracking-wide');
+                b.type = 'button'; b.textContent = '← Back to Day ' + at;
+                b.addEventListener('click', () => goDay(prev.id));
+                nav.append(b);
+            }
+            wrap.append(nav);
             return wrap;
         }
 
         const tabsEl = document.getElementById('tabs'), panel = document.getElementById('tab-panel');
+        function goDay(id) {
+            switchTab(id);
+            const y = tabsEl.getBoundingClientRect().top + window.scrollY - 90;
+            window.scrollTo({ top: y, behavior: STILL ? 'auto' : 'smooth' });
+        }
         function switchTab(id) {
             const d = DAYS.find(x => x.id === id), again = panel.childElementCount > 0;
             panel.replaceChildren(renderDay(d));
