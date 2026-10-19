@@ -1199,5 +1199,15 @@
             else a.play().then(() => { playing = true; i.className = 'fas fa-pause'; }).catch(() => {});
         }
     </script>
+<script>
+// Gentle taps on phones that support vibration, plus a happy buzz when the RSVP goes through
+(() => {
+    const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+    document.addEventListener('pointerdown', e => { if (e.target.closest('button, a[href], label, .choice')) buzz(8); }, { passive: true });
+    const ok = document.getElementById('rsvp-success'), er = document.getElementById('rsvp-error');
+    if (ok) new MutationObserver(() => { if (!ok.classList.contains('hidden')) buzz([15, 60, 15, 60, 40]); }).observe(ok, { attributes: true, attributeFilter: ['class'] });
+    if (er) new MutationObserver(() => { if (er.textContent.trim()) buzz([45, 35, 45]); }).observe(er, { childList: true, characterData: true, subtree: true });
+})();
+</script>
 </body>
 </html>
