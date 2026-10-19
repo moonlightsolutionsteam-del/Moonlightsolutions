@@ -92,7 +92,10 @@
 
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-tab="guests" aria-selected="true">Guests</button>
+      <button class="tab" role="tab" data-tab="invited" aria-selected="false">Invited</button>
       <button class="tab" role="tab" data-tab="names" aria-selected="false">All names</button>
+      <button class="tab" role="tab" data-tab="rooms" aria-selected="false">Rooms</button>
+      <button class="tab" role="tab" data-tab="food" aria-selected="false">Food counts</button>
       <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door scanner</button>
       <button class="tab" role="tab" data-tab="add" aria-selected="false">Add guest</button>
     </div>
@@ -133,6 +136,57 @@
         <tbody id="nRows"></tbody>
       </table></div>
       <p class="muted" id="nCount"></p>
+    </section>
+
+    <!-- Invited: who has replied and who still needs a reminder -->
+    <section id="tab-invited" hidden>
+      <div class="stats" id="iStats"></div>
+      <details class="panel" id="iAddBox" style="margin-bottom:14px">
+        <summary class="cin" style="cursor:pointer;color:var(--gold2)">+ Add people you have invited</summary>
+        <p class="muted" style="margin:10px 0 8px">Add the people you send the invitation to. Anyone who RSVPs with the same phone number (or name) is ticked off automatically.</p>
+        <label class="muted" style="display:block;margin-bottom:8px">Side <select id="iSide"><option>Groom's Guest</option><option>Bride's Guest</option></select></label>
+        <div id="iList"></div>
+        <button class="btn sm" id="iAdd" style="margin-top:10px">Add to invited list</button>
+        <p class="err" id="iMsg" role="status"></p>
+      </details>
+      <div class="bar">
+        <input type="search" id="iq" placeholder="Search name or phone" aria-label="Search invited">
+        <select id="iStatus" aria-label="Filter by reply"><option value="pending">Not replied yet</option><option value="replied">Replied</option><option value="">Everyone invited</option></select>
+        <select id="iSideF" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option></select>
+        <button class="btn ghost sm" id="iCopy">Copy phone numbers</button>
+      </div>
+      <div class="scroll"><table style="min-width:760px">
+        <thead><tr><th>Name</th><th>Phone</th><th>Side</th><th>Reply</th><th>Reminder</th><th></th></tr></thead>
+        <tbody id="iRows"></tbody>
+      </table></div>
+      <p class="muted" id="iCount"></p>
+    </section>
+
+    <!-- Rooms for Wednesday night -->
+    <section id="tab-rooms" hidden>
+      <div class="stats" id="rStats"></div>
+      <details class="panel" style="margin-bottom:14px">
+        <summary class="cin" style="cursor:pointer;color:var(--gold2)">Rooms and beds</summary>
+        <p class="muted" style="margin:10px 0 8px">List every room, cottage and hall with how many people it sleeps (including extra mattresses).</p>
+        <div id="roomEdit" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn ghost sm" id="roomAdd" type="button">+ Add room</button><button class="btn sm" id="roomSave" type="button">Save rooms</button></div>
+        <p class="err" id="roomMsg" role="status"></p>
+      </details>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px">Not given a room yet</h2>
+      <div id="rUnassigned" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px"></div>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px">Rooms</h2>
+      <div id="rCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- Plates per meal for the caterer -->
+    <section id="tab-food" hidden>
+      <p class="muted" style="margin-top:0">Plates to order for each meal, from the RSVPs so far. Vendor crews are counted separately. Add a few extra plates for walk-ins.</p>
+      <div class="scroll"><table style="min-width:640px">
+        <thead><tr><th>When</th><th>Meal</th><th>Guests</th><th>Veg</th><th>Non-veg</th><th>Vendor crew</th></tr></thead>
+        <tbody id="fRows"></tbody>
+      </table></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn sm" id="fCopy">Copy for WhatsApp</button></div>
+      <p class="muted" id="fMsg"></p>
     </section>
 
     <!-- Scanner -->
@@ -206,7 +260,7 @@ $('loginForm').addEventListener('submit', async e => {
 });
 $('logout').onclick = signOut;
 function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) load(); }, 30000); }
-async function load() { try { guests = await rpc('admin_list'); render(); if (!$('tab-names').hidden) renderNames(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
+async function load() { try { guests = await rpc('admin_list'); render(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
 
@@ -245,6 +299,7 @@ function render() {
     const tr = el('tr', { className: (g.removed ? 'out ' : '') + (g.checked_in ? 'in' : '') });
     const wa = (g.phone || '').replace(/[^\d]/g, '');
     const phone = el('td', {}, wa ? el('a', { href: 'https://wa.me/' + wa, target: '_blank', rel: 'noopener', textContent: g.phone, style: 'color:var(--gold2)' }) : '');
+    if (waNum(g.phone)) phone.append(el('div', { style: 'margin-top:4px' }, el('a', { className: 'mini', href: waLink(g.phone, passMsg(g)), target: '_blank', rel: 'noopener', textContent: 'WhatsApp pass', title: 'Send their entry pass code on WhatsApp' })));
     const days = el('td', {}, ...g.days.map(d => el('span', { className: 'chip', textContent: DAY_CHIP[d] || 'D' + d, title: DAYS[d] })));
     const noteTd = el('td', { className: 'muted', textContent: g.note, style: 'max-width:200px' });
     const ci = el('button', { className: 'btn sm' + (g.checked_in ? '' : ' ghost'), textContent: g.checked_in ? 'In ✓' : 'Check in' });
@@ -409,10 +464,151 @@ $('nChits').onclick = () => {
   setTimeout(() => w.print(), 700);
 };
 
+// ---------- WhatsApp ----------
+const SITE = 'https://moonlightsolutions-wedding-invitati.vercel.app/';
+// Indian mobile numbers: keep the digits and add 91 when it is missing
+function waNum(p) {
+  let d = String(p || '').replace(/\D/g, '');
+  if (d.length === 11 && d[0] === '0') d = d.slice(1);
+  if (d.length === 10) d = '91' + d;
+  return d.length >= 11 && d.length <= 15 ? d : '';
+}
+const waLink = (phone, text) => 'https://wa.me/' + waNum(phone) + '?text=' + encodeURIComponent(text);
+const first = n => String(n || '').trim().split(/\s+/)[0];
+const remindMsg = n => 'Assalamu Alaikum ' + first(n) + ' 🌙\n\nA gentle reminder to RSVP for Nadeem & Dariya\'s wedding on 20–21 January at Greenwood Resort, Bengaluru. Please reply by 15 December and add everyone coming with you, so we can plan rooms, games and return gifts:\n' + SITE + '\n\nJazakAllah Khair 🤍';
+const passMsg = g => 'Assalamu Alaikum ' + first(g.name) + ' 🌙\n\nJazakAllah Khair for your RSVP to Nadeem & Dariya\'s wedding. Your entry pass code is *' + g.pass_code + '* for ' + g.guests + (g.guests > 1 ? ' people' : ' person') + '. Please show your pass at the gate. You can open it again here:\n' + SITE + '\n\nSee you at Greenwood Resort 🤍';
+const last10 = p => String(p || '').replace(/\D/g, '').slice(-10);
+
+// ---------- invited list ----------
+let invites = [];
+const iAddList = nameList([], 3); $('iList').append(iAddList.node);
+async function loadInvites() { try { invites = await rpc('admin_invites'); renderInvites(); } catch (e) { $('iCount').textContent = 'Could not load the invited list.'; } }
+// Who has replied: same last 10 phone digits, or the same name, as anyone on an RSVP
+function replyOf(inv) {
+  const ph = last10(inv.phone), nm = inv.name.trim().toLowerCase();
+  return active().find(g => {
+    const people = [{ name: g.name, phone: g.phone }].concat(g.members || []);
+    return people.some(p => (ph.length === 10 && last10(p.phone) === ph) || p.name.trim().toLowerCase() === nm);
+  });
+}
+function renderInvites() {
+  const all = invites.filter(i => !i.removed).map(i => Object.assign({}, i, { rsvp: replyOf(i) }));
+  const replied = all.filter(i => i.rsvp).length;
+  $('iStats').replaceChildren(...[[all.length, 'Invited'], [replied, 'Replied'], [all.length - replied, 'Not replied yet'], [all.filter(i => !i.rsvp && i.reminded_at).length, 'Reminded, still waiting']]
+    .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  const q = $('iq').value.trim().toLowerCase(), st = $('iStatus').value, sd = $('iSideF').value;
+  const list = all.filter(i => (!st || (st === 'replied') === !!i.rsvp) && (!sd || new RegExp(sd, 'i').test(i.side)) && (!q || (i.name + ' ' + i.phone).toLowerCase().includes(q)))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  $('iRows').replaceChildren(...(list.length ? list.map(i => {
+    const reply = i.rsvp ? el('td', {}, el('span', { className: 'chip', style: 'border-color:var(--ok);color:var(--ok)', textContent: '✓ Replied' }), el('div', { className: 'muted', style: 'font-size:12px', textContent: i.rsvp.guests + (i.rsvp.guests > 1 ? ' people · ' : ' person · ') + i.rsvp.pass_code })) : el('td', {}, el('span', { className: 'chip', style: 'border-color:var(--warn);color:var(--warn)', textContent: 'Not yet' }));
+    const act = el('td', { style: 'white-space:nowrap' });
+    if (!i.rsvp && waNum(i.phone)) {
+      const w = el('a', { className: 'btn sm', href: waLink(i.phone, remindMsg(i.name)), target: '_blank', rel: 'noopener', textContent: 'WhatsApp reminder' });
+      w.addEventListener('click', () => { rpc('admin_invite_update', { p_id: i.id, p_fields: { reminded: true } }).then(loadInvites).catch(() => {}); });
+      act.append(w, ' ');
+    }
+    const rm = el('button', { className: 'mini', textContent: 'Remove' });
+    rm.onclick = async () => { await rpc('admin_invite_update', { p_id: i.id, p_fields: { removed: true } }); loadInvites(); };
+    act.append(rm);
+    return el('tr', {}, el('td', { textContent: i.name, style: 'font-weight:600' }), el('td', { className: 'muted', textContent: i.phone || '—' }), el('td', { textContent: i.side.replace(' Guest', '') }),
+      reply, el('td', { className: 'muted', textContent: i.reminded_at ? new Date(i.reminded_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '' }), act);
+  }) : [el('tr', {}, el('td', { colSpan: 6, className: 'empty', textContent: all.length ? 'No one matches these filters.' : 'No one on the invited list yet. Add the people you have invited above.' }))]));
+  $('iCount').textContent = 'Showing ' + list.length + ' of ' + all.length;
+}
+['iq', 'iStatus', 'iSideF'].forEach(id => $(id).addEventListener('input', renderInvites));
+$('iAdd').onclick = async () => {
+  const rows = iAddList.read().map(m => ({ name: m.name, phone: m.phone, side: $('iSide').value })), msg = $('iMsg');
+  if (!rows.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Write at least one name.'; return; }
+  try { const n = await rpc('admin_invites_add', { p_rows: rows }); msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + n + ' to the invited list.'; iAddList.reset(); loadInvites(); }
+  catch (e) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add. Try again.'; }
+};
+$('iCopy').onclick = async () => {
+  const shown = invites.filter(i => !i.removed && (($('iStatus').value === 'replied') === !!replyOf(i) || !$('iStatus').value) && waNum(i.phone)).map(i => '+' + waNum(i.phone));
+  try { await navigator.clipboard.writeText(shown.join('\n')); $('iCount').textContent = 'Copied ' + shown.length + ' numbers (for a WhatsApp broadcast list).'; } catch (e) { $('iCount').textContent = shown.join(', '); }
+};
+
+// ---------- rooms (Wednesday night) ----------
+let rooms = [];
+async function loadRooms() {
+  try { const st = await rpc('admin_settings'); const r = st.find(x => x.key === 'rooms'); rooms = r && Array.isArray(r.value) ? r.value : []; } catch (e) { rooms = []; }
+  editRooms(); renderRooms();
+}
+function editRooms() {
+  const box = $('roomEdit'); box.replaceChildren();
+  const add = r => {
+    const n = el('input', { placeholder: 'Room name, e.g. Cottage 3', maxLength: 40, value: r ? r.name : '', className: 'rm-name', style: 'flex:2' });
+    const b = el('input', { type: 'number', min: 1, max: 60, placeholder: 'Sleeps', value: r ? r.beds : '', className: 'rm-beds', style: 'flex:1;max-width:110px' });
+    const x = el('button', { type: 'button', className: 'mini', textContent: '×' }); const row = el('div', { className: 'row', style: 'gap:6px;align-items:center' }, n, b, x);
+    x.onclick = () => row.remove(); box.append(row);
+  };
+  (rooms.length ? rooms : [null]).forEach(add);
+  $('roomAdd').onclick = () => add(null);
+}
+$('roomSave').onclick = async () => {
+  const list = [...document.querySelectorAll('#roomEdit .row')].map(r => ({ name: r.querySelector('.rm-name').value.trim(), beds: Math.max(1, +r.querySelector('.rm-beds').value || 1) })).filter(r => r.name);
+  const names = list.map(r => r.name.toLowerCase());
+  if (new Set(names).size !== names.length) { $('roomMsg').style.color = 'var(--bad)'; $('roomMsg').textContent = 'Two rooms have the same name.'; return; }
+  try { await rpc('admin_setting_set', { p_name: 'rooms', p_value: list }); rooms = list; $('roomMsg').style.color = 'var(--ok)'; $('roomMsg').textContent = 'Saved ' + list.length + ' rooms.'; renderRooms(); }
+  catch (e) { $('roomMsg').style.color = 'var(--bad)'; $('roomMsg').textContent = 'Could not save. Try again.'; }
+};
+const overnight = () => active().filter(g => g.days.includes(1) && !/^vendor/i.test(g.side));
+function roomPicker(g) {
+  const sel = el('select', { style: 'min-width:150px' });
+  sel.append(el('option', { value: '', textContent: 'Choose a room' }));
+  rooms.forEach(r => sel.append(el('option', { value: r.name, textContent: r.name + ' (' + r.beds + ')' })));
+  if (g.accommodation && !rooms.some(r => r.name === g.accommodation)) sel.append(el('option', { value: g.accommodation, textContent: g.accommodation }));
+  sel.value = g.accommodation || '';
+  sel.onchange = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { accommodation: sel.value } }); g.accommodation = sel.value; renderRooms(); } catch (e) { sel.style.borderColor = 'var(--bad)'; } };
+  return sel;
+}
+function renderRooms() {
+  const staying = overnight(), people = staying.reduce((n, g) => n + g.guests, 0);
+  const placed = staying.filter(g => g.accommodation), beds = rooms.reduce((n, r) => n + (+r.beds || 0), 0);
+  const placedPeople = placed.reduce((n, g) => n + g.guests, 0);
+  $('rStats').replaceChildren(...[[people, 'Staying Wednesday night'], [placedPeople, 'Given a room'], [people - placedPeople, 'Still to place'], [rooms.length + ' / ' + beds, 'Rooms / beds']]
+    .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  const un = staying.filter(g => !g.accommodation).sort((a, b) => b.guests - a.guests);
+  $('rUnassigned').replaceChildren(...(un.length ? un.map(g => el('div', { className: 'panel row', style: 'padding:10px 12px;gap:10px;align-items:center;justify-content:space-between' },
+    el('div', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person') + ' · ' + g.side.replace(' Guest', '') })), roomPicker(g))) :
+    [el('p', { className: 'muted', textContent: staying.length ? 'Everyone staying on Wednesday has a room.' : 'No one has RSVPed for Day 1 yet.' })]));
+  const byRoom = name => staying.filter(g => g.accommodation === name);
+  $('rCards').replaceChildren(...rooms.map(r => {
+    const inRoom = byRoom(r.name), used = inRoom.reduce((n, g) => n + g.guests, 0), over = used > r.beds;
+    return el('div', { className: 'panel', style: 'padding:12px;' + (over ? 'border-color:var(--bad)' : '') },
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:baseline' }, el('b', { className: 'cin', textContent: r.name }), el('span', { style: 'color:' + (over ? 'var(--bad)' : used === +r.beds ? 'var(--ok)' : 'var(--gold2)'), textContent: used + ' / ' + r.beds + (over ? ' · too many' : '') })),
+      ...inRoom.map(g => el('div', { style: 'margin-top:6px;font-size:13px' }, el('div', {}, el('b', { textContent: g.name }), ' ', roomPicker(g)),
+        (g.members || []).length ? el('div', { className: 'muted', style: 'font-size:12px', textContent: g.members.map(m => m.name).join(', ') }) : '')),
+      inRoom.length ? '' : el('p', { className: 'muted', style: 'margin:6px 0 0;font-size:12px', textContent: 'Empty' }));
+  }));
+}
+
+// ---------- food counts for the caterer ----------
+const MEALS = [
+  ['Wed 12:00 PM', 'Welcome drinks', 1], ['Wed 1:30 PM', 'Arrival lunch', 1], ['Wed 4:45 PM', 'High tea (Haldi)', 1], ['Wed 6:45 PM', 'Shukrana: sharbat, dates, sweets', 1], ['Wed 8:00 PM', 'DJ Night dinner', 1],
+  ['Thu 7:30 AM', 'Breakfast (staying guests)', 1], ['Thu 11:30 AM', 'Post-Nikah dates & sharbat', 2], ['Thu 1:00 PM', 'Nikah lunch', 2], ['Thu 5:30 PM', 'Sundowner tea', 3], ['Thu 8:00 PM', 'Reception dinner', 3]];
+function foodRows() {
+  const all = active(), gst = all.filter(g => !/^vendor/i.test(g.side)), crew = all.filter(g => /^vendor/i.test(g.side));
+  const sum = (arr, f) => arr.reduce((n, g) => n + f(g), 0);
+  return MEALS.map(([when, meal, day]) => {
+    const on = gst.filter(g => g.days.includes(day)), n = sum(on, g => g.guests), veg = sum(on, g => Math.min(g.veg || 0, g.guests));
+    return { when, meal, n, veg, non: n - veg, crew: sum(crew.filter(g => g.days.includes(day)), g => g.guests) };
+  });
+}
+function renderFood() {
+  $('fRows').replaceChildren(...foodRows().map(r => el('tr', {}, el('td', { className: 'muted', textContent: r.when, style: 'white-space:nowrap' }), el('td', { textContent: r.meal, style: 'font-weight:600' }),
+    el('td', { textContent: r.n }), el('td', { textContent: r.veg }), el('td', { textContent: r.non }), el('td', { className: 'muted', textContent: r.crew }))));
+}
+$('fCopy').onclick = async () => {
+  const text = 'Nadeem & Dariya wedding: plates per meal (from RSVPs on ' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) + ')\n\n' +
+    foodRows().map(r => r.when + ' · ' + r.meal + ': ' + r.n + ' guests (' + r.veg + ' veg, ' + r.non + ' non-veg)' + (r.crew ? ' + ' + r.crew + ' crew' : '')).join('\n');
+  try { await navigator.clipboard.writeText(text); $('fMsg').textContent = 'Copied. Paste it into WhatsApp for the caterer.'; } catch (e) { $('fMsg').textContent = text; }
+};
+
 // ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'names', 'scan', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
 }));
 
