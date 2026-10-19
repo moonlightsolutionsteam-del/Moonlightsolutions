@@ -178,13 +178,14 @@ function flash(msg) { $('count').textContent = msg; }
 // ---------- list ----------
 const active = () => guests.filter(g => !g.removed);
 function stats() {
-  const all = active(), sum = (arr) => arr.reduce((n, g) => n + g.guests, 0);
+  const all = active(), sum = (arr) => arr.reduce((n, g) => n + g.guests, 0), veg = (arr) => arr.reduce((n, g) => n + (g.veg || 0), 0);
   // Guest counts leave out vendors; their crew is counted on its own
   const a = all.filter(g => !/^vendor/i.test(g.side)), v = all.filter(g => /^vendor/i.test(g.side));
   const items = [
     [a.length, 'RSVPs'], [sum(a), 'Total guests'],
     [sum(a.filter(g => g.days.includes(1))), 'Day 1 · Wed 20'], [sum(a.filter(g => g.days.includes(2))), 'Nikah · Thu AM'],
     [sum(a.filter(g => g.days.includes(3))), 'Reception · Thu PM'],
+    [veg(all.filter(g => g.days.includes(1))) + ' / ' + veg(all.filter(g => g.days.includes(2))) + ' / ' + veg(all.filter(g => g.days.includes(3))), 'Veg · Day 1 / Nikah / Reception'],
     [sum(a.filter(g => /groom/i.test(g.side))), "Groom's side"], [sum(a.filter(g => /bride/i.test(g.side))), "Bride's side"],
     [sum(v) + ' (' + v.length + ')', 'Vendor crew (teams)'],
     [sum(all.filter(g => g.checked_in)) + ' / ' + sum(all), 'Checked in']
@@ -222,7 +223,7 @@ function render() {
       nameTd.append(line);
     });
     tr.append(nameTd, phone, el('td', { textContent: g.side.replace(' Guest', '') }), days,
-      el('td', { textContent: g.guests, style: 'text-align:center' }),
+      el('td', { style: 'text-align:center' }, String(g.guests), g.veg ? el('div', { className: 'muted', style: 'font-size:12px', textContent: g.veg + ' veg' }) : ''),
       el('td', {}, field(g, 'table_no', 'Table')), el('td', {}, field(g, 'meal', 'Meal')), el('td', {}, field(g, 'accommodation', 'Room / hotel')),
       noteTd, el('td', { className: 'code', textContent: g.pass_code }), el('td', {}, ci), el('td', {}, rm));
     return tr;
@@ -235,8 +236,8 @@ function render() {
 const memberText = g => (g.members || []).map(m => m.name + (m.phone ? ' (' + m.phone + ')' : '')).join('; ');
 const csvCell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
 $('export').onclick = () => {
-  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20 Jan)', 'Nikah (Thu 21 Jan AM)', 'Reception (Thu 21 Jan PM)', 'Guests', 'Family Members', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
-  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, memberText(g), g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
+  const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20 Jan)', 'Nikah (Thu 21 Jan AM)', 'Reception (Thu 21 Jan PM)', 'Guests', 'Vegetarians', 'Family Members', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
+  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, g.veg || 0, memberText(g), g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
   const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-guest-list.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
