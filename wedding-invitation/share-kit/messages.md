@@ -1,6 +1,6 @@
 # Invitation messages: Nadeem & Dariya
 
-Copy, paste and send. Replace **https://moonlightsolutions-wedding-invitati.vercel.app/** with the website address once it is live, and **[CONTACT]** with the family contact name and number.
+Copy, paste and send. The website link and family contacts are already filled in.
 
 Suggested schedule:
 
@@ -49,6 +49,8 @@ The full itinerary, menu, dress codes and your entry pass are here:
 👉 https://moonlightsolutions-wedding-invitati.vercel.app/
 
 🎟️ *RSVP is a must.* Please reply on the link by *15 December 2026* and add the names of everyone coming with you. You will get an entry pass with a QR code to show at the entrance.
+
+Questions? Groom's side: Nadeem 95352 86680 · Simran 74111 97567 | Bride's side: Allah Bakash 98862 63952
 
 Your presence and duas mean the world to us.
 JazakAllah Khair 🤍
@@ -99,7 +101,7 @@ A few things to keep in mind:
 🚗 Please arrange your own travel and carpool where you can. Parking is available at the resort.
 
 Full itinerary: https://moonlightsolutions-wedding-invitati.vercel.app/
-Questions: [CONTACT]
+Questions? Groom's side: Nadeem 95352 86680 · Simran 74111 97567 | Bride's side: Allah Bakash 98862 63952
 
 ---
 
@@ -116,7 +118,7 @@ https://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9
 ⏰ *Thu 21 Jan*: Nikah at 10 AM (seated by 9:50) · Reception at 6:30 PM (please reach by 6:15)
 
 Please keep your entry pass ready at the entrance.
-For anything on the day: [CONTACT]
+For anything on the day: Groom's side: Nadeem 95352 86680 · Simran 74111 97567 | Bride's side: Allah Bakash 98862 63952
 
 ---
 
