@@ -197,6 +197,52 @@
             #topnav { transition:none; }
         }
     </style>
+    <style id="ux">
+        /* ---------- look & feel layer: visuals and motion only ---------- */
+        :root { --spring:cubic-bezier(.34,1.56,.64,1); --ease:cubic-bezier(.2,.8,.2,1); }
+        html { -webkit-tap-highlight-color:transparent; }
+        /* Press-down and ripple on everything tappable */
+        button:not(.seal), .choice, a.btn-gold, #topnav a { transition:transform .18s var(--ease), filter .3s, box-shadow .3s, border-color .3s, background-color .3s; }
+        button:not(.seal):active, .choice:active, a.btn-gold:active { transform:scale(.95); transition-duration:.08s; }
+        .choice { overflow:hidden; }
+        .ux-ripple { position:absolute; border-radius:50%; pointer-events:none; background:rgba(255,240,184,.45); transform:scale(0); animation:uxRipple .6s var(--ease) forwards; }
+        @keyframes uxRipple { to { transform:scale(1); opacity:0; } }
+        .btn-gold:hover { box-shadow:0 10px 28px rgba(255,79,147,.4); }
+        /* Choices pop when picked */
+        .choice:has(input:checked) { animation:choicePop .4s var(--spring); box-shadow:0 0 0 1px #f5b82e, 0 6px 22px rgba(245,184,46,.25); }
+        .choice:has(input:checked) i { animation:iconSpin .5s var(--spring); }
+        @keyframes choicePop { 0% { transform:scale(.97); } 60% { transform:scale(1.02); } 100% { transform:scale(1); } }
+        @keyframes iconSpin { from { transform:scale(.4) rotate(-40deg); } to { transform:none; } }
+        /* RSVP pop-up rises in; sections inside slide open */
+        #rsvp-modal > div { transform:translateY(28px) scale(.96); transition:transform .55s var(--spring); }
+        #rsvp-modal:not(.opacity-0) > div { transform:none; }
+        #members-box:not(.hidden), #vendor-fields:not(.hidden), #rsvp-success:not(.hidden) { animation:uxUp .45s var(--ease) both; }
+        #members-box > * { animation:uxUp .35s var(--ease) both; }
+        #rsvp-success:not(.hidden) #pass-cv { animation:passIn .9s var(--spring) .1s both; }
+        @keyframes uxUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        @keyframes passIn { from { opacity:0; transform:rotateX(55deg) translateY(30px) scale(.9); } to { opacity:1; transform:none; } }
+        #rsvp-modal > div.ux-shake { animation:uxShake .45s cubic-bezier(.36,.07,.19,.97); }
+        @keyframes uxShake { 10%,90% { transform:translateX(-2px); } 20%,80% { transform:translateX(4px); } 30%,50%,70% { transform:translateX(-7px); } 40%,60% { transform:translateX(7px); } }
+        #rsvp-error:not(:empty) { animation:uxUp .3s var(--ease); }
+        /* Countdown digits flip as they change */
+        #days, #hours, #minutes, #seconds { display:block; perspective:200px; }
+        .ux-flip { animation:uxFlip .5s var(--ease); }
+        @keyframes uxFlip { 0% { transform:rotateX(90deg); opacity:.2; } 100% { transform:none; opacity:1; } }
+        /* Nav: highlight the section you are reading */
+        #topnav .md\:flex a { position:relative; }
+        #topnav .md\:flex a::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; border-radius:2px; background:linear-gradient(90deg,#ff4f93,#ffd36b); transform:scaleX(0); transition:transform .4s var(--ease); }
+        #topnav .md\:flex a.ux-on { color:#ffd36b; }
+        #topnav .md\:flex a.ux-on::after, #topnav .md\:flex a:hover::after { transform:scaleX(1); }
+        /* RSVP button breathes gently so it is easy to find */
+        .rsvp-cta { animation:ctaBreathe 3.2s ease-in-out infinite; }
+        @keyframes ctaBreathe { 0%,100% { box-shadow:0 0 18px rgba(255,79,147,.3); } 50% { box-shadow:0 0 30px rgba(255,79,147,.65), 0 0 0 4px rgba(255,79,147,.12); } }
+        /* Itinerary day buttons */
+        #tabs button[aria-selected="true"] { animation:choicePop .4s var(--spring); }
+        @media (prefers-reduced-motion: reduce) {
+            .choice, .choice i, #rsvp-modal > div, #members-box, #members-box > *, #vendor-fields, #rsvp-success, #pass-cv, .ux-flip, .rsvp-cta, #tabs button { animation:none !important; transition:none !important; transform:none !important; }
+            .ux-ripple { display:none; }
+        }
+    </style>
 </head>
 <body class="selection:bg-gold-500 selection:text-emerald-950">
     <div id="scroll-progress" aria-hidden="true"></div>
@@ -1200,13 +1246,52 @@
         }
     </script>
 <script>
-// Gentle taps on phones that support vibration, plus a happy buzz when the RSVP goes through
+// ---------- look & feel layer: haptics and motion only ----------
 (() => {
+    const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
-    document.addEventListener('pointerdown', e => { if (e.target.closest('button, a[href], label, .choice')) buzz(8); }, { passive: true });
-    const ok = document.getElementById('rsvp-success'), er = document.getElementById('rsvp-error');
-    if (ok) new MutationObserver(() => { if (!ok.classList.contains('hidden')) buzz([15, 60, 15, 60, 40]); }).observe(ok, { attributes: true, attributeFilter: ['class'] });
-    if (er) new MutationObserver(() => { if (er.textContent.trim()) buzz([45, 35, 45]); }).observe(er, { childList: true, characterData: true, subtree: true });
+    // A soft tick and a ripple on every tap
+    document.addEventListener('pointerdown', e => {
+        const b = e.target.closest && e.target.closest('button, a[href], .choice');
+        if (!b || b.id === 'scratch-cv') return;
+        buzz(b.closest('#tabs') ? 12 : 8);
+        if (RM || !b.matches('button:not(.seal), .choice, a.btn-gold')) return;
+        if (getComputedStyle(b).position === 'static') b.style.position = 'relative';
+        if (getComputedStyle(b).overflow !== 'hidden') b.style.overflow = 'hidden';
+        const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2.2, s = document.createElement('span');
+        s.className = 'ux-ripple'; s.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + (e.clientX - r.left - d / 2) + 'px;top:' + (e.clientY - r.top - d / 2) + 'px';
+        b.append(s); setTimeout(() => s.remove(), 650);
+    }, { passive: true });
+    document.addEventListener('change', e => { if (e.target.matches && e.target.matches('input[type=radio], input[type=checkbox], select')) buzz(10); });
+    const watchEl = (id, opts, fn) => { const n = document.getElementById(id); if (n) new MutationObserver(() => fn(n)).observe(n, opts); };
+    // Envelope, scratch card and entering the invitation
+    watchEl('env', { attributes: true, attributeFilter: ['class'] }, n => { if (n.classList.contains('open') && !n._b) { n._b = 1; buzz([15, 40, 25]); } });
+    let lastTick = 0;
+    const cv = document.getElementById('scratch-cv');
+    if (cv) cv.addEventListener('pointermove', e => { if (cv.classList.contains('gone')) return; if (e.buttons || e.pointerType === 'touch') { const t = Date.now(); if (t - lastTick > 70) { lastTick = t; buzz(4); } } }, { passive: true });
+    watchEl('scratch-cv', { attributes: true, attributeFilter: ['class'] }, n => { if (n.classList.contains('gone') && !n._b) { n._b = 1; buzz([20, 40, 20, 40, 70]); } });
+    // RSVP: shake on a missing answer, celebrate when it is sent
+    const card = document.querySelector('#rsvp-modal > div');
+    let lastShake = 0;
+    const shake = () => {
+        const t = Date.now(); if (t - lastShake < 600) return; lastShake = t; buzz([45, 35, 45]);
+        if (!RM && card) { card.classList.remove('ux-shake'); void card.offsetWidth; card.classList.add('ux-shake'); }
+    };
+    watchEl('rsvp-error', { childList: true, characterData: true, subtree: true }, n => { if (n.textContent.trim()) shake(); });
+    const rf = document.getElementById('rsvp-form');
+    if (rf) rf.addEventListener('invalid', shake, true);
+    watchEl('rsvp-success', { attributes: true, attributeFilter: ['class'] }, n => { if (!n.classList.contains('hidden')) buzz([15, 60, 15, 60, 40]); });
+    watchEl('rsvp-modal', { attributes: true, attributeFilter: ['class'] }, n => { if (!n.classList.contains('opacity-0')) buzz(10); });
+    // Countdown digits flip when they change
+    if (!RM) ['days', 'hours', 'minutes', 'seconds'].forEach(id => watchEl(id, { childList: true, characterData: true, subtree: true }, n => {
+        if (n._v === n.textContent) return; n._v = n.textContent; n.classList.remove('ux-flip'); void n.offsetWidth; n.classList.add('ux-flip');
+    }));
+    // Highlight the menu link for the section on screen
+    const links = [...document.querySelectorAll('#topnav a[href^="#"]')].filter(a => a.getAttribute('href').length > 1 && a.closest('.md\\:flex'));
+    if ('IntersectionObserver' in window && links.length) {
+        const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle('ux-on', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-45% 0px -50% 0px' });
+        links.forEach(a => { const sec = document.querySelector(a.getAttribute('href')); if (sec) io.observe(sec); });
+    }
 })();
 </script>
 </body>
