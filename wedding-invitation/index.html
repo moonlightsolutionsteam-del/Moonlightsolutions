@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nadeem & Dariya — Wedding Invitation</title>
+    <meta name="description" content="Together with their families, Nadeem Khan & Dariya invite you to celebrate their wedding, January 20–21, 2027, at Greenwood Resort, Bengaluru.">
+    <meta name="theme-color" content="#0c8790">
+    <!-- Link preview (WhatsApp, iMessage, Facebook); og:image must be a full URL -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Nadeem & Dariya · Wedding Invitation">
+    <meta property="og:description" content="20–21 January 2027 · Greenwood Resort, Bengaluru. Kindly RSVP by 15 December 2026 for your entry pass.">
+    <meta property="og:image" content="https://moonlightsolutions-wedding-invitati.vercel.app/og.jpg">
+    <meta property="og:url" content="https://moonlightsolutions-wedding-invitati.vercel.app/">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel:wght@400;600;700;800&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: { 900: '#0b7d86', 950: '#086670' },
+                        gold: { 300: '#fff0b8', 400: '#ffd36b', 500: '#f5b82e', 600: '#d99a12', 700: '#a87300' },
+                        ivory: { 50: '#fffdfa', 100: '#faf9f6', 200: '#f3f0e6' }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        script: ['Great Vibes', 'cursive'],
+                        arabic: ['Amiri', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+        body { background:#0c8790 radial-gradient(ellipse at 50% 0%,#15a8a3 0%,#0c868d 45%,#08707b 100%) fixed; color:#ffffff; font-family:'Plus Jakarta Sans',sans-serif; overflow-x:hidden; }
+        .gold-text { background:linear-gradient(135deg,#fff0b8 0%,#f5b82e 50%,#d99a12 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .glass { background:rgba(255,255,255,.12); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(245,184,46,.25); }
+        .glass-deep { background:rgba(6,92,102,.62); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(245,184,46,.3); }
+        .glow { box-shadow:0 0 25px rgba(245,184,46,.25); }
+        .glow-hover { transition:box-shadow .3s ease, border-color .3s ease, transform .3s ease; }
+        .glow-hover:hover { box-shadow:0 0 35px rgba(245,184,46,.45); border-color:rgba(245,184,46,.7); transform:translateY(-2px); }
+        .btn-gold { background:linear-gradient(90deg,#d81b60,#ff4f93,#d81b60); color:#ffffff; transition:filter .3s; }
+        .btn-gold:hover { filter:brightness(1.12); }
+        .gold-input { box-sizing:border-box; background:rgba(255,255,255,.14); border:1px solid rgba(245,184,46,.3); color:#fffdfa; border-radius:.75rem; padding:.65rem 1rem; width:100%; font-size:.875rem; transition:border-color .3s; }
+        .gold-input:focus { outline:none; border-color:#f5b82e; box-shadow:0 0 0 3px rgba(245,184,46,.15); }
+        select.gold-input option { background:#0b7d86; }
+
+        /* Islamic-inspired pointed arch frame */
+        .arch { border-radius:999px 999px 1.5rem 1.5rem; border:1px solid rgba(245,184,46,.5); box-shadow:inset 0 0 60px rgba(245,184,46,.08), 0 0 50px rgba(245,184,46,.12); }
+        .geo { background-image:
+            radial-gradient(rgba(245,184,46,.35) 1px, transparent 1px),
+            linear-gradient(45deg, rgba(245,184,46,.05) 25%, transparent 25%, transparent 75%, rgba(245,184,46,.05) 75%),
+            linear-gradient(45deg, rgba(245,184,46,.05) 25%, transparent 25%, transparent 75%, rgba(245,184,46,.05) 75%);
+            background-size:28px 28px, 56px 56px, 56px 56px; background-position:0 0, 0 0, 28px 28px; }
+        .ambient { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; animation:drift 14s ease-in-out infinite alternate; }
+        @keyframes drift { to { transform:translate(40px,-30px) scale(1.15); } }
+
+        /* Artwork: peacock feathers, flowers, lanterns and the N&D crest (SVG sprite at the start of the page body) */
+        .art { display:block; pointer-events:none; }
+        .arch { isolation:isolate; }
+        .divider { width:min(15rem,70vw); height:2rem; margin:1rem auto 0; }
+        .cluster { position:absolute; z-index:-1; width:clamp(7.5rem,26vw,13.5rem); aspect-ratio:240/210; bottom:-2.4rem; pointer-events:none; }
+        .cluster.l { left:-2.6rem; }
+        .cluster.r { right:-2.6rem; transform:scaleX(-1); }
+        .env-flora { position:absolute; z-index:3; width:34%; aspect-ratio:240/210; bottom:-10%; pointer-events:none; }
+        .env-flora.l { left:-8%; } .env-flora.r { right:-8%; transform:scaleX(-1); }
+        .lanterns { position:absolute; inset:0 0 auto 0; height:0; z-index:1; pointer-events:none; }
+        .lantern { position:absolute; top:0; display:flex; flex-direction:column; align-items:center; transform-origin:top center; animation:sway 5s ease-in-out infinite alternate; }
+        .lantern i { display:block; width:1px; background:linear-gradient(rgba(255,207,77,0),#ffcf4d); }
+        .lantern svg { width:var(--w); height:calc(var(--w) * 2.3); filter:drop-shadow(0 0 10px rgba(255,207,77,.55)); }
+        @keyframes sway { from { transform:rotate(-3deg); } to { transform:rotate(3deg); } }
+        .a-flicker { animation:flicker 2.6s ease-in-out infinite alternate; }
+        @keyframes flicker { 50% { opacity:.7; } }
+        .names { font-family:'Great Vibes',cursive; line-height:1.15; padding:0 .15em .1em; }
+        .petal-cv { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:130; }
+
+        /* Alternating full-width bands with a jaali (lattice) border top and bottom */
+        .band { position:relative; background:var(--band); box-shadow:0 0 0 100vmax var(--band); clip-path:inset(0 -100vmax); }
+        .band-deep { --band:rgba(3,58,66,.32); }
+        .band-light { --band:rgba(255,255,255,.07); }
+        .band::before, .band::after { content:""; position:absolute; left:50%; width:100vw; transform:translateX(-50%); height:22px; opacity:.6; pointer-events:none;
+            background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='22'%3E%3Cg fill='none' stroke='%23ffcf4d' stroke-width='1'%3E%3Cpath d='M0 1.5H44M0 20.5H44'/%3E%3Crect x='17' y='6' width='10' height='10'/%3E%3Crect x='17' y='6' width='10' height='10' transform='rotate(45 22 11)'/%3E%3Cpath d='M0 7.5L3.5 11L0 14.5M44 7.5L40.5 11L44 14.5'/%3E%3C/g%3E%3C/svg%3E") repeat-x center / 44px 22px; }
+        .band::before { top:0; } .band::after { bottom:0; }
+        footer.band::before { display:none; }
+
+        /* Scroll reveal */
+        .reveal { opacity:0; transform:translateY(24px); transition:opacity .9s ease, transform .9s ease; }
+        .reveal.in { opacity:1; transform:none; }
+        .fade-up { animation:fadeUp 1.2s ease both; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px);} to { opacity:1; transform:none; } }
+        .shimmer { background-size:200% auto; animation:shimmer 6s linear infinite; }
+        @keyframes shimmer { to { background-position:200% center; } }
+
+        #dust { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+        main, nav, footer { position:relative; z-index:2; }
+        ::-webkit-scrollbar { width:8px; } ::-webkit-scrollbar-track { background:#0a7480; }
+        ::-webkit-scrollbar-thumb { background:#f5b82e; border-radius:4px; }
+
+        /* Envelope intro */
+        #intro { transition:opacity .7s ease; }
+        .stage { grid-area:1/1; transition:opacity .8s ease, transform .8s ease; }
+        .env { position:relative; width:min(86vw,24rem); aspect-ratio:3/2; perspective:1200px; }
+        .env-back { position:absolute; inset:0; background:#0a7a84; border:1px solid rgba(245,184,46,.6); border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(245,184,46,.15); }
+        .env-paper { position:absolute; left:6%; right:6%; top:8%; bottom:8%; z-index:1; border-radius:4px; background:linear-gradient(#fffdfa,#f3f0e6); display:flex; align-items:center; justify-content:center; transition:transform .9s ease .8s; }
+        .env-front { position:absolute; inset:0; z-index:2; background:linear-gradient(160deg,#14aaa5,#0b7f8c); clip-path:polygon(0 0,50% 54%,100% 0,100% 100%,0 100%); }
+        .env-flap { position:absolute; left:0; right:0; top:0; height:54%; z-index:3; transform-origin:top center; background:linear-gradient(#1bbab4,#0d8a91); clip-path:polygon(0 0,100% 0,50% 100%); transition:transform .8s ease, z-index 0s .4s; }
+        .env.open .env-flap { transform:rotateX(180deg); z-index:0; }
+        .env.open .env-paper { transform:translateY(-58%); }
+        .seal { position:absolute; left:50%; top:54%; z-index:4; width:4.6rem; height:4.6rem; margin:-2.3rem 0 0 -2.3rem; border-radius:50%; border:0; padding:0; cursor:pointer; background:none; color:#3a2a06; font-family:'Great Vibes',cursive; font-size:1.5rem; box-shadow:0 4px 14px rgba(0,0,0,.5); animation:pulse 2s ease-in-out infinite; transition:opacity .4s; }
+        .env.open .seal { opacity:0; pointer-events:none; animation:none; }
+        @keyframes pulse { 50% { box-shadow:0 0 0 12px rgba(245,184,46,.18), 0 4px 14px rgba(0,0,0,.5); } }
+        #scratch-card { opacity:0; pointer-events:none; transform:scale(.92); }
+        #intro.stage2 .env-wrap { opacity:0; pointer-events:none; transform:translateY(40px); }
+        #intro.stage2 #scratch-card { opacity:1; pointer-events:auto; transform:none; }
+        #scratch-cv { transition:opacity .9s ease; touch-action:none; }
+        #scratch-cv.gone { opacity:0; pointer-events:none; }
+        @media (prefers-reduced-motion: reduce) {
+            .lantern, .a-flicker { animation:none; }
+            .env-flap, .env-paper, .stage, #intro { transition:none; }
+            .seal { animation:none; }
+            html { scroll-behavior:auto; }
+            .reveal { opacity:1; transform:none; transition:none; }
+            .ambient, .fade-up, .shimmer { animation:none; }
+        }
+    </style>
+</head>
+<body class="selection:bg-gold-500 selection:text-emerald-950">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs> <linearGradient id="a-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#ffcf4d"/><stop offset="1" stop-color="#d99a12"/></linearGradient> <radialGradient id="a-vane" cx=".5" cy=".38" r=".62"><stop offset="0" stop-color="#49c98f"/><stop offset=".55" stop-color="#169c8f" stop-opacity=".85"/><stop offset="1" stop-color="#0d7f86" stop-opacity="0"/></radialGradient> <radialGradient id="a-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7a0" stop-opacity=".95"/><stop offset=".5" stop-color="#ffc94d" stop-opacity=".35"/><stop offset="1" stop-color="#ffc94d" stop-opacity="0"/></radialGradient> <radialGradient id="a-rosegrad" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#ff8fb8"/><stop offset="1" stop-color="#c2185b"/></radialGradient> </defs> <symbol id="a-feather" viewBox="0 0 60 200"> <path d="M30 6 C60 30 58 100 30 160 C2 100 0 30 30 6Z" fill="url(#a-vane)"/> <g stroke="#9cf0d2" stroke-opacity=".75" stroke-width=".8" fill="none"><path d="M30 30 Q25.9 26 21.8 18"/><path d="M30 30 Q34.1 26 38.2 18"/><path d="M30 33 Q25.2 29 20.3 21"/><path d="M30 33 Q34.8 29 39.7 21"/><path d="M30 36 Q24.5 32 18.9 24"/><path d="M30 36 Q35.5 32 41.1 24"/><path d="M30 39 Q23.8 35 17.7 27"/><path d="M30 39 Q36.2 35 42.3 27"/><path d="M30 42 Q23.2 38 16.5 30"/><path d="M30 42 Q36.8 38 43.5 30"/><path d="M30 45 Q22.7 41 15.4 33"/><path d="M30 45 Q37.3 41 44.6 33"/><path d="M30 48 Q22.2 44 14.4 36"/><path d="M30 48 Q37.8 44 45.6 36"/><path d="M30 51 Q21.7 47 13.5 39"/><path d="M30 51 Q38.3 47 46.5 39"/><path d="M30 54 Q21.3 50 12.7 42"/><path d="M30 54 Q38.7 50 47.3 42"/><path d="M30 57 Q21 53 11.9 45"/><path d="M30 57 Q39 53 48.1 45"/><path d="M30 60 Q20.6 56 11.3 48"/><path d="M30 60 Q39.4 56 48.7 48"/><path d="M30 63 Q20.3 59 10.7 51"/><path d="M30 63 Q39.7 59 49.3 51"/><path d="M30 66 Q20.1 62 10.2 54"/><path d="M30 66 Q39.9 62 49.8 54"/><path d="M30 69 Q19.9 65 9.7 57"/><path d="M30 69 Q40.1 65 50.3 57"/><path d="M30 72 Q19.7 68 9.4 60"/><path d="M30 72 Q40.3 68 50.6 60"/><path d="M30 75 Q19.6 71 9.1 63"/><path d="M30 75 Q40.4 71 50.9 63"/><path d="M30 78 Q19.5 74 8.9 66"/><path d="M30 78 Q40.5 74 51.1 66"/><path d="M30 81 Q19.4 77 8.8 69"/><path d="M30 81 Q40.6 77 51.2 69"/><path d="M30 84 Q19.4 80 8.7 72"/><path d="M30 84 Q40.6 80 51.3 72"/><path d="M30 87 Q19.4 83 8.7 75"/><path d="M30 87 Q40.6 83 51.3 75"/><path d="M30 90 Q19.4 86 8.8 78"/><path d="M30 90 Q40.6 86 51.2 78"/><path d="M30 93 Q19.5 89 9 81"/><path d="M30 93 Q40.5 89 51 81"/><path d="M30 96 Q19.6 92 9.2 84"/><path d="M30 96 Q40.4 92 50.8 84"/><path d="M30 99 Q19.8 95 9.5 87"/><path d="M30 99 Q40.2 95 50.5 87"/><path d="M30 102 Q19.9 98 9.9 90"/><path d="M30 102 Q40.1 98 50.1 90"/><path d="M30 105 Q20.1 101 10.3 93"/><path d="M30 105 Q39.9 101 49.7 93"/><path d="M30 108 Q20.4 104 10.7 96"/><path d="M30 108 Q39.6 104 49.3 96"/><path d="M30 111 Q20.6 107 11.3 99"/><path d="M30 111 Q39.4 107 48.7 99"/><path d="M30 114 Q20.9 110 11.8 102"/><path d="M30 114 Q39.1 110 48.2 102"/><path d="M30 117 Q21.2 113 12.5 105"/><path d="M30 117 Q38.8 113 47.5 105"/><path d="M30 120 Q21.6 116 13.1 108"/><path d="M30 120 Q38.4 116 46.9 108"/><path d="M30 123 Q21.9 119 13.9 111"/><path d="M30 123 Q38.1 119 46.1 111"/><path d="M30 126 Q22.3 122 14.6 114"/><path d="M30 126 Q37.7 122 45.4 114"/><path d="M30 129 Q22.7 125 15.5 117"/><path d="M30 129 Q37.3 125 44.5 117"/><path d="M30 132 Q23.2 128 16.3 120"/><path d="M30 132 Q36.8 128 43.7 120"/><path d="M30 135 Q23.6 131 17.2 123"/><path d="M30 135 Q36.4 131 42.8 123"/><path d="M30 138 Q24.1 134 18.1 126"/><path d="M30 138 Q35.9 134 41.9 126"/><path d="M30 141 Q24.5 137 19.1 129"/><path d="M30 141 Q35.5 137 40.9 129"/><path d="M30 144 Q25 140 20.1 132"/><path d="M30 144 Q35 140 39.9 132"/><path d="M30 147 Q25.6 143 21.1 135"/><path d="M30 147 Q34.4 143 38.9 135"/><path d="M30 150 Q26.1 146 22.2 138"/><path d="M30 150 Q33.9 146 37.8 138"/><path d="M30 153 Q26.6 149 23.3 141"/><path d="M30 153 Q33.4 149 36.7 141"/><path d="M30 156 Q27.2 152 24.4 144"/><path d="M30 156 Q32.8 152 35.6 144"/><path d="M30 159 Q27.8 155 25.6 147"/><path d="M30 159 Q32.2 155 34.4 147"/><path d="M30 162 Q28.4 158 26.8 150"/><path d="M30 162 Q31.6 158 33.2 150"/><path d="M30 165 Q29.1 161 28.2 153"/><path d="M30 165 Q30.9 161 31.8 153"/></g> <path d="M30 200 L30 30" stroke="#f3dc8f" stroke-width="1.4" stroke-linecap="round"/> <ellipse cx="30" cy="58" rx="17" ry="23" fill="#f5b82e"/> <ellipse cx="30" cy="60" rx="13.5" ry="18.5" fill="#2fae6e"/> <ellipse cx="30" cy="62" rx="9.5" ry="13.5" fill="#1d7fd1"/> <ellipse cx="30" cy="64" rx="5.5" ry="8" fill="#0d2b5c"/> <ellipse cx="27.5" cy="58" rx="1.8" ry="3" fill="#fff" fill-opacity=".55"/> </symbol> <symbol id="a-marigold" viewBox="-20 -20 40 40"> <ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(0)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(20)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(40)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(60)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(80)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(100)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(120)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(140)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(160)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(180)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(200)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(220)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(240)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(260)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(280)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(300)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(320)"/><ellipse cx="0" cy="-11" rx="3.4" ry="7.5" fill="#f39c12" transform="rotate(340)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(12)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(37.7)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(63.4)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(89.1)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(114.9)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(140.6)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(166.3)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(192)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(217.7)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(243.4)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(269.1)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(294.9)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(320.6)"/><ellipse cx="0" cy="-7.5" rx="3" ry="6" fill="#f8b627" transform="rotate(346.3)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(6)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(42)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(78)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(114)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(150)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(186)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(222)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(258)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(294)"/><ellipse cx="0" cy="-4" rx="2.6" ry="4.5" fill="#ffcf4d" transform="rotate(330)"/> <circle r="3" fill="#e8710a"/><circle r="1.2" fill="#a84a00"/> </symbol> <symbol id="a-rose" viewBox="-20 -20 40 40"> <g fill="url(#a-rosegrad)"><circle cx="0" cy="-7" r="9"/><circle cx="6.7" cy="-2.2" r="9"/><circle cx="4.1" cy="5.7" r="9"/><circle cx="-4.1" cy="5.7" r="9"/><circle cx="-6.7" cy="-2.2" r="9"/></g> <circle r="9" fill="#f06292"/> <path d="M0 -6 C6 -6 7 3 1 5 C-5 7 -8 -1 -3 -4 C1 -6 4 -1 1 1 C-1 2 -3 0 -1 -1" fill="none" stroke="#a3124a" stroke-width="1.3" stroke-linecap="round"/> </symbol> <symbol id="a-leaf" viewBox="0 0 40 16"> <path d="M0 8 Q18 -5 40 8 Q18 21 0 8Z" fill="#2fa36f"/><path d="M1 8 L38 8" stroke="#1d7a52" stroke-width=".8"/> </symbol> <symbol id="a-lantern" viewBox="0 0 40 92"> <circle cx="20" cy="46" r="26" fill="url(#a-glow)" class="a-flicker"/> <circle cx="20" cy="4" r="3" fill="none" stroke="#ffcf4d" stroke-width="1.6"/> <path d="M20 7 L20 11" stroke="#ffcf4d" stroke-width="1.6"/> <path d="M8 22 Q20 4 32 22Z" fill="url(#a-gold)"/> <rect x="5" y="22" width="30" height="4" rx="1" fill="url(#a-gold)"/> <path d="M7 26 L33 26 L37 50 L31 72 L9 72 L3 50Z" fill="#ffcf6b" fill-opacity=".28" stroke="#ffcf4d" stroke-width="1.4"/> <path d="M14 30 Q20 24 26 30 L27 62 L13 62Z" fill="#ffe7a0" fill-opacity=".85" class="a-flicker"/> <path d="M20 26 L20 72 M7 26 L13 62 M33 26 L27 62 M3 50 L37 50" stroke="#ffcf4d" stroke-width=".9" fill="none"/> <rect x="8" y="72" width="24" height="4" rx="1" fill="url(#a-gold)"/> <path d="M12 76 L28 76 L20 86Z" fill="url(#a-gold)"/><circle cx="20" cy="88.5" r="2.4" fill="url(#a-gold)"/> </symbol> <symbol id="a-crest" viewBox="-52 -52 104 104"> <g fill="url(#a-gold)"><circle cx="43" cy="0" r="6"/><circle cx="41.9" cy="9.6" r="6"/><circle cx="38.7" cy="18.7" r="6"/><circle cx="33.6" cy="26.8" r="6"/><circle cx="26.8" cy="33.6" r="6"/><circle cx="18.7" cy="38.7" r="6"/><circle cx="9.6" cy="41.9" r="6"/><circle cx="0" cy="43" r="6"/><circle cx="-9.6" cy="41.9" r="6"/><circle cx="-18.7" cy="38.7" r="6"/><circle cx="-26.8" cy="33.6" r="6"/><circle cx="-33.6" cy="26.8" r="6"/><circle cx="-38.7" cy="18.7" r="6"/><circle cx="-41.9" cy="9.6" r="6"/><circle cx="-43" cy="0" r="6"/><circle cx="-41.9" cy="-9.6" r="6"/><circle cx="-38.7" cy="-18.7" r="6"/><circle cx="-33.6" cy="-26.8" r="6"/><circle cx="-26.8" cy="-33.6" r="6"/><circle cx="-18.7" cy="-38.7" r="6"/><circle cx="-9.6" cy="-41.9" r="6"/><circle cx="-0" cy="-43" r="6"/><circle cx="9.6" cy="-41.9" r="6"/><circle cx="18.7" cy="-38.7" r="6"/><circle cx="26.8" cy="-33.6" r="6"/><circle cx="33.6" cy="-26.8" r="6"/><circle cx="38.7" cy="-18.7" r="6"/><circle cx="41.9" cy="-9.6" r="6"/><circle r="43"/></g> <circle r="36" fill="#0b7d86" stroke="#fff3c4" stroke-width="1.2"/> <circle r="31.5" fill="none" stroke="#ffcf4d" stroke-width=".8" stroke-dasharray="1.5 2.5"/> <path d="M-4 -22 a6 6 0 1 0 6 7 a4.6 4.6 0 1 1 -6 -7Z" fill="#ffcf4d"/> <text x="0" y="12" text-anchor="middle" font-family="'Great Vibes', cursive" font-size="27" fill="#fff0b8">N&amp;D</text> <use href="#a-leaf" x="-17" y="17" width="16" height="6.4" transform="rotate(-12 -9 20)"/> <g transform="translate(17 20) scale(-1 1) rotate(-12)"><use href="#a-leaf" x="0" y="-3.2" width="16" height="6.4"/></g> </symbol> <symbol id="a-divider" viewBox="0 0 240 32"> <path d="M8 16 H86 M154 16 H232" stroke="#ffcf4d" stroke-width="1"/> <circle cx="8" cy="16" r="1.6" fill="#ffcf4d"/><circle cx="232" cy="16" r="1.6" fill="#ffcf4d"/> <use href="#a-leaf" x="84" y="9" width="24" height="9.6" transform="rotate(-14 96 14)"/> <g transform="translate(156 14) scale(-1 1) rotate(-14)"><use href="#a-leaf" x="0" y="-4.8" width="24" height="9.6"/></g> <use href="#a-leaf" x="88" y="16" width="20" height="8" transform="rotate(18 98 20)"/> <g transform="translate(152 20) scale(-1 1) rotate(18)"><use href="#a-leaf" x="0" y="-4" width="20" height="8"/></g> <use href="#a-rose" x="99" y="6" width="20" height="20"/> <use href="#a-rose" x="121" y="6" width="20" height="20"/> <use href="#a-marigold" x="106" y="2" width="28" height="28"/> </symbol> <symbol id="a-cluster" viewBox="0 0 240 210"> <g transform="translate(30 205) rotate(18) scale(0.95)"><use href="#a-feather" x="-30" y="-200" width="60" height="200"/></g> <g transform="translate(30 205) rotate(44) scale(0.85)"><use href="#a-feather" x="-30" y="-200" width="60" height="200"/></g> <g transform="translate(30 205) rotate(68) scale(0.72)"><use href="#a-feather" x="-30" y="-200" width="60" height="200"/></g> <g transform="translate(40 195) rotate(30) scale(1.6)"><use href="#a-leaf" x="-20" y="-16" width="40" height="16"/></g> <g transform="translate(56 196) rotate(70) scale(1.5)"><use href="#a-leaf" x="-20" y="-16" width="40" height="16"/></g> <g transform="translate(30 190) rotate(-12) scale(1.4)"><use href="#a-leaf" x="-20" y="-16" width="40" height="16"/></g> <use href="#a-marigold" x="18" y="150" width="50" height="50"/> <use href="#a-rose" x="54" y="164" width="42" height="42"/> <use href="#a-marigold" x="88" y="176" width="32" height="32"/> <use href="#a-rose" x="0" y="176" width="30" height="30"/> </symbol> </svg>
+
+    <!-- Envelope intro -->
+    <div id="intro" class="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-[radial-gradient(ellipse_at_center,#17b3ae,#0a7480_75%)]" role="dialog" aria-label="Wedding invitation">
+        <div class="absolute inset-0 opacity-[.12] geo pointer-events-none"></div>
+        <button type="button" id="skip-intro" class="absolute top-4 right-4 font-cinzel text-[11px] tracking-[.25em] text-gold-400/80 hover:text-gold-300 px-3 py-2">SKIP</button>
+        <div class="relative grid place-items-center w-full">
+            <div class="stage env-wrap text-center">
+                <p class="font-cinzel text-gold-400 tracking-[.3em] text-[11px] sm:text-xs mb-14">YOU HAVE RECEIVED AN INVITATION</p>
+                <div class="env mx-auto" id="env">
+                    <div class="env-back"></div>
+                    <div class="env-paper"><svg class="art w-16 h-16" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg></div>
+                    <div class="env-front"></div>
+                    <svg class="env-flora l" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                    <svg class="env-flora r" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                    <div class="env-flap"></div>
+                    <button type="button" class="seal" id="seal" aria-label="Open the envelope"><svg class="art w-full h-full" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg></button>
+                </div>
+                <p class="font-cinzel text-ivory-200/60 tracking-[.25em] text-[10px] mt-12">TAP THE SEAL TO OPEN</p>
+            </div>
+
+            <div class="stage text-center" id="scratch-card" style="width:min(90vw,24rem)">
+                <div class="arch px-6 pt-10 pb-8 bg-emerald-900/70">
+                    <svg class="art w-12 h-12 mx-auto mb-3" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
+                    <p class="font-arabic text-2xl gold-text" dir="rtl" lang="ar">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                    <p class="font-script text-4xl sm:text-5xl gold-text mt-3">Nadeem &amp; Dariya</p>
+                    <p class="text-xs text-ivory-200/80 tracking-wide mt-2">request the honour of your presence at their wedding</p>
+                    <div class="relative h-28 mt-6 rounded-xl overflow-hidden border border-gold-500/50">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950">
+                            <span class="font-cinzel text-xl sm:text-2xl font-bold gold-text tracking-wider">JANUARY 20 · 21</span>
+                            <span class="font-cinzel text-[11px] tracking-[.3em] text-gold-400 mt-1">2027 · GREENWOOD RESORT</span>
+                        </div>
+                        <canvas id="scratch-cv" class="absolute inset-0 w-full h-full cursor-pointer" aria-label="Scratch to reveal the date"></canvas>
+                    </div>
+                    <p id="scratch-hint" class="font-cinzel text-[11px] tracking-[.25em] text-gold-400 mt-4">SCRATCH THE GOLD TO REVEAL THE DATE</p>
+                    <button type="button" id="reveal-link" class="text-[11px] text-ivory-200/50 underline mt-2">or tap here to reveal</button>
+                    <button type="button" id="enter-btn" class="btn-gold hidden w-full mt-5 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">OPEN INVITATION</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="dust" aria-hidden="true"></canvas>
+
+    <audio id="bg-music" loop preload="none">
+        <!-- Placeholder soft instrumental. Replace with a local shehnai/flute .mp3 for reliability. -->
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=flute-soft-ambient-112338.mp3" type="audio/mpeg">
+    </audio>
+    <button id="music-toggle" onclick="toggleAudio()" class="fixed bottom-5 right-5 z-50 w-12 h-12 rounded-full glass-deep text-gold-400 flex items-center justify-center glow hover:scale-110 transition-transform" title="Toggle music" aria-label="Toggle background music">
+        <i id="music-icon" class="fas fa-music"></i>
+    </button>
+
+    <!-- Nav -->
+    <nav class="fixed top-0 left-0 w-full z-40 glass-deep border-b border-gold-500/20 px-4 py-3 md:px-8">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="#hero" class="flex items-center gap-2 font-cinzel text-lg md:text-xl font-bold tracking-wider gold-text"><svg class="art w-8 h-8" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>N &amp; D</a>
+            <div class="hidden md:flex space-x-8 font-cinzel text-xs tracking-widest text-ivory-100/80">
+                <a href="#hero" class="hover:text-gold-400 transition-colors">HOME</a>
+                <a href="#itinerary" class="hover:text-gold-400 transition-colors">ITINERARY</a>
+                <a href="#menu" class="hover:text-gold-400 transition-colors">MENU</a>
+                <a href="#venues" class="hover:text-gold-400 transition-colors">VENUES</a>
+                <a href="#guide" class="hover:text-gold-400 transition-colors">GOOD TO KNOW</a>
+            </div>
+            <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero -->
+        <section id="hero" class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-4 text-center overflow-hidden bg-[radial-gradient(ellipse_at_center,#17b3ae,#0a7480_70%)]">
+            <div class="absolute inset-0 opacity-[.12] geo pointer-events-none"></div>
+            <div class="ambient w-72 h-72 bg-gold-500/20 -top-10 -left-10"></div>
+            <div class="ambient w-80 h-80 bg-[#ff4f93]/25 bottom-0 -right-16" style="animation-delay:-6s"></div>
+            <div class="lanterns" aria-hidden="true">
+                <div class="lantern" style="left:4%;--w:2.3rem;animation-duration:5.5s;animation-delay:0s"><i style="height:5rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+                <div class="lantern" style="left:15%;--w:1.6rem;animation-duration:4.2s;animation-delay:-2s"><i style="height:8rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+                <div class="lantern" style="right:5%;--w:2.5rem;animation-duration:6s;animation-delay:-1s"><i style="height:6rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+                <div class="lantern" style="right:16%;--w:1.5rem;animation-duration:4.8s;animation-delay:-3s"><i style="height:3.8rem"></i><svg viewBox="0 0 40 92"><use href="#a-lantern"/></svg></div>
+            </div>
+
+            <div class="relative arch w-full max-w-3xl px-5 sm:px-12 pt-14 sm:pt-20 pb-12 fade-up">
+                <svg class="cluster l" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                <svg class="cluster r" viewBox="0 0 240 210" aria-hidden="true"><use href="#a-cluster"/></svg>
+                <svg class="art w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
+                <p class="font-arabic text-3xl sm:text-5xl gold-text leading-relaxed shimmer" dir="rtl" lang="ar">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                <p class="font-cinzel text-gold-400 text-[10px] sm:text-xs tracking-[.25em] uppercase mt-3">In the name of Allah, the Most Gracious, the Most Merciful</p>
+                <svg class="divider art my-3" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
+
+                <h1 class="text-6xl sm:text-7xl md:text-8xl">
+                    <span class="names block gold-text shimmer">Nadeem Khan</span>
+                    <span class="block font-cinzel text-xl sm:text-2xl tracking-[.4em] text-gold-300 my-1" aria-label="and">&amp;</span>
+                    <span class="names block gold-text shimmer">Dariya</span>
+                </h1>
+
+                <p class="max-w-md mx-auto text-ivory-200/80 text-sm sm:text-base font-light tracking-wide my-6">
+                    Together with their families, invite you to celebrate their wedding.
+                </p>
+
+                <div class="inline-flex flex-wrap justify-center items-center gap-x-3 gap-y-1 px-5 py-2 rounded-full glass text-gold-300 font-cinzel text-[11px] sm:text-sm tracking-widest">
+                    <i class="far fa-calendar-alt text-gold-400"></i>
+                    <span>JANUARY 20TH &amp; 21ST, 2027</span>
+                </div>
+                <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 mt-3"><i class="fas fa-location-dot mr-2"></i>GREENWOOD RESORT · BENGALURU</p>
+            </div>
+
+            <div class="relative my-8 w-full max-w-lg px-2">
+                <p class="font-cinzel text-[10px] sm:text-xs tracking-[.2em] text-gold-400/80 mb-4 uppercase">Counting down to the celebration</p>
+                <div class="grid grid-cols-4 gap-2 sm:gap-4" role="timer" aria-live="off">
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="days" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Days</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="hours" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Hours</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="minutes" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Mins</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="seconds" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Secs</span></div>
+                </div>
+            </div>
+
+            <div class="relative flex flex-wrap justify-center gap-4">
+                <a href="#itinerary" class="glass glow-hover px-6 py-3 rounded-full text-gold-300 font-cinzel text-xs font-bold tracking-widest hover:bg-gold-500 hover:text-emerald-950">VIEW ITINERARY</a>
+                <button onclick="openRsvp()" class="rsvp-cta btn-gold px-6 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
+            </div>
+            <p class="relative mt-5 max-w-sm text-[11px] sm:text-xs text-gold-300/90 font-cinzel tracking-[.15em] leading-relaxed">RSVP IS MANDATORY · KINDLY RESPOND BY 15 DECEMBER 2026<br>YOUR ENTRY PASS IS YOUR TICKET IN</p>
+        </section>
+
+        <!-- Quranic verse -->
+        <section id="ayah" class="band band-deep py-20 px-4 text-center">
+            <div class="max-w-2xl mx-auto reveal">
+                <div class="w-14 h-14 mx-auto mb-6 rotate-45 border border-gold-500/60 flex items-center justify-center"><span class="-rotate-45 font-arabic text-2xl gold-text">۞</span></div>
+                <p class="font-arabic text-2xl sm:text-4xl leading-[2] gold-text" dir="rtl" lang="ar">وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً</p>
+                <p class="mt-6 text-sm sm:text-lg italic text-ivory-200/85 leading-relaxed">“And among His signs is that He created for you mates from among yourselves, that you may find tranquility in them; and He placed between you affection and mercy.”</p>
+                <p class="mt-3 font-cinzel text-xs tracking-[.3em] text-gold-400">QURAN · SURAH AR-RUM 30:21</p>
+            </div>
+        </section>
+
+        <!-- Itinerary -->
+        <section id="itinerary" class="py-20 px-4 max-w-5xl mx-auto">
+            <div class="text-center mb-10 reveal">
+                <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">The Wedding Itinerary</p>
+                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Two Days of Celebration</h2>
+                <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
+            </div>
+
+            <div class="flex justify-center mb-5 gap-2 sm:gap-4 reveal" role="tablist" id="tabs"></div>
+            <div class="flex flex-wrap justify-center gap-x-5 gap-y-2 mb-8 text-[11px] sm:text-xs text-ivory-200/85 reveal" aria-label="Colour key">
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle" style="background:#ffb020"></span>Haldi &amp; Mehendi</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle" style="background:#fff1c9"></span>Nikah &amp; prayers</span>
+                <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle" style="background:#ff4f93"></span>Celebrations</span>
+            </div>
+            <div id="tab-panel" class="reveal" role="tabpanel" aria-live="polite"></div>
+        </section>
+
+        <!-- Menu -->
+        <section id="menu" class="band band-light py-20 px-4 max-w-5xl mx-auto">
+            <div class="text-center mb-10 reveal">
+                <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Food &amp; Refreshments</p>
+                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Menu</h2>
+                <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
+                <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">Everything is halal and cooked fresh at the resort. Drinking water is available around the lawn all day. The menu may change slightly closer to the date.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6" id="menu-grid"></div>
+        </section>
+
+        <!-- Venues -->
+        <section id="venues" class="band band-deep py-20 px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12 reveal">
+                    <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Locations &amp; Directions</p>
+                    <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Venue</h2>
+                    <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
+                </div>
+                <div class="max-w-xl mx-auto" id="venue-grid"></div>
+            </div>
+        </section>
+        <!-- Good to know -->
+        <section id="guide" class="py-20 px-4">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-4 reveal">
+                    <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Guest Guidelines</p>
+                    <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Good to Know</h2>
+                    <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
+                    <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">A few things that help both days run smoothly. Please share them with everyone in your family who is coming.</p>
+                </div>
+                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">Before you come</h3>
+                <div class="grid md:grid-cols-2 gap-4 reveal">
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-ticket text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">RSVP is mandatory</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please RSVP on this page by <strong class="text-gold-300">15 December 2026</strong>, so we can confirm final numbers with the resort and caterer. You will get an entry pass with a QR code. Save it on your phone and show it at the entrance.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-clock text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Coming for one function only</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Tick only what you will attend when you RSVP. For the Nikah, please reach the resort by 9:30 AM (seated by 9:50 AM); you are welcome to stay for lunch. For the Reception, please reach by 6:15 PM; the couple enters at 7:15 PM and dinner is from 8:00 PM.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-car text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Travel &amp; parking</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please arrange your own travel to Greenwood Resort on Kanakapura Road. Carpool where you can; parking is available at the resort.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-id-card text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Bring a photo ID</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Guests staying overnight should carry a government photo ID for resort check-in.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-mosque text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Prayer times</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">A prayer space with mats and a wudu area is open throughout both days, and the programme pauses for each prayer. Approximate times: Zuhr 12:40 PM, Asr 4:00 or 4:40 PM, Maghrib 6:25 PM and Isha 7:40 PM. Exact times will be shared a week before.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-bed text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Who stays overnight</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1"><strong class="text-gold-300">Rooms are assigned by the family.</strong> Rooms and cottages are shared equally between both families and allotted by name; we will confirm with you directly if you have one. Please do not book or request rooms at the resort yourself. Only guests on your family&#x27;s room list can stay overnight; everyone else is welcome for the day.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-cloud-moon text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">January weather</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Days are pleasant but mornings and evenings get cool. Pack a shawl or light jacket, comfortable footwear for lawns and stone paths, and swimwear if you plan to use the pool.</p></div>
+                    </div>
+                </div>
+                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">At the resort</h3>
+                <div class="grid md:grid-cols-2 gap-4 reveal">
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-children text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Children</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">The resort has open lawns, steps, stone paths and a pool. Please keep children with a parent or guardian at all times. The resort and the host families are not responsible for accidents involving unsupervised children.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-person-swimming text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Pool safety</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">The pool is open only during the scheduled session on Day 1, at your own risk. No swimming after heavy meals, after dark, or outside the session.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-lock text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Your belongings</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please look after your own cash, jewellery, phones and luggage, and lock your room whenever you step out. The resort and the host families are not responsible for loss or damage.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-kit-medical text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Health &amp; medicines</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Bring any regular medication. Tell your family coordinator in advance about allergies or dietary needs. Drinking water is set up around the lawn, and a first-aid kit is at the coordination desk.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-house text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Resort property</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please treat rooms, furniture and plants with care. Any damage charged by the resort is payable by the guest responsible. No smoking inside rooms or cottages.</p></div>
+                    </div>
+                </div>
+                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">During the celebrations</h3>
+                <div class="grid md:grid-cols-2 gap-4 reveal">
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-clock text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Please be on time</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Food is cooked fresh to the schedule and headcount. Please be seated by 9:50 AM for the 10:00 AM Nikah.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-bowl-food text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Food</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">All food is halal and cooked on site. Vegetarian options are available on request through your family coordinator.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-camera text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Photography</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">A professional photographer covers every function. During the Nikah, please stay seated and keep phones down so everyone can see.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-moon text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Quiet hours</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please keep noise low after midnight on Wednesday so everyone is rested for the Nikah.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-door-open text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Checkout</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Rooms and cottages must be vacated and keys returned by 10:00 PM on Thursday 21 January.</p></div>
+                    </div>
+                    <div class="glass rounded-xl p-4 flex gap-3">
+                        <i class="fas fa-handshake text-gold-400 mt-1 w-5 text-center"></i>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Harmony &amp; respect</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">This is a celebration of two families becoming one. Please be patient and kind, and raise any concern quietly with your family coordinator, not in front of guests.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dua for the newlyweds -->
+        <section id="dua" class="band band-light py-20 px-4 text-center">
+            <div class="max-w-2xl mx-auto reveal">
+                <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-5">Your Duas Are Our Greatest Gift</p>
+                <p class="font-arabic text-2xl sm:text-4xl leading-[2] gold-text" dir="rtl" lang="ar">بَارَكَ اللَّهُ لَكَ وَبَارَكَ عَلَيْكَ وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ</p>
+                <p class="mt-5 text-sm sm:text-lg italic text-ivory-200/85">“May Allah bless you, shower His blessings upon you, and unite you both in goodness.”</p>
+                <p class="mt-3 font-cinzel text-xs tracking-[.3em] text-gold-400">DUA FOR THE NEWLYWEDS · ABU DAWUD</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="band py-14 px-4 text-center" style="--band:#086670">
+        <svg class="art w-16 h-16 mx-auto mb-3" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
+        <p class="font-script text-4xl gold-text mb-1">Nadeem &amp; Dariya</p>
+        <p class="text-xs text-ivory-200/60 font-cinzel tracking-widest mb-4">JANUARY 20–21, 2027 • GREENWOOD RESORT, BENGALURU</p>
+        <p class="text-[11px] text-ivory-200/40">Crafted with warm wishes for our cherished family &amp; friends.</p>
+        <p class="text-[11px] text-ivory-200/40 mt-1">Designed by Moonlight Solutions</p>
+    </footer>
+
+    <!-- RSVP Modal -->
+    <div id="rsvp-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300" role="dialog" aria-modal="true" aria-labelledby="rsvp-title">
+        <div class="glass-deep w-full max-w-lg rounded-2xl p-6 sm:p-8 relative glow max-h-[92vh] overflow-y-auto">
+            <button onclick="closeRsvp()" class="absolute top-4 right-4 text-ivory-200/60 hover:text-gold-400 text-xl" aria-label="Close"><i class="fas fa-times"></i></button>
+
+            <form id="rsvp-form" onsubmit="submitRsvp(event)" class="space-y-4">
+                <div class="text-center mb-2">
+                    <p class="font-cinzel text-xs text-gold-400 tracking-widest uppercase">Kindly Respond</p>
+                    <h3 id="rsvp-title" class="font-cinzel text-2xl font-bold gold-text mt-1">Wedding RSVP</h3>
+                    <p class="text-[11px] sm:text-xs text-ivory-200/70 mt-2">Kindly respond by <strong class="text-gold-300">15 December 2026</strong>. RSVP is mandatory. You will receive an entry pass with a QR code. Please show it at the entrance.</p>
+                </div>
+
+                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOUR FULL NAME *</span>
+                    <input class="gold-input" type="text" name="name" required autocomplete="name" placeholder="e.g. Mohsin Khan"></label>
+
+                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOUR PHONE NUMBER *</span>
+                    <input class="gold-input" type="tel" name="phone" required autocomplete="tel" inputmode="tel" pattern="[0-9+\s\(\)\-]{7,}" placeholder="+91 98765 43210"></label>
+
+                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOU ARE *</span>
+                    <select class="gold-input" name="side" required onchange="toggleVendor()">
+                        <option>Groom's Guest</option>
+                        <option>Bride's Guest</option>
+                        <option value="Vendor">Vendor / Service Team</option>
+                    </select></label>
+
+                <div id="vendor-fields" class="hidden space-y-4">
+                    <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">SERVICE *</span>
+                        <select class="gold-input" name="vtype">
+                            <option>Photography &amp; Video</option>
+                            <option>Decor &amp; Flowers</option>
+                            <option>Catering</option>
+                            <option>DJ &amp; Sound</option>
+                            <option>Mehendi Artist</option>
+                            <option>Makeup &amp; Hair</option>
+                            <option>Qazi</option>
+                            <option>Event Coordination</option>
+                            <option>Transport</option>
+                            <option>Other</option>
+                        </select></label>
+                    <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">COMPANY / BUSINESS NAME *</span>
+                        <input class="gold-input" type="text" name="company" maxlength="80" placeholder="e.g. Lens &amp; Light Studio"></label>
+                </div>
+
+                <fieldset>
+                    <legend class="font-cinzel text-xs text-gold-300 mb-2">ATTENDING EVENTS *</legend>
+                    <div class="space-y-2 text-xs sm:text-sm text-ivory-200/85">
+                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Day 1 (Wed Jan 20) - Haldi & Mehendi, Shukrana, DJ Night" checked class="accent-[#f5b82e] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Day 1 · Wed, Jan 20</b> — Arrival, Haldi &amp; Mehendi, Shukrana &amp; DJ Night</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Nikah (Thu Jan 21, morning) - Nikah, Lunch & Julwa" checked class="accent-[#f5b82e] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Nikah · Thu, Jan 21, morning</b> — Nikah at 10:00 AM, lunch &amp; Julwa</span></label>
+                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Reception (Thu Jan 21, evening) - Reception / Walima" checked class="accent-[#f5b82e] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Reception · Thu, Jan 21, evening</b> — Reception / Walima from 6:30 PM</span></label>
+                        <p class="text-[11px] text-ivory-200/55 pt-1">Tick every part you will attend, so we know how many people to expect at each.</p>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend id="members-title" class="font-cinzel text-xs text-gold-300 mb-1">FAMILY MEMBERS COMING WITH YOU</legend>
+                    <p id="members-help" class="text-[11px] text-ivory-200/55 mb-2">Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.</p>
+                    <div id="members" class="space-y-2"></div>
+                    <div class="flex items-center justify-between gap-3 mt-2">
+                        <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2 rounded-full text-gold-300 font-cinzel text-[11px] tracking-widest hover:border-gold-500/60">+ ADD <span id="member-word">FAMILY MEMBER</span></button>
+                        <span id="party-total" class="text-xs text-ivory-200/80" aria-live="polite">Total guests: 1</span>
+                    </div>
+                </fieldset>
+                <p id="rooms-note" class="text-[11px] text-ivory-200/55">Rooms and cottages are assigned by the family. We will confirm with you directly if you have a room; please do not book or ask the resort for one.</p>
+
+                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">WARM NOTE / BLESSINGS</span>
+                    <textarea class="gold-input" name="note" rows="3" placeholder="Write your warm blessings..."></textarea></label>
+
+                <p id="rsvp-error" class="text-xs text-red-300 min-h-[1em]" role="alert"></p>
+                <button type="submit" class="btn-gold w-full py-3 rounded-xl font-cinzel text-xs font-bold tracking-widest glow">CONFIRM RESERVATION</button>
+            </form>
+
+            <div id="rsvp-success" class="hidden text-center space-y-3">
+                <p class="font-cinzel text-xs text-gold-400 tracking-widest uppercase">JazakAllah Khair</p>
+                <h4 class="font-cinzel text-xl font-bold gold-text">Your Entry Pass</h4>
+                <canvas id="pass-cv" class="mx-auto w-full max-w-[20rem] rounded-2xl glow" aria-label="Your wedding entry pass"></canvas>
+                <p id="pass-email-note" class="text-xs text-ivory-200/80">Your email app has opened with your RSVP. Please press <strong>Send</strong> so the family has your reply.</p>
+                <p class="text-xs text-ivory-200/60">Save this pass to your phone and show it at the entrance. You can reopen it any time from this page.</p>
+                <div id="cal-links" class="glass rounded-xl p-3 text-xs text-ivory-200/85 space-y-2 text-left"></div>
+                <div class="flex flex-wrap justify-center gap-3 pt-1">
+                    <button type="button" onclick="savePass()" class="btn-gold px-6 py-2 rounded-full font-cinzel text-xs font-bold tracking-widest">SAVE PASS</button>
+                    <button type="button" onclick="closeRsvp()" class="glass px-6 py-2 rounded-full text-gold-300 font-cinzel text-xs tracking-widest">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="qrcode.js"></script>
+    <script>
+        // ---------- Content (edit here) ----------
+        const RSVP_EMAIL = 'moonlightsolutionsteam@gmail.com'; // fallback: opens the guest's email app, prefilled
+        // Guest list database (Supabase). The publishable key is meant to be public: it can only submit RSVPs.
+        // Set SUPABASE_URL to '' to fall back to email only.
+        const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Prl5rew1ifRF7WyYNopZSA_wt-JaT4a';
+        const mapUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+
+        const DAYS = [
+            { id:'day1', tab:'DAY 1 • JAN 20', date:'Wednesday, January 20th, 2027', title:'Arrival & Pre-Wedding Celebrations', venue:'Greenwood Resort',
+              events:[
+                { icon:'fa-dice', name:'Arrival, Welcome Drinks & Games', time:'12:00 PM', place:'Lawn', dress:'Comfortable casual', desc:'Nimbu pani and rose sharbat as both families arrive. Pick up a Find Your Match card, add your photo to the Polaroid guest wall, and try the Giant Jenga.' },
+                { icon:'fa-microphone', name:'Welcome Address', time:'12:30 PM', place:'Lawn', desc:'A few words of welcome from Nadeem and introductions between both families.' },
+                { icon:'fa-utensils', name:'Arrival Lunch', time:'1:30 PM – 2:30 PM', place:'Covered shed', desc:'Ghee rice, dal fry, kadai paneer or chicken, salad and gulab jamun, with trivia about the couple on every table.' },
+                { icon:'fa-trophy', name:'Family Face-Off', time:'2:30 PM – 3:15 PM', place:'Lawn', desc:"Groom's side vs bride's side in tug of war, a lemon-and-spoon relay and a round of dumb charades. The winning family takes home the trophy and bragging rights for life." },
+                { icon:'fa-person-swimming', name:'Swimming Pool Session', time:'3:15 PM – 4:15 PM', place:'Pool', dress:'Swimwear (optional)', desc:'Optional pool games. Children only with an adult in the water, and no swimming outside this session.' },
+                { icon:'fa-key', name:'Rooms Handed Over', time:'4:00 PM', place:'Rooms & cottages', desc:'Settle in and change for the Haldi.' },
+                { tone:'marigold', swatch:[['#f7c600','Yellow'],['#d49a00','Mustard'],['#3aa655','Green'],['#f48fb1','Floral pink']], icon:'fa-sun', name:'Haldi & Mehendi', time:'4:45 PM – 6:15 PM', place:'Lawn', dress:'Yellow, mustard, green or floral ethnic', desc:'Marigolds, dhol, a petal shower and henna, with high tea: masala chai, filter coffee and samosas. Wear clothes you don\'t mind getting turmeric on.' },
+                { tone:'ivory', swatch:[['#ffffff','White'],['#f8d7e3','Pastel pink'],['#cfe6f7','Pastel blue'],['#d5f0e0','Mint']], icon:'fa-hands-praying', name:'Shukrana', time:'6:45 PM – 7:30 PM', place:'Covered area', dress:'Modest whites or pastels', desc:'A prayer of gratitude and family duas on floor seating, with sharbat, dates and sweets.' },
+                { tone:'fuchsia', swatch:[['#800020','Maroon'],['#5a1846','Velvet wine'],['#1f2a6b','Royal blue'],['#d4af37','Gold']], icon:'fa-music', name:'DJ Night & Dinner', time:'8:00 PM – 11:00 PM', place:'Covered shed & lawn', dress:'Royal maroon, velvet or festive ethnic', desc:'Fairy lights, family dance entries and dancing to the family\'s playlist. Dinner: Chicken Dum Biryani, Mirchi ka Salan, Burani Raita and Double ka Meetha.' }
+              ] },
+            { id:'day2', tab:'DAY 2 • JAN 21', date:'Thursday, January 21st, 2027', title:'Nikah, Julwa & Reception', venue:'Greenwood Resort',
+              events:[
+                { icon:'fa-mug-hot', name:'Breakfast', time:'7:30 AM – 9:00 AM', place:'Covered shed', desc:'Idli, vada, sambar, chutney, tea and coffee for staying guests.' },
+                { tone:'ivory', swatch:[['#fff4dc','Ivory'],['#d4af37','Gold'],['#f8d3c5','Peach'],['#c8e0cf','Sage']], icon:'fa-mosque', name:'Nikah', time:'10:00 AM – 11:30 AM', place:'Lawn', dress:'Traditional festive ethnic / pastel formals', desc:'Please be seated by 9:50 AM; if you are driving in that morning, aim to reach the resort by 9:30 AM. Khutbah, Ijab-o-Qubool, Nikahnama signing and dua, with the bride and groom seated facing each other and the Qazi between them.' },
+                { icon:'fa-camera', name:'Post-Nikah Refreshments & Photos', time:'11:30 AM – 12:15 PM', place:'Lawn', desc:'Dates, sharbat and family photographs.' },
+                { icon:'fa-utensils', name:'Nikah Lunch', time:'1:00 PM – 2:30 PM', place:'Covered shed', desc:'Mutton Kacchi Biryani, Mirchi ka Salan, Raita and Double ka Meetha.' },
+                { tone:'ivory', icon:'fa-heart', name:'Julwa (Arsi Mushaf)', time:'3:00 PM – 4:00 PM', place:'Covered area', desc:'The mirror and Quran ritual under a dupatta canopy, with blessings from the elders.' },
+                { icon:'fa-mug-saucer', name:'Sundowner Tea', time:'5:30 PM – 6:30 PM', place:'Lawn', desc:'Tea, coffee and biscuits as the fairy lights come on.' },
+                { tone:'fuchsia', swatch:[['#111111','Black'],['#0b6e4f','Emerald'],['#d4af37','Gold']], icon:'fa-star', name:'Reception / Walima', time:'6:30 PM – 9:30 PM', place:'Lawn', dress:'Royal black, emerald or formal bespoke wear', desc:"Coming just for the evening? Please reach the resort by 6:15 PM, park and show your entry pass at the entrance. Guests are seated from 6:30 PM and the couple enters at 7:15 PM. Expect a few surprises from the groom, then dinner from 8:00 PM: Mutton Dum Biryani, Mirchi ka Salan, Burani Raita and Kaddu ka Halwa." },
+                { tone:'ivory', icon:'fa-door-open', name:'Rukhsati & Farewell', time:'9:30 PM – 10:00 PM', place:'Lawn & front desk', desc:'The bride\'s farewell from her family with duas, then goodbyes. Staying guests, please return room keys at the front desk; checkout is by 10:00 PM.' }
+              ] }
+        ];
+
+        // Menu: edit dishes here; the Menu section is built from this list
+        const MENU = [
+            { day:'Day 1 · Wednesday, January 20', meals:[
+                { time:'12:00 PM', name:'Welcome Drinks', items:'Nimbu pani, rose sharbat' },
+                { time:'1:30 PM', name:'Arrival Lunch', items:'Ghee rice, dal fry, chicken curry, salad, papad, gulab jamun' },
+                { time:'4:45 PM', name:'High Tea (during Haldi)', items:'Masala chai, filter coffee, samosas' },
+                { time:'6:45 PM', name:'Shukrana', items:'Rooh Afza sharbat, dates, sweets' },
+                { time:'8:00 PM', name:'DJ Night Dinner', items:'Chicken dum biryani, mirchi ka salan, burani raita, double ka meetha' }
+            ] },
+            { day:'Day 2 · Thursday, January 21', meals:[
+                { time:'7:30 AM', name:'Breakfast', items:'Idli, vada, sambar, coconut chutney, tea & coffee' },
+                { time:'11:30 AM', name:'Post-Nikah Refreshments', items:'Dates, Rooh Afza sharbat' },
+                { time:'1:00 PM', name:'Nikah Lunch', items:'Mutton kacchi biryani, mirchi ka salan, raita, double ka meetha' },
+                { time:'5:30 PM', name:'Sundowner Tea', items:'Tea, filter coffee, biscuits' },
+                { time:'8:00 PM', name:'Reception Dinner', items:'Mutton dum biryani, mirchi ka salan, burani raita, kaddu ka halwa' }
+            ] }
+        ];
+
+        const VENUES = [
+            { badge:'DAYS 1 & 2', icon:'fa-hotel', name:'Greenwood Resort', url:'https://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9',
+              desc:'Kanakapura Road, Bengaluru. Every function on both days takes place here, with rooms and cottages for both families.',
+              details:['Arrival, games & pool','Haldi & Mehendi, Shukrana, DJ Night','Nikah & Julwa','Reception / Walima'] }
+        ];
+
+        // ---------- Render ----------
+        const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.textContent = h; return e; };
+
+        // Each function's colour in the itinerary (see the colour key above the timeline)
+        const TONES = { marigold: '#ffb020', ivory: '#fff1c9', fuchsia: '#ff4f93' };
+
+        function renderDay(d) {
+            const wrap = el('div', 'glass-deep rounded-2xl p-6 sm:p-8');
+            const head = el('div', 'flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-gold-500/20 pb-4 mb-6');
+            const left = el('div');
+            left.append(el('span', 'font-cinzel text-xs text-gold-400 tracking-widest uppercase', d.date), el('h3', 'font-cinzel text-2xl font-bold text-ivory-50 mt-1', d.title));
+            const pill = el('span', 'inline-flex items-center self-start px-3 py-1 rounded-full text-xs font-cinzel text-gold-300 bg-emerald-900/80 border border-gold-500/30');
+            pill.innerHTML = '<i class="fas fa-map-marker-alt text-gold-400 mr-2"></i>';
+            pill.append(d.venue);
+            head.append(left, pill);
+            wrap.append(head);
+
+            const list = el('div', 'relative space-y-5 pl-8 border-l border-gold-500/30 ml-3');
+            d.events.forEach(ev => {
+                const item = el('div', 'relative glass rounded-xl p-5 glow-hover');
+                const dot = el('span', 'absolute -left-[3.05rem] top-5 w-9 h-9 rounded-full bg-emerald-950 border border-gold-500/50 flex items-center justify-center text-gold-400 text-sm');
+                dot.innerHTML = '<i class="fas ' + ev.icon + '"></i>';
+                const row = el('div', 'flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1');
+                row.append(el('h4', 'font-cinzel font-bold text-lg text-gold-300', ev.name), el('span', 'font-cinzel text-xs tracking-wider text-gold-400', ev.time));
+                const tone = TONES[ev.tone];
+                if (tone) { item.style.borderLeft = '3px solid ' + tone; dot.style.borderColor = tone; dot.style.color = tone; dot.style.boxShadow = '0 0 14px ' + tone + '80'; }
+                item.append(dot, row, el('p', 'text-xs text-ivory-200/60 mt-1', ev.place), el('p', 'text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-2', ev.desc));
+                if (ev.dress) {
+                    const dc = el('p', 'mt-3 text-xs text-ivory-200/80');
+                    const dots = el('span', 'inline-flex gap-1 mr-2 align-middle');
+                    (ev.swatch || []).forEach(([c, n]) => { const sw = el('span', 'inline-block w-3.5 h-3.5 rounded-full border border-white/60'); sw.style.background = c; sw.title = n; dots.append(sw); });
+                    dc.append(el('span', 'font-cinzel text-gold-400 tracking-wider mr-2', 'DRESS CODE'), dots, ev.dress);
+                    item.append(dc);
+                }
+                list.append(item);
+            });
+            wrap.append(list);
+            return wrap;
+        }
+
+        const tabsEl = document.getElementById('tabs'), panel = document.getElementById('tab-panel');
+        function switchTab(id) {
+            const d = DAYS.find(x => x.id === id);
+            panel.replaceChildren(renderDay(d));
+            tabsEl.querySelectorAll('button').forEach(b => {
+                const on = b.dataset.id === id;
+                b.setAttribute('aria-selected', on);
+                b.className = 'px-3 sm:px-6 py-2.5 rounded-full font-cinzel text-[11px] sm:text-sm font-semibold tracking-wider transition-all duration-300 border ' +
+                    (on ? 'btn-gold border-gold-500/40 glow' : 'glass text-gold-300 hover:border-gold-500/60');
+            });
+        }
+        DAYS.forEach(d => {
+            const b = el('button', '', d.tab);
+            b.dataset.id = d.id; b.setAttribute('role', 'tab');
+            b.addEventListener('click', () => switchTab(d.id));
+            tabsEl.append(b);
+        });
+        switchTab('day1');
+
+        MENU.forEach(d => {
+            const card = el('div', 'glass-deep rounded-2xl p-6 reveal');
+            card.append(el('h3', 'font-cinzel text-lg font-bold text-gold-300 mb-4', d.day));
+            const list = el('div', 'space-y-4');
+            d.meals.forEach(m => {
+                const row = el('div', 'flex gap-4');
+                row.append(el('span', 'font-cinzel text-xs tracking-wider text-gold-400 w-20 shrink-0 pt-0.5', m.time));
+                const body = el('div', 'min-w-0');
+                body.append(el('p', 'font-semibold text-ivory-50 text-sm', m.name), el('p', 'text-xs sm:text-sm text-ivory-200/75 leading-relaxed', m.items));
+                row.append(body); list.append(row);
+            });
+            card.append(list);
+            document.getElementById('menu-grid').append(card);
+        });
+
+        VENUES.forEach(v => {
+            const card = el('div', 'glass-deep rounded-2xl p-6 flex flex-col justify-between glow-hover reveal');
+            const top = el('div');
+            const r = el('div', 'flex justify-between items-start mb-4');
+            r.append(el('span', 'text-xs font-cinzel tracking-widest text-gold-400 bg-gold-500/10 px-3 py-1 rounded-full border border-gold-500/30', v.badge));
+            const ic = el('i', 'fas ' + v.icon + ' text-gold-400 text-xl'); r.append(ic);
+            const ul = el('ul', 'text-xs sm:text-sm text-ivory-200/80 space-y-1 mb-6');
+            v.details.forEach(t => { const li = el('li'); li.innerHTML = '<i class="fas fa-check text-gold-500 mr-2 text-[10px]"></i>'; li.append(t); ul.append(li); });
+            top.append(r, el('h3', 'font-cinzel text-2xl font-bold text-ivory-50 mb-2', v.name), el('p', 'text-xs sm:text-sm text-ivory-200/70 mb-4', v.desc), ul);
+            const a = el('a', 'block w-full py-3 rounded-xl glass text-center font-cinzel text-xs text-gold-300 font-semibold tracking-wider hover:bg-gold-500 hover:text-emerald-950 transition-colors');
+            a.href = v.url || mapUrl(v.query); a.target = '_blank'; a.rel = 'noopener';
+            a.innerHTML = '<i class="fas fa-directions mr-2"></i>'; a.append('GET DIRECTIONS (GOOGLE MAPS)');
+            card.append(top, a);
+            document.getElementById('venue-grid').append(card);
+        });
+
+        // ---------- Countdown (arrival 12:00 PM IST, 20 Jan 2027) ----------
+        const target = new Date('2027-01-20T12:00:00+05:30').getTime();
+        function tick() {
+            const diff = Math.max(0, target - Date.now());
+            const v = { days: Math.floor(diff / 864e5), hours: Math.floor(diff / 36e5) % 24, minutes: Math.floor(diff / 6e4) % 60, seconds: Math.floor(diff / 1e3) % 60 };
+            for (const k in v) document.getElementById(k).textContent = String(v[k]).padStart(2, '0');
+        }
+        tick(); setInterval(tick, 1000);
+
+        // ---------- Scroll reveal ----------
+        const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 }) : null;
+        document.querySelectorAll('.reveal').forEach(n => io ? io.observe(n) : n.classList.add('in'));
+
+        // ---------- Floating gold dust ----------
+        (function () {
+            const c = document.getElementById('dust'), ctx = c.getContext('2d');
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            let w, h, dpr, ps = [];
+            function resize() { dpr = Math.min(devicePixelRatio || 1, 2); w = c.width = innerWidth * dpr; h = c.height = innerHeight * dpr; }
+            resize(); addEventListener('resize', resize);
+            const N = innerWidth < 640 ? 35 : 70;
+            for (let i = 0; i < N; i++) ps.push({ x: Math.random(), y: Math.random(), r: Math.random() * 1.8 + .5, s: Math.random() * .00012 + .00004, p: Math.random() * 6.28 });
+            (function frame(t) {
+                ctx.clearRect(0, 0, w, h);
+                for (const p of ps) {
+                    p.y -= p.s * 16; if (p.y < -.02) { p.y = 1.02; p.x = Math.random(); }
+                    const a = .25 + .5 * Math.abs(Math.sin(t / 900 + p.p));
+                    ctx.beginPath(); ctx.arc((p.x + Math.sin(t / 3000 + p.p) * .01) * w, p.y * h, p.r * dpr, 0, 6.283);
+                    ctx.fillStyle = 'rgba(255,240,184,' + a + ')'; ctx.shadowColor = '#f5b82e'; ctx.shadowBlur = 8 * dpr; ctx.fill();
+                }
+                requestAnimationFrame(frame);
+            })(0);
+        })();
+
+        // ---------- Rose petal shower (envelope opening and RSVP confirmation) ----------
+        function petals(ms) {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const cv = el('canvas', 'petal-cv'), ctx = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1);
+            cv.setAttribute('aria-hidden', 'true'); document.body.append(cv);
+            const W = innerWidth, H = innerHeight; cv.width = W * dpr; cv.height = H * dpr;
+            const cols = ['#ff4f93', '#ff8fb8', '#e0457b', '#ffcf4d', '#fff0f5', '#f39c12'];
+            const P = Array.from({ length: Math.min(90, Math.round(W / 6)) }, () => ({ x: Math.random() * W, y: -20 - Math.random() * H * .7,
+                s: 5 + Math.random() * 7, vy: 1.3 + Math.random() * 1.8, sw: Math.random() * 6.3, rot: Math.random() * 6.3, vr: (Math.random() - .5) * .08, c: cols[Math.random() * cols.length | 0] }));
+            const t0 = performance.now();
+            (function frame(t) {
+                const age = t - t0, fade = age > ms ? Math.max(0, 1 - (age - ms) / 1200) : 1;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.globalAlpha = fade;
+                P.forEach(p => {
+                    p.y += p.vy; p.sw += .03; p.x += Math.sin(p.sw) * .8; p.rot += p.vr;
+                    if (p.y > H + 20 && age < ms) p.y = -20;
+                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c;
+                    ctx.beginPath(); ctx.ellipse(0, 0, p.s * .55, p.s, 0, 0, 6.283); ctx.fill(); ctx.restore();
+                });
+                if (fade > 0) requestAnimationFrame(frame); else cv.remove();
+            })(t0);
+        }
+
+        // ---------- RSVP + entry pass ----------
+        const modal = document.getElementById('rsvp-modal'), form = document.getElementById('rsvp-form');
+        const PASS_KEY = 'nd27-pass';
+        const PASS_EVENTS = [
+            { day: 'WED 20 JAN', name: 'Haldi, Shukrana & DJ Night' },
+            { day: 'THU 21 JAN', name: 'Nikah & Julwa (morning)' },
+            { day: 'THU 21 JAN', name: 'Reception (evening)' }
+        ];
+        // Calendar entries for each RSVP choice (times in UTC; IST is UTC+5:30)
+        const CAL_EVENTS = [
+            { title: 'Nadeem & Dariya: Day 1 (Haldi, Shukrana & DJ Night)', start: '20270120T063000Z', end: '20270120T173000Z', note: 'Arrival from 12:00 PM. Haldi & Mehendi 4:45 PM, Shukrana 6:45 PM, DJ Night 8:00 PM.' },
+            { title: 'Nadeem & Dariya: Nikah', start: '20270121T043000Z', end: '20270121T090000Z', note: 'Please be seated by 9:50 AM. Nikah at 10:00 AM, lunch at 1:00 PM.' },
+            { title: 'Nadeem & Dariya: Reception / Walima', start: '20270121T130000Z', end: '20270121T160000Z', note: 'Please arrive by 6:15 PM. Couple enters at 7:15 PM, dinner from 8:00 PM.' }
+        ];
+        const CAL_PLACE = 'Greenwood Resort, Kanakapura Road, Bengaluru';
+        function googleCal(e) {
+            return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(e.title) + '&dates=' + e.start + '/' + e.end +
+                '&details=' + encodeURIComponent(e.note + ' Bring your entry pass. Map: https://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9') + '&location=' + encodeURIComponent(CAL_PLACE);
+        }
+        function icsCal(idx) {
+            const esc = t => t.replace(/[\\,;]/g, m => '\\' + m), stamp = new Date().toISOString().replace(/[-:]|\.\d+/g, '');
+            const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Nadeem & Dariya//Wedding//EN', 'CALSCALE:GREGORIAN'];
+            idx.forEach(i => { const e = CAL_EVENTS[i]; lines.push('BEGIN:VEVENT', 'UID:ndw27-' + (i + 1) + '@nadeem-dariya', 'DTSTAMP:' + stamp, 'DTSTART:' + e.start, 'DTEND:' + e.end,
+                'SUMMARY:' + esc(e.title), 'LOCATION:' + esc(CAL_PLACE), 'DESCRIPTION:' + esc(e.note + ' Bring your entry pass.'), 'END:VEVENT'); });
+            lines.push('END:VCALENDAR');
+            const a = el('a'); a.href = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar' })); a.download = 'Nadeem-Dariya-Wedding.ics';
+            document.body.append(a); a.click(); a.remove();
+        }
+        function renderCal(p) {
+            const box = document.getElementById('cal-links'), idx = p.idx.filter(i => CAL_EVENTS[i]);
+            box.replaceChildren(el('p', 'font-cinzel text-gold-400 tracking-widest text-center', 'ADD TO YOUR CALENDAR'));
+            idx.forEach(i => {
+                const row = el('div', 'flex flex-wrap items-center justify-between gap-2'), g = el('a', 'underline text-gold-300', 'Google');
+                g.href = googleCal(CAL_EVENTS[i]); g.target = '_blank'; g.rel = 'noopener';
+                row.append(el('span', '', CAL_EVENTS[i].title.replace('Nadeem & Dariya: ', '')), g);
+                box.append(row);
+            });
+            const all = el('button', 'w-full mt-1 glass rounded-full py-1.5 text-gold-300 font-cinzel tracking-widest', 'APPLE / OUTLOOK (.ICS)');
+            all.type = 'button'; all.onclick = () => icsCal(idx);
+            box.append(all);
+        }
+        const loadPass = () => { try { return JSON.parse(localStorage.getItem(PASS_KEY)); } catch (e) { return null; } };
+        const storePass = p => { try { localStorage.setItem(PASS_KEY, JSON.stringify(p)); } catch (e) {} };
+        function updateCtas() { const has = !!loadPass(); document.querySelectorAll('.rsvp-cta').forEach(b => b.textContent = has ? 'MY ENTRY PASS' : 'RSVP NOW'); }
+
+        function showForm() { form.classList.remove('hidden'); document.getElementById('rsvp-success').classList.add('hidden'); }
+        function showPass(p, justSent) {
+            form.classList.add('hidden');
+            document.getElementById('rsvp-success').classList.remove('hidden');
+            document.getElementById('pass-email-note').classList.toggle('hidden', !justSent);
+            drawPass(document.getElementById('pass-cv'), p);
+            renderCal(p);
+            if (justSent) petals(3000);
+        }
+        function openRsvp() {
+            const p = loadPass();
+            if (p) showPass(p, false); else showForm();
+            modal.classList.remove('opacity-0', 'pointer-events-none'); document.body.style.overflow = 'hidden';
+            if (!p) form.querySelector('input').focus();
+        }
+        function closeRsvp() {
+            modal.classList.add('opacity-0', 'pointer-events-none'); document.body.style.overflow = '';
+            document.getElementById('rsvp-error').textContent = '';
+        }
+        addEventListener('keydown', e => { if (e.key === 'Escape') closeRsvp(); });
+        modal.addEventListener('click', e => { if (e.target === modal) closeRsvp(); });
+        // Family members on one RSVP (up to 14 besides the person replying)
+        const MAX_MEMBERS = 14, membersEl = document.getElementById('members');
+        function memberRows() { return [...membersEl.children]; }
+        function updateParty() {
+            const n = memberRows().length;
+            document.getElementById('party-total').textContent = 'Total guests: ' + (n + 1);
+            document.getElementById('add-member').classList.toggle('hidden', n >= MAX_MEMBERS);
+            memberRows().forEach((row, i) => row.querySelector('.m-num').textContent = (i + 2) + '.');
+        }
+        function addMember() {
+            if (memberRows().length >= MAX_MEMBERS) return;
+            const row = el('div', 'flex items-start gap-2');
+            const name = el('input', 'gold-input m-name'); name.type = 'text'; name.required = true; name.maxLength = 100; name.placeholder = 'Full name'; name.setAttribute('aria-label', 'Family member name');
+            const phone = el('input', 'gold-input m-phone'); phone.type = 'tel'; phone.inputMode = 'tel'; phone.maxLength = 30; phone.pattern = '[0-9+\\s\\(\\)\\-]{7,}'; phone.placeholder = 'Phone (optional)'; phone.setAttribute('aria-label', 'Family member phone');
+            const fields = el('div', 'flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2'); fields.append(name, phone);
+            const rm = el('button', 'glass w-9 h-9 shrink-0 rounded-full text-gold-300 hover:text-red-300', '×'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove this person');
+            rm.onclick = () => { row.remove(); updateParty(); };
+            row.append(el('span', 'm-num font-cinzel text-xs text-gold-400 w-5 pt-3 shrink-0'), fields, rm);
+            membersEl.append(row); updateParty(); name.focus();
+        }
+        // Vendors and service teams RSVP too, so every crew member is on the door list
+        const isVendor = () => form.side.value === 'Vendor';
+        function toggleVendor() {
+            const v = isVendor();
+            document.getElementById('vendor-fields').classList.toggle('hidden', !v);
+            form.company.required = v;
+            document.getElementById('rooms-note').classList.toggle('hidden', v);
+            document.getElementById('members-title').textContent = v ? 'CREW MEMBERS COMING WITH YOU' : 'FAMILY MEMBERS COMING WITH YOU';
+            document.getElementById('member-word').textContent = v ? 'CREW MEMBER' : 'FAMILY MEMBER';
+            document.getElementById('members-help').textContent = v
+                ? 'Add everyone in your team who will be on site, with a phone number, so they can be let in at the entrance.'
+                : 'Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.';
+        }
+        function readMembers() {
+            return memberRows().map(row => ({ name: row.querySelector('.m-name').value.trim(), phone: row.querySelector('.m-phone').value.trim() })).filter(m => m.name);
+        }
+
+        function newCode() {
+            const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = new Uint8Array(6);
+            (window.crypto || window.msCrypto).getRandomValues(r);
+            return Array.from(r, v => abc[v % abc.length]).join('');
+        }
+
+        function submitRsvp(e) {
+            e.preventDefault();
+            const f = e.target, err = document.getElementById('rsvp-error');
+            const boxes = [...f.querySelectorAll('input[name=event]')];
+            const idx = boxes.map((c, i) => c.checked ? i : -1).filter(i => i >= 0);
+            if (!idx.length) { err.textContent = 'Please select at least one event you will attend.'; return; }
+            err.textContent = '';
+            const members = readMembers();
+            const vendor = isVendor(), company = vendor ? f.company.value.trim() : '';
+            const side = vendor ? 'Vendor · ' + f.vtype.value : f.side.value;
+            const noteText = (company ? 'Company: ' + company + (f.note.value.trim() ? ' | ' : '') : '') + f.note.value.trim();
+            const pass = { code: newCode(), name: f.name.value.trim(), guests: members.length + 1, idx, side, company };
+            storePass(pass);
+            const body = ['Name: ' + pass.name, 'Phone: ' + f.phone.value.trim(), 'Guest of: ' + pass.side,
+                'Events: ' + idx.map(i => PASS_EVENTS[i].day + ' ' + PASS_EVENTS[i].name).join('; '), 'Guests: ' + pass.guests,
+                'Family members: ' + (members.length ? members.map(m => m.name + (m.phone ? ' (' + m.phone + ')' : '')).join('; ') : 'none'),
+                'Entry pass code: ' + pass.code, 'Note: ' + noteText].join('\n');
+            showPass(pass, true);
+            updateCtas();
+            const emailRsvp = () => {
+            location.href = 'mailto:' + RSVP_EMAIL + '?subject=' + encodeURIComponent('RSVP - Nadeem & Dariya Wedding - ' + pass.code) + '&body=' + encodeURIComponent(body);
+            };
+            if (!SUPABASE_URL) return emailRsvp();
+            const note = document.getElementById('pass-email-note');
+            note.textContent = 'Sending your RSVP...';
+            fetch(SUPABASE_URL + '/rest/v1/rpc/submit_rsvp', {
+                method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ p_code: pass.code, p_name: pass.name, p_phone: f.phone.value.trim(), p_side: pass.side,
+                    p_events: pass.idx.map(i => i + 1), p_guests: pass.guests, p_note: noteText, p_members: members }) })
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .then(j => { if (!j || !j.ok) throw new Error('rejected'); note.textContent = 'Your RSVP has been received. Please save your entry pass below.'; })
+                .catch(() => { note.textContent = 'We could not reach the server, so your email app is opening instead. Please press Send.'; emailRsvp(); });
+        }
+
+        // Entry pass drawn on a canvas so it can be saved as an image and shown at the entrance
+        function drawPass(cv, p) {
+            const fonts = ['600 24px Cinzel', '64px "Great Vibes"', '28px "Plus Jakarta Sans"'];
+            Promise.all(fonts.map(f => document.fonts ? document.fonts.load(f).catch(() => {}) : 0)).then(() => paint(cv, p));
+        }
+        // The N&D crest, drawn to match the page's SVG crest
+        function crest(c, x, y, r, gold) {
+            c.save(); c.translate(x, y); c.fillStyle = gold;
+            c.beginPath(); c.arc(0, 0, r * .83, 0, 6.283); c.fill();
+            for (let i = 0; i < 28; i++) { const a = i * 6.283 / 28; c.beginPath(); c.arc(Math.cos(a) * r * .83, Math.sin(a) * r * .83, r * .115, 0, 6.283); c.fill(); }
+            c.beginPath(); c.arc(0, 0, r * .69, 0, 6.283); c.fillStyle = '#0b7d86'; c.fill(); c.strokeStyle = '#fff3c4'; c.lineWidth = 1.2; c.stroke();
+            c.font = Math.round(r * .55) + 'px "Great Vibes", cursive'; c.fillStyle = '#fff0b8'; c.textAlign = 'center'; c.textBaseline = 'middle';
+            c.fillText('N&D', 0, r * .06); c.restore();
+        }
+        function paint(cv, p) {
+            const W = 640, H = 1020; cv.width = W; cv.height = H;
+            const c = cv.getContext('2d'), gold = c.createLinearGradient(0, 0, W, 0);
+            gold.addColorStop(0, '#fff0b8'); gold.addColorStop(.5, '#f5b82e'); gold.addColorStop(1, '#d99a12');
+            const bg = c.createRadialGradient(W / 2, 200, 40, W / 2, 400, 800); bg.addColorStop(0, '#16b0aa'); bg.addColorStop(1, '#0a6f7a');
+            c.fillStyle = bg; c.fillRect(0, 0, W, H);
+            c.strokeStyle = gold; c.lineWidth = 3; c.strokeRect(20, 20, W - 40, H - 40);
+            c.lineWidth = 1; c.strokeRect(32, 32, W - 64, H - 64);
+            crest(c, W / 2, 34, 30, gold);
+            const text = (t, y, font, fill, spacing) => {
+                c.font = font; c.fillStyle = fill; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+                if ('letterSpacing' in c) c.letterSpacing = (spacing || 0) + 'px';
+                c.fillText(t, W / 2 + (spacing || 0) / 2, y);
+                if ('letterSpacing' in c) c.letterSpacing = '0px';
+            };
+            const fit = (t, y, size, font, fill, max) => { let s = size; do { c.font = s + 'px ' + font; s -= 2; } while (c.measureText(t).width > max && s > 14); text(t, y, (s + 2) + 'px ' + font, fill); };
+            text('ENTRY PASS', 92, '600 22px Cinzel, serif', gold, 8);
+            text('Nadeem & Dariya', 168, '66px "Great Vibes", cursive', gold);
+            text('JANUARY 20 · 21, 2027', 214, '600 17px Cinzel, serif', '#fff0b8', 3);
+            text('GREENWOOD RESORT · BENGALURU', 242, '500 13px Cinzel, serif', '#fff0b8', 4);
+            c.fillStyle = gold; c.fillRect(W / 2 - 60, 266, 120, 2);
+            text('ADMIT', 312, '500 13px "Plus Jakarta Sans", sans-serif', '#ffd36b', 6);
+            fit(p.name, 362, 38, '"Plus Jakarta Sans", sans-serif', '#fffdfa', W - 120);
+            if (/^Vendor/.test(p.side || '')) fit([p.company, p.side.replace('Vendor · ', ''), p.guests > 1 ? 'Crew of ' + p.guests : ''].filter(Boolean).join('  ·  '), 396, 18, '"Plus Jakarta Sans", sans-serif', '#fff0b8', W - 120);
+            else text(p.guests > 1 ? 'Party of ' + p.guests : 'Single entry', 396, '500 18px "Plus Jakarta Sans", sans-serif', '#fff0b8');
+            p.idx.forEach((i, n) => {
+                const y = 448 + n * 34, ev = PASS_EVENTS[i] || { day: '', name: '' };
+                text(ev.day + '  ·  ' + ev.name, y, '400 15px "Plus Jakarta Sans", sans-serif', '#faf9f6');
+            });
+            // QR code on a light tile so scanners can read it
+            const qy = 570, qs = 280, qx = (W - qs) / 2;
+            c.fillStyle = '#faf9f6'; c.beginPath(); c.roundRect ? c.roundRect(qx - 18, qy - 18, qs + 36, qs + 36, 14) : c.rect(qx - 18, qy - 18, qs + 36, qs + 36); c.fill();
+            try {
+                const qr = qrcode(0, 'M'); qr.addData('NDW27-' + p.code + '-G' + p.guests + '-E' + p.idx.map(i => i + 1).join('')); qr.make();
+                const n = qr.getModuleCount(), m = Math.floor(qs / n), off = (qs - m * n) / 2;
+                c.fillStyle = '#064e57';
+                for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(qx + off + k * m, qy + off + r * m, m, m);
+            } catch (err) { text('QR unavailable', qy + qs / 2, '16px sans-serif', '#064e57'); }
+            text('PASS CODE', 906, '500 12px "Plus Jakarta Sans", sans-serif', '#ffd36b', 6);
+            text(p.code, 950, '600 36px Cinzel, serif', gold, 8);
+            text('Please show this pass at the entrance', 992, 'italic 15px "Plus Jakarta Sans", sans-serif', '#fff0b8');
+        }
+        function savePass() {
+            const cv = document.getElementById('pass-cv');
+            cv.toBlob(b => {
+                if (!b) return;
+                const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'Nadeem-Dariya-entry-pass.png';
+                document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+            }, 'image/png');
+        }
+        updateCtas();
+
+        // ---------- Envelope intro with scratch-to-reveal date ----------
+        (function () {
+            const intro = document.getElementById('intro'), env = document.getElementById('env');
+            const cv = document.getElementById('scratch-cv'), enter = document.getElementById('enter-btn');
+            let seen = false; try { seen = !!sessionStorage.getItem('nd27-intro'); } catch (e) {}
+            if (seen) { intro.remove(); return; }
+            document.body.style.overflow = 'hidden';
+
+            let revealed = false, stage2 = false;
+            function finish() {
+                try { sessionStorage.setItem('nd27-intro', '1'); } catch (e) {}
+                document.body.style.overflow = '';
+                intro.style.opacity = '0'; intro.style.pointerEvents = 'none';
+                setTimeout(() => intro.remove(), 800);
+                const a = document.getElementById('bg-music');
+                if (a && !playing) a.play().then(() => { playing = true; document.getElementById('music-icon').className = 'fas fa-pause'; }).catch(() => {});
+            }
+            function reveal() {
+                if (revealed) return; revealed = true;
+                cv.classList.add('gone');
+                document.getElementById('reveal-link').classList.add('hidden');
+                document.getElementById('scratch-hint').textContent = 'YOU ARE INVITED';
+                enter.classList.remove('hidden');
+            }
+            const dpr = Math.min(window.devicePixelRatio || 1, 2); let ctx, W, H;
+            function foil() {
+                const r = cv.getBoundingClientRect(); W = cv.width = Math.max(1, r.width * dpr); H = cv.height = Math.max(1, r.height * dpr);
+                ctx = cv.getContext('2d');
+                const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#fff0b8'); g.addColorStop(.5, '#f5b82e'); g.addColorStop(1, '#d99a12');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                ctx.strokeStyle = 'rgba(168,115,0,.35)'; ctx.lineWidth = 1 * dpr;
+                for (let x = -H; x < W; x += 14 * dpr) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
+                ctx.fillStyle = '#3a2a06'; ctx.font = '600 ' + 13 * dpr + 'px Cinzel, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('SCRATCH HERE', W / 2, H / 2);
+            }
+            function cleared() {
+                const d = ctx.getImageData(0, 0, W, H).data; let n = 0, t = 0;
+                for (let i = 3; i < d.length; i += 4 * 37) { t++; if (d[i] < 128) n++; }
+                return n / t;
+            }
+            let down = false, lx, ly, lastCheck = 0;
+            const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * dpr, (e.clientY - r.top) * dpr]; };
+            cv.addEventListener('pointerdown', e => { down = true; cv.setPointerCapture(e.pointerId); [lx, ly] = pos(e); scratch(lx, ly, lx, ly); });
+            cv.addEventListener('pointermove', e => { if (!down) return; const [x, y] = pos(e); scratch(lx, ly, x, y); lx = x; ly = y; });
+            const up = () => { if (!down) return; down = false; if (cleared() > .45) reveal(); };
+            cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+            function scratch(x0, y0, x1, y1) {
+                ctx.globalCompositeOperation = 'destination-out'; ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = 34 * dpr;
+                ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+                const now = Date.now(); if (now - lastCheck > 350) { lastCheck = now; if (cleared() > .45) reveal(); }
+            }
+
+            function openEnvelope() {
+                if (stage2 || env.classList.contains('open')) return;
+                env.classList.add('open');
+                petals(3500);
+                setTimeout(() => { stage2 = true; intro.classList.add('stage2'); requestAnimationFrame(foil); }, 2200);
+            }
+            document.getElementById('seal').addEventListener('click', openEnvelope);
+            document.getElementById('reveal-link').addEventListener('click', reveal);
+            enter.addEventListener('click', finish);
+            document.getElementById('skip-intro').addEventListener('click', finish);
+        })();
+
+        // ---------- Audio ----------
+        let playing = false;
+        function toggleAudio() {
+            const a = document.getElementById('bg-music'), i = document.getElementById('music-icon');
+            if (playing) { a.pause(); playing = false; i.className = 'fas fa-music'; }
+            else a.play().then(() => { playing = true; i.className = 'fas fa-pause'; }).catch(() => {});
+        }
+    </script>
+</body>
+</html>
