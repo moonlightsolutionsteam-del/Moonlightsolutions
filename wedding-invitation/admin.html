@@ -44,6 +44,8 @@
   .chip { display:inline-block; padding:1px 8px; border-radius:999px; border:1px solid var(--line); font-size:11px; margin-right:4px; color:var(--gold2); }
   .code { font-family:ui-monospace,monospace; letter-spacing:.1em; color:var(--gold2); }
   .muted { color:var(--mute); }
+  .mini { background:none; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--gold2); cursor:pointer; line-height:1.6; }
+  .mini:hover { border-color:var(--gold); }
   .empty { padding:36px 16px; text-align:center; color:var(--mute); }
   .panel { background:var(--panel); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 0 40px rgba(245,184,46,.12); border:1px solid var(--line); border-radius:14px; padding:16px; }
   #login { max-width:380px; margin:12vh auto; text-align:center; }
@@ -100,7 +102,7 @@
         <select id="fDay" aria-label="Filter by day"><option value="">All days</option><option value="1">Day 1 · Wed 20 Jan</option><option value="2">Nikah · Thu 21 Jan AM</option><option value="3">Reception · Thu 21 Jan PM</option></select>
         <select id="fSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option><option value="Vendor">Vendors</option></select>
         <select id="fIn" aria-label="Filter by check-in"><option value="">All guests</option><option value="in">Checked in</option><option value="out">Not yet in</option></select>
-        <label class="muted"><input type="checkbox" id="fRemoved"> Show removed</label>
+        <label class="muted"><input type="checkbox" id="fRemoved"> Show removed entries <span id="rmCount"></span></label>
       </div>
       <div class="scroll"><table>
         <thead><tr><th>Name</th><th>Phone</th><th>Side</th><th>Days</th><th>Guests</th><th>Table</th><th>Meal</th><th>Accommodation</th><th>Note</th><th>Code</th><th>Check-in</th><th></th></tr></thead>
@@ -243,14 +245,31 @@ function render() {
     const ci = el('button', { className: 'btn sm' + (g.checked_in ? '' : ' ghost'), textContent: g.checked_in ? 'In ✓' : 'Check in' });
     ci.onclick = async () => { try { await rpc('admin_checkin', { p_code: g.pass_code, p_undo: g.checked_in }); await load(); } catch (e) {} };
     const rm = el('button', { className: 'btn ghost sm', textContent: g.removed ? 'Restore' : 'Remove' });
-    rm.onclick = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { removed: !g.removed } }); await load(); } catch (e) {} };
-    const nameTd = el('td', {}, el('div', { textContent: g.name, style: 'font-weight:600' }));
+    rm.onclick = async () => {
+      try {
+        await rpc('admin_update', { p_id: g.id, p_fields: { removed: !g.removed } }); await load();
+        if (!g.removed) {  // just removed: offer an undo right away
+          const undo = el('button', { className: 'mini', textContent: 'Undo' });
+          undo.onclick = async () => { await rpc('admin_update', { p_id: g.id, p_fields: { removed: false } }); await load(); };
+          $('count').replaceChildren('Removed ' + g.name + '. ', undo, ' (Restore any time with "Show removed entries".)');
+        }
+      } catch (e) {}
+    };
+    const nameTd = el('td', { style: 'min-width:240px' }, el('div', { textContent: g.name, style: 'font-weight:600' }));
     const missing = g.guests - 1 - (g.members || []).length;
     if (missing > 0) nameTd.append(el('div', { style: 'font-size:12px;margin-top:2px;color:var(--warn)', textContent: missing + (missing > 1 ? ' names' : ' name') + ' not given yet' }));
     (g.members || []).forEach(m => {
       const mw = (m.phone || '').replace(/[^\d]/g, ''), line = el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px' }, '+ ' + m.name);
       if (mw) line.append(' · ', el('a', { href: 'https://wa.me/' + mw, target: '_blank', rel: 'noopener', textContent: m.phone, style: 'color:var(--gold2)' }));
-      nameTd.append(line);
+      const x = el('button', { className: 'mini', textContent: 'Remove', title: 'Take ' + m.name + ' off the guest list' });
+      x.onclick = () => moveMember(g, m, false, x);
+      line.append(' ', x); nameTd.append(line);
+    });
+    (g.removed_members || []).forEach(m => {
+      const line = el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px;opacity:.75' }, el('s', { textContent: m.name }), ' · removed ');
+      const r = el('button', { className: 'mini', textContent: 'Restore', title: 'Put ' + m.name + ' back on the guest list' });
+      r.onclick = () => moveMember(g, m, true, r);
+      line.append(r); nameTd.append(line);
     });
     const ed = el('button', { className: 'btn ghost sm', textContent: (g.members || []).length ? 'Edit names' : '+ Add names', style: 'margin-top:6px' });
     ed.onclick = () => editNames(g, nameTd, ed);
@@ -262,6 +281,7 @@ function render() {
     return tr;
   }));
   $('count').textContent = 'Showing ' + list.length + ' of ' + guests.length + ' records';
+  const nRm = guests.filter(g => g.removed).length; $('rmCount').textContent = nRm ? '(' + nRm + ')' : '';
 }
 ['q', 'fDay', 'fSide', 'fIn', 'fRemoved'].forEach(id => $(id).addEventListener('input', render));
 
@@ -296,9 +316,22 @@ function editNames(g, td, btn) {
     const members = parseNames(ta.value);
     if (members.length > 14) { note.style.color = 'var(--bad)'; note.textContent = 'Up to 14 family members per entry.'; return; }
     save.disabled = true;
-    try { await rpc('admin_set_members', { p_id: g.id, p_members: members }); await load(); }
+    const kept = new Set(members.map(m => m.name.toLowerCase()));
+    const removed = (g.removed_members || []).concat((g.members || []).filter(m => !kept.has(m.name.toLowerCase()))).filter(m => !kept.has(m.name.toLowerCase()));
+    try { await saveMembers(g, members, removed); await load(); }
     catch (e) { save.disabled = false; note.style.color = 'var(--bad)'; note.textContent = 'Could not save. Try again.'; }
   };
+}
+function saveMembers(g, members, removed) {
+  return rpc('admin_save_members', { p_id: g.id, p_members: members, p_removed: removed.slice(-50) });
+}
+// Remove one family member (kept in a removed list) or restore them
+async function moveMember(g, m, restore, btn) {
+  const act = (g.members || []).slice(), gone = (g.removed_members || []).slice();
+  if (restore) { if (act.length >= 14) { btn.textContent = 'List full (14)'; return; } gone.splice(gone.indexOf(m), 1); act.push(m); }
+  else { act.splice(act.indexOf(m), 1); gone.push(m); }
+  btn.disabled = true;
+  try { await saveMembers(g, act, gone); await load(); } catch (e) { btn.disabled = false; btn.textContent = 'Try again'; }
 }
 // Everyone attending, one row per person: the person who replied, then their family members
 function people() {
@@ -361,7 +394,7 @@ $('addForm').addEventListener('submit', async e => {
     const members = parseNames($('aMembers').value);
     if (members.length > 14) { msg.style.color = 'var(--bad)'; msg.textContent = 'Up to 14 family members per entry.'; return; }
     const g = await rpc('admin_add', { p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: 1 + members.length, p_note: $('aNote').value });
-    if (members.length) await rpc('admin_set_members', { p_id: g.id, p_members: members });
+    if (members.length) await saveMembers(g, members, []);
     const veg = Math.min(+$('aVeg').value || 0, 1 + members.length);
     if (veg) await rpc('admin_update', { p_id: g.id, p_fields: { veg } });
     msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + (members.length ? ' and ' + members.length + ' family member' + (members.length > 1 ? 's' : '') : '') + '. Pass code ' + g.pass_code + '.'; e.target.reset(); await load();
