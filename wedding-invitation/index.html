@@ -238,6 +238,18 @@
         @keyframes ctaBreathe { 0%,100% { box-shadow:0 0 18px rgba(255,79,147,.3); } 50% { box-shadow:0 0 30px rgba(255,79,147,.65), 0 0 0 4px rgba(255,79,147,.12); } }
         /* Itinerary day buttons */
         #tabs button[aria-selected="true"] { animation:choicePop .4s var(--spring); }
+        /* ---------- prayer times in the itinerary ---------- */
+        .salah { margin:-.5rem 0 1.5rem; padding:.9rem 1rem; border-radius:1rem; background:linear-gradient(135deg,rgba(255,244,220,.10),rgba(245,184,46,.05)); border:1px solid rgba(255,240,184,.3); }
+        .salah-ttl { font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:#fff0b8; margin-bottom:.6rem; }
+        .salah-chips { display:flex; flex-wrap:wrap; gap:.45rem; }
+        .salah-chip { display:inline-flex; flex-direction:column; align-items:center; min-width:4.6rem; padding:.4rem .7rem; border-radius:.75rem; background:rgba(255,255,255,.08); border:1px solid rgba(245,184,46,.25); }
+        .salah-chip b { font-family:'Cinzel',serif; font-size:.72rem; color:#ffd36b; letter-spacing:.06em; }
+        .salah-chip span { font-size:.72rem; color:rgba(255,253,250,.9); white-space:nowrap; }
+        .salah-note { font-size:.68rem; color:rgba(255,253,250,.6); margin-top:.55rem; }
+        .pray-row { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:.25rem .6rem; padding:.45rem .9rem; border-radius:999px; background:rgba(255,244,220,.07); border:1px dashed rgba(255,240,184,.35); font-size:.78rem; }
+        .pray-row b { font-family:'Cinzel',serif; color:#fff0b8; letter-spacing:.06em; }
+        .pray-t { color:rgba(255,253,250,.85); } .pray-p { color:rgba(255,253,250,.55); font-size:.7rem; }
+        .pray-dot { position:absolute; left:-2.72rem; top:50%; transform:translateY(-50%); width:1.6rem; height:1.6rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.65rem; color:#fff0b8; background:#086670; border:1px solid rgba(255,240,184,.5); box-shadow:0 0 10px rgba(255,240,184,.35); }
         /* ---------- lighter reading: tap-to-open details ---------- */
         .ev-desc { display:none; }
         .open > .ev-desc { display:block; animation:uxUp .35s var(--ease); }
@@ -492,7 +504,7 @@
                     </div>
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-mosque text-gold-400 mt-1 w-5 text-center"></i>
-                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Prayer times</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">A prayer space with mats and a wudu area is open throughout both days, and the programme pauses for each prayer. Approximate times: Zuhr 12:40 PM, Asr 4:00 or 4:40 PM, Maghrib 6:25 PM and Isha 7:40 PM. Exact times will be shared a week before.</p></div>
+                        <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Prayer times</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">A prayer space with mats and a wudu area is open throughout both days, and the programme pauses for each prayer. Approximate times are marked in the itinerary for each day (Fajr 5:25 AM, Zuhr 12:40 PM, Asr 4:00 or 4:40 PM, Maghrib 6:25 PM, Isha 7:40 PM). Exact times will be shared a week before.</p></div>
                     </div>
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-bed text-gold-400 mt-1 w-5 text-center"></i>
@@ -685,7 +697,7 @@
         const mapUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
 
         const DAYS = [
-            { id:'day1', tab:'DAY 1 • JAN 20', date:'Wednesday, January 20th, 2027', title:'Arrival & Pre-Wedding Celebrations', venue:'Greenwood Resort',
+            { id:'day1', tab:'DAY 1 • JAN 20', date:'Wednesday, January 20th, 2027', prayers:[['Zuhr','12:40 PM'],['Asr','4:00 PM','Shafi\'i 4:00 · Hanafi 4:40 PM'],['Maghrib','6:25 PM'],['Isha','7:40 PM']], title:'Arrival & Pre-Wedding Celebrations', venue:'Greenwood Resort',
               events:[
                 { icon:'fa-dice', name:'Arrival, Welcome Drinks & Games', time:'12:00 PM', place:'Lawn', dress:'Comfortable casual', desc:'Nimbu pani and rose sharbat as both families arrive. Pick up a Find Your Match card, add your photo to the Polaroid guest wall, and try the Giant Jenga.' },
                 { icon:'fa-microphone', name:'Welcome Address', time:'12:30 PM', place:'Lawn', desc:'A few words of welcome from Nadeem and introductions between both families.' },
@@ -697,7 +709,7 @@
                 { tone:'ivory', swatch:[['#ffffff','White'],['#f8d7e3','Pastel pink'],['#cfe6f7','Pastel blue'],['#d5f0e0','Mint']], icon:'fa-hands-praying', name:'Shukrana', time:'6:45 PM – 7:30 PM', place:'Covered area', dress:'Modest whites or pastels', desc:'A prayer of gratitude and family duas on floor seating, with sharbat, dates and sweets.' },
                 { tone:'fuchsia', swatch:[['#800020','Maroon'],['#5a1846','Velvet wine'],['#1f2a6b','Royal blue'],['#d4af37','Gold']], icon:'fa-music', name:'DJ Night & Dinner', time:'8:00 PM – 11:00 PM', place:'Covered shed & lawn', dress:'Royal maroon, velvet or festive ethnic', desc:'Fairy lights, family dance entries and dancing to the family\'s playlist. Dinner: Chicken Dum Biryani, Mirchi ka Salan, Burani Raita and Double ka Meetha.' }
               ] },
-            { id:'day2', tab:'DAY 2 • JAN 21', date:'Thursday, January 21st, 2027', title:'Nikah, Julwa & Reception', venue:'Greenwood Resort',
+            { id:'day2', tab:'DAY 2 • JAN 21', date:'Thursday, January 21st, 2027', prayers:[['Fajr','5:25 AM'],['Zuhr','12:40 PM'],['Asr','4:00 PM','Shafi\'i 4:00 · Hanafi 4:40 PM'],['Maghrib','6:25 PM'],['Isha','7:40 PM']], title:'Nikah, Julwa & Reception', venue:'Greenwood Resort',
               events:[
                 { icon:'fa-mug-hot', name:'Breakfast', time:'7:30 AM – 9:00 AM', place:'Covered shed', desc:'Idli, vada, sambar, chutney, tea and coffee for staying guests.' },
                 { tone:'ivory', swatch:[['#fff4dc','Ivory'],['#d4af37','Gold'],['#f8d3c5','Peach'],['#c8e0cf','Sage']], icon:'fa-mosque', name:'Nikah', time:'10:00 AM – 11:30 AM', place:'Lawn', dress:'Traditional festive ethnic / pastel formals', desc:'Please be seated by 9:50 AM; if you are driving in that morning, aim to reach the resort by 9:30 AM. Khutbah, Ijab-o-Qubool, Nikahnama signing and dua, with the bride and groom seated facing each other and the Qazi between them. Please switch phones off for the ceremony; our photographer will capture every moment.' },
@@ -767,10 +779,22 @@
             pill.append(d.venue);
             head.append(left, pill);
             wrap.append(head);
+            if (d.prayers) {
+                const strip = el('div', 'salah');
+                const ttl = el('p', 'salah-ttl'); ttl.innerHTML = '<i class="fas fa-star-and-crescent mr-2"></i>'; ttl.append('Salah times today');
+                const chips = el('div', 'salah-chips');
+                d.prayers.forEach(([n, t, alt]) => { const c = el('span', 'salah-chip'); c.append(el('b', '', n), el('span', '', alt ? '4:00 / 4:40 PM' : t)); if (alt) c.title = alt; chips.append(c); });
+                strip.append(ttl, chips, el('p', 'salah-note', 'Approximate times · prayer space with mats & wudu area open all day'));
+                wrap.append(strip);
+            }
 
             const list = el('div', 'tl relative space-y-5 pl-8 border-l border-gold-500/30 ml-3');
             list.append(el('span', 'tl-fill'));
+            const mins = t => { const m = String(t).match(/(\d+):(\d+)\s*(AM|PM)/); return m ? (+m[1] % 12) * 60 + +m[2] + (m[3] === 'PM' ? 720 : 0) : 0; };
+            const pray = (d.prayers || []).map(([n, t, alt]) => ({ n, t, alt, at: mins(t) }));
+            const addPrayersUntil = at => { while (pray.length && pray[0].at < at) { const p = pray.shift(); const r = el('div', 'pray-row reveal from-l'); r.innerHTML = '<span class="pray-dot"><i class="fas fa-mosque"></i></span>'; r.append(el('b', '', p.n), el('span', 'pray-t', p.alt ? '≈ 4:00 PM (Shafi\'i) · 4:40 PM (Hanafi)' : '≈ ' + p.t), el('span', 'pray-p', 'Prayer space')); list.append(r); } };
             d.events.forEach(ev => {
+                addPrayersUntil(mins(ev.time));
                 const item = el('div', 'relative glass rounded-xl p-5 glow-hover reveal from-l');
                 const dot = el('span', 'tl-dot absolute -left-[3.05rem] top-5 w-9 h-9 rounded-full bg-emerald-950 border border-gold-500/50 flex items-center justify-center text-gold-400 text-sm');
                 dot.innerHTML = '<i class="fas ' + ev.icon + '"></i>';
@@ -793,6 +817,7 @@
                 }
                 list.append(item);
             });
+            addPrayersUntil(24 * 60);
             wrap.append(list);
             // At the end of a day, jump straight to the next (or previous) day without scrolling back up
             const at = DAYS.indexOf(d), next = DAYS[at + 1], prev = DAYS[at - 1];
