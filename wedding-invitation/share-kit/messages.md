@@ -1,6 +1,6 @@
 # Invitation messages: Nadeem & Dariya
 
-Copy, paste and send. Replace **[INVITATION LINK]** with the website address once it is live, and **[CONTACT]** with the family contact name and number.
+Copy, paste and send. Replace **https://moonlightsolutions-wedding-invitati.vercel.app/** with the website address once it is live, and **[CONTACT]** with the family contact name and number.
 
 Suggested schedule:
 
@@ -46,7 +46,7 @@ https://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9
 🌟 *Thu 21 Jan, 6:30 PM*: Reception / Walima
 
 The full itinerary, menu, dress codes and your entry pass are here:
-👉 [INVITATION LINK]
+👉 https://moonlightsolutions-wedding-invitati.vercel.app/
 
 🎟️ *RSVP is a must.* Please reply on the link by *15 December 2026* and add the names of everyone coming with you. You will get an entry pass with a QR code to show at the entrance.
 
@@ -60,7 +60,7 @@ JazakAllah Khair 🤍
 Assalamu Alaikum 🌙
 You are invited to the wedding of *Nadeem Khan & Dariya*: *20 & 21 January 2027*, Greenwood Resort, Bengaluru.
 Nikah on Thu 21 Jan at 10 AM · Reception at 6:30 PM.
-Please RSVP by *15 December* for your entry pass: [INVITATION LINK]
+Please RSVP by *15 December* for your entry pass: https://moonlightsolutions-wedding-invitati.vercel.app/
 
 ---
 
@@ -71,7 +71,7 @@ Assalamu Alaikum 🌙
 A gentle reminder to RSVP for *Nadeem & Dariya's wedding* by *15 December*, so we can confirm numbers with the resort and caterers.
 
 It takes a minute: open the link, tick the parts you will attend (Day 1, Nikah and/or Reception) and add everyone coming with you.
-👉 [INVITATION LINK]
+👉 https://moonlightsolutions-wedding-invitati.vercel.app/
 
 Already done? JazakAllah Khair, please ignore this message. 🤍
 
@@ -81,7 +81,7 @@ Already done? JazakAllah Khair, please ignore this message. 🤍
 
 Assalamu Alaikum 🌙
 Tomorrow, *15 December*, is the last day to RSVP for Nadeem & Dariya's wedding. Entry is by RSVP pass only, so please don't miss it.
-👉 [INVITATION LINK]
+👉 https://moonlightsolutions-wedding-invitati.vercel.app/
 
 ---
 
@@ -98,7 +98,7 @@ A few things to keep in mind:
 🪪 Staying overnight? Please carry a photo ID for check-in. Rooms are assigned by the family.
 🚗 Please arrange your own travel and carpool where you can. Parking is available at the resort.
 
-Full itinerary: [INVITATION LINK]
+Full itinerary: https://moonlightsolutions-wedding-invitati.vercel.app/
 Questions: [CONTACT]
 
 ---
@@ -125,7 +125,7 @@ For anything on the day: [CONTACT]
 Assalamu Alaikum / Hello,
 
 For Nadeem & Dariya's wedding at Greenwood Resort on 20–21 January 2027, entry is by pass only. Please open the link below, choose *"Vendor / Service Team"*, select your service and add every crew member who will be on site. One pass covers your whole team.
-👉 [INVITATION LINK]
+👉 https://moonlightsolutions-wedding-invitati.vercel.app/
 
 Thank you!
 
