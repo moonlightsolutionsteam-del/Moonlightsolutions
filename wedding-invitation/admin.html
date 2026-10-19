@@ -502,38 +502,33 @@ async function rpc(fn, args) {
 }
 
 // ---------- sign in ----------
-// /family.html opens the family sign-in (pick your name); admin.html is for the super admin only
-const FAMILY = (() => { let f = /family/.test(location.search); try { if (f) sessionStorage.setItem('nd27-mode', 'family'); f = f || sessionStorage.getItem('nd27-mode') === 'family'; } catch (e) {} return f; })();
+// One sign-in screen: tap Groom's family, Bride's family or Super admin, then type the passphrase
 let PICK = null;
 function showLogin(msg) { $('app').hidden = true; $('login').hidden = false; $('loginErr').textContent = msg || ''; setupLogin(); }
+const tileName = u => u.owner ? 'Super admin' : u.name;
 async function setupLogin() {
-  if (!FAMILY) {
-    $('loginTitle').textContent = 'Super admin sign-in';
-    $('loginHint').innerHTML = ''; $('loginHint').append('Family member? ', el('a', { href: 'family.html', textContent: 'Use the family sign-in', style: 'color:var(--gold2)' }), '.');
-    $('key').focus(); return;
-  }
-  $('loginTitle').textContent = 'Family sign-in';
-  $('loginHint').textContent = 'Tap your name, then type your passphrase.';
+  $('loginTitle').textContent = 'Wedding Panel';
+  $('loginHint').textContent = 'Tap who you are, then type your passphrase.';
   try {
     const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/admin_login_names', { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: '{}' });
-    const people = (await r.json()).filter(u => !u.owner);
+    const rank = u => u.owner ? 2 : u.fam[0] === 'G' ? 0 : 1;
+    const people = (await r.json()).sort((a, b) => rank(a) - rank(b));
     if (!people.length) return;
-    $('famPick').replaceChildren(...people.map(u => { const b = el('button', { type: 'button' }, el('b', { textContent: u.name }), el('span', { textContent: u.fam })); b.setAttribute('aria-pressed', PICK && PICK.id === u.id); b.onclick = () => pickWho(u); return b; }));
+    $('famPick').replaceChildren(...people.map(u => { const b = el('button', { type: 'button' }, el('b', { textContent: tileName(u) }), el('span', { textContent: u.owner ? u.name : 'Family login' })); b.dataset.id = u.id; b.onclick = () => pickWho(u); return b; }));
     $('famPick').hidden = false;
-    if (!PICK) { $('loginForm').hidden = true; } else pickWho(PICK);
-  } catch (e) { $('famPick').hidden = true; $('loginForm').hidden = false; }
+    if (PICK) pickWho(PICK); else $('loginForm').hidden = true;
+  } catch (e) { $('famPick').hidden = true; $('loginForm').hidden = false; $('key').focus(); }
 }
 function pickWho(u) {
-  PICK = u; [...$('famPick').children].forEach(b => b.setAttribute('aria-pressed', b.firstChild.textContent === u.name));
-  $('loginForm').hidden = false; $('loginWho').hidden = false; $('loginWho').textContent = 'Passphrase for ' + u.name + ':';
+  PICK = u; [...$('famPick').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.id === u.id));
+  $('loginForm').hidden = false; $('loginWho').hidden = false; $('loginWho').textContent = 'Passphrase for ' + tileName(u) + ':';
   $('loginErr').textContent = ''; $('key').value = ''; $('key').focus();
 }
 function signOut() { KEY = ''; ME = null; try { sessionStorage.removeItem('nd27-admin'); localStorage.removeItem('nd27-cache'); localStorage.removeItem('nd27-me'); } catch (e) {} $('whoDlg').hidden = true; clearInterval(timer); stopCam(); showLogin(); }
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault(); KEY = $('key').value.trim(); $('loginErr').textContent = 'Checking...';
   try { const me = await rpc('admin_whoami'); if (!me) throw new Error('forbidden');
-    if (!FAMILY && !me.owner) { KEY = ''; $('loginErr').textContent = 'This page is for the super admin. Please use the family sign-in link.'; return; }
-    if (FAMILY && PICK && me.id !== PICK.id) { KEY = ''; $('loginErr').textContent = "That passphrase isn't " + PICK.name + "'s. Please try again."; return; }
+    if (PICK && me.id !== PICK.id) { KEY = ''; $('loginErr').textContent = "That passphrase isn't for " + tileName(PICK) + '. Please try again.'; return; }
     setMe(me); guests = await rpc('admin_list'); try { sessionStorage.setItem('nd27-admin', KEY); } catch (e2) {} $('key').value = ''; enter(); }
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
@@ -921,7 +916,7 @@ $('aTpl').onchange();
 
 // ---------- who is signed in (each person has their own passphrase) ----------
 let ME = null; try { ME = JSON.parse(localStorage.getItem('nd27-me') || 'null'); } catch (e) {}
-const meLabel = () => ME ? ME.name + ' (' + ME.fam.replace(' family', '') + ')' : '';
+const meLabel = () => !ME ? '' : ME.owner ? ME.name + ' (Super admin)' : /family/i.test(ME.name) ? ME.name : ME.name + ' (' + ME.fam.replace(' family', '') + ')';
 function showWho() { $('whoBtn').textContent = '👤 ' + (ME ? meLabel() : ''); }
 function setMe(me) {
   ME = me; try { localStorage.setItem('nd27-me', JSON.stringify(me)); } catch (e) {}
@@ -1439,7 +1434,7 @@ const PW_WORDS = ['peacock', 'jasmine', 'lantern', 'mehndi', 'rose', 'marigold',
 const genPass = () => { const r = n => crypto.getRandomValues(new Uint32Array(1))[0] % n; const i = r(12), j = (i + 1 + r(11)) % 12; return PW_WORDS[i] + '-' + PW_WORDS[j] + '-' + (10 + r(90)); };
 async function loadUsers() { try { users = await rpc('admin_users_list'); renderUsers(); } catch (e) { $('uMsg').textContent = 'Only the owner can manage logins.'; } }
 function shareLogin(name, pass) {
-  const t = 'Assalamu alaikum ' + name + ', here is your own login for the Nadeem & Dariya Wedding Panel:\n' + new URL('family.html', location.href).href + '\nTap your name and type this passphrase: ' + pass + '\nAfter you sign in, tap your name at the top and set a passphrase only you know. Please don\'t share it.';
+  const t = 'Assalamu alaikum, here is the ' + name + ' login for the Nadeem & Dariya Wedding Panel:\n' + new URL('admin.html', location.href).href + '\nTap "' + name + '" and type this passphrase: ' + pass + '\nPlease keep it within the family. Anything you add is sent to Nadeem for approval.';
   $('uShareText').textContent = t; $('uShare').hidden = false;
   $('uShareWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
   $('uShareCopy').onclick = async () => { try { await navigator.clipboard.writeText(t); $('uShareCopy').textContent = 'Copied'; } catch (e) {} };
