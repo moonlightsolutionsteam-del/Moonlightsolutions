@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Wedding Panel — Nadeem & Dariya</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0c868d; --panel:rgba(6,92,102,.62); --line:rgba(245,184,46,.32); --gold:#f5b82e; --gold2:#fff0b8; --ink:#ffffff; --mute:rgba(255,255,255,.72); --pink:#d81b60; --pink2:#ff4f93; --ok:#3ee08f; --warn:#ffd36b; --bad:#ff6b6b; }
@@ -190,6 +191,25 @@
   @keyframes okPulse { 0% { box-shadow:0 0 0 0 rgba(62,224,143,.6); } 100% { box-shadow:0 0 0 22px rgba(62,224,143,0); } }
   .flash-ok td { animation:flashOk 1.1s ease; } @keyframes flashOk { 0% { background:rgba(62,224,143,.35); } 100% { background:transparent; } }
 
+
+  /* ---------- icons ---------- */
+  .tab[data-tab]::before, #refresh::before, #export::before, #logout::before { font-family:'Font Awesome 6 Free'; font-weight:900; margin-right:7px; font-size:.92em; opacity:.9; display:inline-block; }
+  .tab[data-tab=guests]::before { content:'\f0c0'; } .tab[data-tab=invited]::before { content:'\f0e0'; } .tab[data-tab=names]::before { content:'\f0ca'; }
+  .tab[data-tab=rooms]::before { content:'\f236'; } .tab[data-tab=food]::before { content:'\f1ec'; } .tab[data-tab=scan]::before { content:'\f52b'; }
+  .tab[data-tab=announce]::before { content:'\f0a1'; } .tab[data-tab=add]::before { content:'\f234'; } .tab[data-tab=overview]::before { content:'\f624'; }
+  .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
+  .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
+  .tab[data-tab=access]::before { content:'\f084'; }
+  #refresh::before { content:'\f2f1'; } #export::before { content:'\f56d'; } #logout::before { content:'\f2f5'; }
+  .tab[aria-selected=true]::before { animation:icWiggle .5s var(--spring); }
+  @keyframes icWiggle { 0% { transform:scale(.6) rotate(-20deg); } 100% { transform:none; } }
+  .ux-ic { margin-right:6px; font-size:.95em; }
+  .stat .stat-ic { position:absolute; right:12px; top:12px; font-size:20px; color:var(--gold); opacity:.55; transition:transform .3s var(--spring), opacity .3s; }
+  .stat:hover .stat-ic { transform:scale(1.18) rotate(-8deg); opacity:.9; }
+  .stat b { padding-right:26px; }
+  h2.cin i, p.cin i { color:var(--gold); margin-right:8px; font-size:.95em; }
+  .pick button b i { color:var(--gold); margin-right:8px; }
+  @media (min-width:560px) { .pick button b i { display:block; font-size:24px; margin:0 0 8px; } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
     #sparkle { display:none; }
@@ -325,9 +345,9 @@
         <div class="row" style="gap:8px;margin-top:8px"><button class="btn ghost sm" id="roomAdd" type="button">+ Add room</button><button class="btn sm" id="roomSave" type="button">Save rooms</button></div>
         <p class="err" id="roomMsg" role="status"></p>
       </details>
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px">Not given a room yet</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px"><i class="fas fa-bed"></i>Not given a room yet</h2>
       <div id="rUnassigned" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px"></div>
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px">Rooms</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px"><i class="fas fa-door-closed"></i>Rooms</h2>
       <div id="rCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px"></div>
     </section>
 
@@ -368,18 +388,18 @@
         <thead><tr><th>Item</th><th class="money">Budget</th><th class="money">Agreed price</th><th class="money">Paid</th><th class="money">Balance</th><th>Status</th><th>Vendor / notes</th><th></th></tr></thead>
         <tbody id="bRows"></tbody>
       </table></div>
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px">Who pays what</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px"><i class="fas fa-scale-balanced"></i>Who pays what</h2>
       <p class="muted" style="margin:0 0 8px;font-size:13px">Each line's split between the families. Shared lines start at 50/50; change the groom's family % on any line (for example 60 for a 60/40 split).</p>
       <div class="scroll"><table style="min-width:980px">
         <thead><tr><th>Item</th><th class="money">Cost</th><th>Groom's %</th><th class="money">Groom's share</th><th class="money">Bride's share</th><th class="money">Groom's paid</th><th class="money">Bride's paid</th><th class="money">Groom's due</th><th class="money">Bride's due</th></tr></thead>
         <tbody id="wRows"></tbody>
       </table></div>
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px">Who has paid, person by person</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px"><i class="fas fa-people-group"></i>Who has paid, person by person</h2>
       <div id="people" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"></div>
       <p class="muted" style="font-size:12px">Shared costs are split 50/50 unless you change the split above. The agreed price is what you finally settle on; until it is filled in, the budget is used for totals. Not included: mehr, outfits, jewellery, bridal makeup, gifts and personal travel.</p>
 
       <div class="panel" style="margin-top:16px">
-        <p class="cin" style="margin:0 0 10px;color:var(--gold2)">Record a payment</p>
+        <p class="cin" style="margin:0 0 10px;color:var(--gold2)"><i class="fas fa-indian-rupee-sign"></i>Record a payment</p>
         <div class="row" style="gap:8px;align-items:flex-end">
           <label class="muted" style="flex:3 1 260px">For<select id="pItem" style="width:100%"></select></label>
           <label class="muted" style="flex:1 1 110px">Amount (₹)<input id="pAmt" type="number" min="1" style="width:100%"></label>
@@ -403,7 +423,7 @@
         <button class="btn ghost sm" id="capSave">Save cap</button>
         <button class="btn ghost sm" id="bCsv">Download budget (CSV)</button>
       </div>
-      <div class="panel" style="margin-top:14px"><p class="cin" style="margin:0 0 6px;color:var(--gold2)">Recent changes</p><div id="recent"></div></div>
+      <div class="panel" style="margin-top:14px"><p class="cin" style="margin:0 0 6px;color:var(--gold2)"><i class="fas fa-clock-rotate-left"></i>Recent changes</p><div id="recent"></div></div>
     </section>
 
     <!-- Vendors -->
@@ -437,13 +457,13 @@
         <button class="btn sm" id="ntAdd">Add</button>
       </div>
 
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px">People on duty</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px"><i class="fas fa-user-shield"></i>People on duty</h2>
       <div class="scroll"><table style="min-width:760px">
         <thead><tr><th>Role</th><th>What they do</th><th>Day 1 (Wed)</th><th>Day 2 (Thu)</th></tr></thead>
         <tbody id="dRows"></tbody>
       </table></div>
 
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px">Emergency details</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px"><i class="fas fa-truck-medical"></i>Emergency details</h2>
       <div class="panel" id="emBox" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>
     </section>
 
@@ -529,7 +549,7 @@
         <div id="result" class="result" hidden aria-live="polite"></div>
       </div>
       <div class="panel" style="margin-top:12px">
-        <p class="cin" style="margin:0 0 8px;color:var(--gold2)">No pass? Find the guest by name or phone</p>
+        <p class="cin" style="margin:0 0 8px;color:var(--gold2)"><i class="fas fa-magnifying-glass"></i>No pass? Find the guest by name or phone</p>
         <input type="search" id="findQ" placeholder="Type a name or phone number" aria-label="Find a guest" style="width:100%">
         <div id="findRows" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
       </div>
@@ -1837,6 +1857,32 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
   }).observe(res, { attributes: true, attributeFilter: ['class', 'hidden'] });
   // Dialogs opening
   ['whoDlg', 'rcpt'].forEach(id => { const d = document.getElementById(id); if (d) new MutationObserver(() => { if (!d.hidden) buzz(HAPTIC.tap); }).observe(d, { attributes: true, attributeFilter: ['hidden'] }); });
+
+
+  // ---------- icons for stat tiles, sign-in buttons and action buttons ----------
+  const STAT_IC = [[/rsvp/i, 'fa-envelope-open-text'], [/arrived/i, 'fa-door-open'], [/veg/i, 'fa-leaf'], [/vendor|crew/i, 'fa-briefcase'], [/groom/i, 'fa-user-tie'], [/bride/i, 'fa-person-dress'],
+    [/day 1/i, 'fa-sun'], [/nikah/i, 'fa-mosque'], [/reception/i, 'fa-gem'], [/still to pay|balance|due|left to/i, 'fa-hourglass-half'], [/paid/i, 'fa-circle-check'], [/buffer|cap/i, 'fa-piggy-bank'],
+    [/total|wedding/i, 'fa-coins'], [/room|bed/i, 'fa-bed'], [/invited/i, 'fa-envelope'], [/repl|answered/i, 'fa-reply'], [/plate|meal|food|menu/i, 'fa-utensils'], [/overdue|late/i, 'fa-triangle-exclamation'],
+    [/done|approved|final/i, 'fa-check'], [/to do|open|pending|waiting/i, 'fa-list-check'], [/guest|people|names/i, 'fa-users'], [/day|days/i, 'fa-calendar-day']];
+  const BTN_IC = [[/^approve/i, 'fa-check'], [/^reject/i, 'fa-xmark'], [/^view/i, 'fa-receipt'], [/passphrase/i, 'fa-key'], [/^turn (off|on)/i, 'fa-power-off'], [/^remove/i, 'fa-trash-can'],
+    [/^(undo|restore)/i, 'fa-rotate-left'], [/^save/i, 'fa-floppy-disk'], [/^(cancel|close)/i, 'fa-xmark'], [/whatsapp/i, 'fab fa-whatsapp'], [/^cop/i, 'fa-copy'], [/^download/i, 'fa-download'],
+    [/^print/i, 'fa-print'], [/camera/i, 'fa-camera'], [/^check in/i, 'fa-door-open'], [/^create login/i, 'fa-user-plus'], [/^suggest/i, 'fa-wand-magic-sparkles'], [/^sign in/i, 'fa-right-to-bracket'],
+    [/^add guest$/i, 'fa-user-plus'], [/^add to invited/i, 'fa-envelope'], [/^add( payment)?$/i, 'fa-plus']];
+  const TILE_IC = [[/super admin/i, 'fa-crown'], [/bride/i, 'fa-person-dress'], [/groom/i, 'fa-user-tie']];
+  const pickIc = (list, t) => { const m = list.find(([re]) => re.test(t)); return m && m[1]; };
+  const mkIc = (cls, extra) => { const i = document.createElement('i'); i.className = (cls.startsWith('fab') ? cls : 'fas ' + cls) + (extra ? ' ' + extra : ''); i.setAttribute('aria-hidden', 'true'); return i; };
+  function iconize(root) {
+    if (!root.querySelectorAll) return;
+    root.querySelectorAll('.stat').forEach(st => { if (st.querySelector('.stat-ic')) return; const lab = st.querySelector('span'); const c = lab && pickIc(STAT_IC, lab.textContent); if (c) st.append(mkIc(c, 'stat-ic')); });
+    root.querySelectorAll('.pick button b').forEach(b => { if (b.querySelector('i')) return; const c = pickIc(TILE_IC, b.textContent); if (c) b.prepend(mkIc(c)); });
+    root.querySelectorAll('button.btn, button.mini').forEach(b => {
+      if (b.querySelector('.ux-ic') || b.closest('.tabs') || ['whoBtn', 'apprPill', 'refresh', 'export', 'logout'].includes(b.id)) return;
+      const c = pickIc(BTN_IC, b.textContent.trim()); if (c) b.prepend(mkIc(c, 'ux-ic'));
+    });
+  }
+  iconize(document);
+  let icQueued = false;
+  new MutationObserver(() => { if (icQueued) return; icQueued = true; requestAnimationFrame(() => { icQueued = false; iconize(document); }); }).observe(document.body, { childList: true, subtree: true });
 
   // Floating gold sparkles in the background, and a petal burst on sign-in
   const cv = document.getElementById('sparkle'), cx = cv.getContext('2d');
