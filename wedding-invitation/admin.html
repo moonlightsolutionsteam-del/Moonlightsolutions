@@ -707,7 +707,8 @@ function render() {
   else body.replaceChildren(...list.map(g => {
     const tr = el('tr', { className: (g.removed ? 'out ' : '') + (arrived(g, curEvent) ? 'in' : '') });
     const wa = (g.phone || '').replace(/[^\d]/g, '');
-    const phone = el('td', {}, wa ? el('a', { href: 'https://wa.me/' + wa, target: '_blank', rel: 'noopener', textContent: g.phone, style: 'color:var(--gold2)' }) : '');
+    // Numbers from the other family's side come back as "🔒 Hidden" for family logins
+    const phone = el('td', {}, wa ? el('a', { href: 'https://wa.me/' + wa, target: '_blank', rel: 'noopener', textContent: g.phone, style: 'color:var(--gold2)' }) : g.phone && /Hidden/.test(g.phone) ? el('span', { className: 'muted', title: "Only the super admin and this guest's family can see this number", textContent: g.phone }) : '');
     if (waNum(g.phone)) phone.append(el('div', { style: 'margin-top:4px' }, el('a', { className: 'mini', href: waLink(g.phone, passMsg(g)), target: '_blank', rel: 'noopener', textContent: 'WhatsApp pass', title: 'Send their entry pass code on WhatsApp' })));
     const days = el('td', {}, ...g.days.map(d => el('span', { className: 'chip', textContent: DAY_CHIP[d] || 'D' + d, title: DAYS[d] })));
     const noteTd = el('td', { className: 'muted', textContent: g.note, style: 'max-width:200px' });
@@ -732,6 +733,7 @@ function render() {
     (g.members || []).forEach(m => {
       const mw = (m.phone || '').replace(/[^\d]/g, ''), line = el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px' }, '+ ' + m.name);
       if (mw) line.append(' · ', el('a', { href: 'https://wa.me/' + mw, target: '_blank', rel: 'noopener', textContent: m.phone, style: 'color:var(--gold2)' }));
+      else if (m.phone && /Hidden/.test(m.phone)) line.append(' · 🔒');
       const x = el('button', { className: 'mini', textContent: 'Remove', title: 'Take ' + m.name + ' off the guest list' });
       x.onclick = () => moveMember(g, m, false, x);
       line.append(' ', x); nameTd.append(line);
