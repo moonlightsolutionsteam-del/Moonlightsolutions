@@ -72,6 +72,12 @@
   .row > label { flex:1 1 200px; display:flex; flex-direction:column; gap:4px; color:var(--mute); font-size:12px; }
   .checks { display:flex; gap:14px; flex-wrap:wrap; margin:12px 0; }
   .checks label { display:flex; gap:6px; align-items:center; }
+  .pick { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:18px 0 6px; text-align:left; }
+  .pick button { background:rgba(255,255,255,.1); border:1px solid var(--line); border-radius:14px; padding:14px; color:var(--ink); cursor:pointer; font:inherit; }
+  .pick button b { display:block; font-size:16px; color:var(--gold2); }
+  .pick button span { font-size:12px; color:var(--mute); }
+  .pick button[aria-pressed=true] { border-color:var(--gold); background:rgba(245,184,46,.18); }
+  #toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:60; background:#0b4f57; border:1px solid var(--gold); color:var(--gold2); padding:10px 18px; border-radius:999px; box-shadow:0 8px 30px rgba(0,0,0,.4); font-size:14px; max-width:92vw; text-align:center; }
   [hidden] { display:none !important; }
 </style>
 </head>
@@ -80,12 +86,14 @@
 
   <section id="login" class="panel" hidden>
     <p class="script" style="font-size:44px;margin:0;line-height:1.1">Nadeem &amp; Dariya</p>
-    <h1 class="cin" style="color:var(--gold2);font-size:16px;margin:6px 0 0">Wedding Panel</h1>
+    <h1 class="cin" style="color:var(--gold2);font-size:16px;margin:6px 0 0" id="loginTitle">Wedding Panel</h1>
+    <div class="pick" id="famPick" hidden></div>
     <form id="loginForm">
+      <p class="muted" id="loginWho" hidden style="margin:10px 0 0"></p>
       <input id="key" type="password" autocomplete="current-password" placeholder="Your passphrase" aria-label="Your passphrase" required>
       <button class="btn" type="submit">Sign in</button>
       <p class="err" id="loginErr" role="alert"></p>
-      <p class="muted" style="font-size:12px;margin:4px 0 0">Everyone has their own passphrase, so the panel knows who made each change.</p>
+      <p class="muted" style="font-size:12px;margin:4px 0 0" id="loginHint">Everyone has their own passphrase, so the panel knows who made each change.</p>
     </form>
   </section>
 
@@ -93,12 +101,14 @@
     <header>
       <h1><span class="script" style="font-size:30px">Nadeem &amp; Dariya</span> &nbsp;Wedding Panel</h1>
       <div class="row" style="gap:8px">
+        <button class="btn sm" id="apprPill" hidden></button>
         <button class="btn ghost sm" id="whoBtn" title="My account and passphrase"></button>
         <button class="btn ghost sm" id="refresh">Refresh</button>
         <button class="btn ghost sm" id="export">Export CSV</button>
         <button class="btn ghost sm" id="logout">Sign out</button>
       </div>
     </header>
+    <div id="famNote" class="panel" hidden style="margin-top:12px;font-size:14px"></div>
     <div id="offline" class="panel" hidden style="margin-top:12px;border-color:var(--warn);color:var(--warn)"></div>
     <div id="nowbar" class="panel" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline"></div>
 
@@ -123,6 +133,7 @@
     </div>
     <div class="tabs" role="tablist" aria-label="Panel" style="margin-top:-6px">
       <span class="tg">Panel</span>
+      <button class="tab" role="tab" data-tab="approvals" aria-selected="false" id="apprTab">Approvals</button>
       <button class="tab" role="tab" data-tab="activity" aria-selected="false">Activity</button>
       <button class="tab" role="tab" data-tab="access" aria-selected="false" id="accessTab" hidden>Logins</button>
     </div>
@@ -321,11 +332,23 @@
       <div class="panel" id="emBox" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>
     </section>
 
+    <!-- Changes from the family logins wait here for the super admin -->
+    <section id="tab-approvals" hidden>
+      <p class="muted" id="apprIntro" style="margin:0 0 10px;font-size:13px"></p>
+      <div class="bar">
+        <select id="apprShow" aria-label="Show"><option value="pending">Waiting</option><option value="approved">Approved</option><option value="rejected">Not approved</option><option value="">All</option></select>
+      </div>
+      <div class="scroll"><table style="min-width:720px">
+        <thead><tr><th style="width:130px">When</th><th style="width:150px">Asked by</th><th>Request</th><th style="width:210px"></th></tr></thead>
+        <tbody id="apprRows"></tbody>
+      </table></div>
+    </section>
+
     <!-- Everything anyone has done on the panel -->
     <section id="tab-activity" hidden>
       <div class="bar">
         <select id="actWho" aria-label="Filter by person"><option value="">Everyone</option></select>
-        <select id="actArea" aria-label="Filter by area"><option value="">Everything</option><option value="guests">Guests &amp; RSVPs</option><option value="door">Door check-ins</option><option value="money">Budget &amp; payments</option><option value="plan">Vendors, menu &amp; to-dos</option><option value="access">Sign-ins &amp; logins</option></select>
+        <select id="actArea" aria-label="Filter by area"><option value="">Everything</option><option value="guests">Guests &amp; RSVPs</option><option value="door">Door check-ins</option><option value="money">Budget &amp; payments</option><option value="plan">Vendors, menu &amp; to-dos</option><option value="approvals">Approvals</option><option value="access">Sign-ins &amp; logins</option></select>
         <input type="search" id="actQ" placeholder="Search" aria-label="Search activity">
       </div>
       <p class="muted" id="actCount" style="font-size:13px;margin:0 0 8px"></p>
@@ -450,6 +473,7 @@
   </main>
 </div>
 
+<div id="toast" hidden role="status"></div>
 <script src="jsQR.js"></script>
 <script>
 const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
@@ -462,7 +486,15 @@ const el = (tag, props, ...kids) => { const e = document.createElement(tag); Obj
 let KEY = ''; try { KEY = sessionStorage.getItem('nd27-admin') || ''; } catch (e) {}
 let guests = [], timer = null;
 
+// Family logins cannot change data directly: their edits become requests the super admin approves
+const WRITES = new Set(['admin_add', 'admin_update', 'admin_save_members', 'admin_set_members', 'admin_invites_add', 'admin_invite_update', 'admin_setting_set', 'admin_plan_save', 'admin_plan_remove', 'admin_receipt_add', 'admin_receipt_remove']);
+const queued = e => e && e.message === 'queued';
 async function rpc(fn, args) {
+  if (ME && !ME.owner && WRITES.has(fn)) {
+    await rpc('admin_propose', { p_fn: fn, p_args: args || {}, p_summary: (() => { try { return describeCall(fn, args || {}); } catch (e) { return fn.replace('admin_', '').replace(/_/g, ' '); } })() });
+    toast('Sent to Nadeem for approval ✓ It will show here once approved.'); loadPending();
+    throw new Error('queued');
+  }
   const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ p_key: KEY }, args || {})) });
   if (r.status === 403 || r.status === 401) { signOut(); throw new Error('forbidden'); }
   if (!r.ok) throw new Error('Request failed (' + r.status + ')');
@@ -470,11 +502,39 @@ async function rpc(fn, args) {
 }
 
 // ---------- sign in ----------
-function showLogin(msg) { $('app').hidden = true; $('login').hidden = false; $('loginErr').textContent = msg || ''; $('key').focus(); }
+// /family.html opens the family sign-in (pick your name); admin.html is for the super admin only
+const FAMILY = (() => { let f = /family/.test(location.search); try { if (f) sessionStorage.setItem('nd27-mode', 'family'); f = f || sessionStorage.getItem('nd27-mode') === 'family'; } catch (e) {} return f; })();
+let PICK = null;
+function showLogin(msg) { $('app').hidden = true; $('login').hidden = false; $('loginErr').textContent = msg || ''; setupLogin(); }
+async function setupLogin() {
+  if (!FAMILY) {
+    $('loginTitle').textContent = 'Super admin sign-in';
+    $('loginHint').innerHTML = ''; $('loginHint').append('Family member? ', el('a', { href: 'family.html', textContent: 'Use the family sign-in', style: 'color:var(--gold2)' }), '.');
+    $('key').focus(); return;
+  }
+  $('loginTitle').textContent = 'Family sign-in';
+  $('loginHint').textContent = 'Tap your name, then type your passphrase.';
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/admin_login_names', { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: '{}' });
+    const people = (await r.json()).filter(u => !u.owner);
+    if (!people.length) return;
+    $('famPick').replaceChildren(...people.map(u => { const b = el('button', { type: 'button' }, el('b', { textContent: u.name }), el('span', { textContent: u.fam })); b.setAttribute('aria-pressed', PICK && PICK.id === u.id); b.onclick = () => pickWho(u); return b; }));
+    $('famPick').hidden = false;
+    if (!PICK) { $('loginForm').hidden = true; } else pickWho(PICK);
+  } catch (e) { $('famPick').hidden = true; $('loginForm').hidden = false; }
+}
+function pickWho(u) {
+  PICK = u; [...$('famPick').children].forEach(b => b.setAttribute('aria-pressed', b.firstChild.textContent === u.name));
+  $('loginForm').hidden = false; $('loginWho').hidden = false; $('loginWho').textContent = 'Passphrase for ' + u.name + ':';
+  $('loginErr').textContent = ''; $('key').value = ''; $('key').focus();
+}
 function signOut() { KEY = ''; ME = null; try { sessionStorage.removeItem('nd27-admin'); localStorage.removeItem('nd27-cache'); localStorage.removeItem('nd27-me'); } catch (e) {} $('whoDlg').hidden = true; clearInterval(timer); stopCam(); showLogin(); }
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault(); KEY = $('key').value.trim(); $('loginErr').textContent = 'Checking...';
-  try { const me = await rpc('admin_whoami'); if (!me) throw new Error('forbidden'); setMe(me); guests = await rpc('admin_list'); try { sessionStorage.setItem('nd27-admin', KEY); } catch (e2) {} $('key').value = ''; enter(); }
+  try { const me = await rpc('admin_whoami'); if (!me) throw new Error('forbidden');
+    if (!FAMILY && !me.owner) { KEY = ''; $('loginErr').textContent = 'This page is for the super admin. Please use the family sign-in link.'; return; }
+    if (FAMILY && PICK && me.id !== PICK.id) { KEY = ''; $('loginErr').textContent = "That passphrase isn't " + PICK.name + "'s. Please try again."; return; }
+    setMe(me); guests = await rpc('admin_list'); try { sessionStorage.setItem('nd27-admin', KEY); } catch (e2) {} $('key').value = ''; enter(); }
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
 $('logout').onclick = signOut;
@@ -507,7 +567,7 @@ function filtered() {
 }
 function field(g, key, ph) {
   const inp = el('input', { value: g[key] || '', placeholder: ph, maxLength: 100 }); inp.setAttribute('aria-label', key.replace('_', ' ') + ' for ' + g.name);
-  inp.addEventListener('change', async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { [key]: inp.value } }); g[key] = inp.value; inp.style.borderColor = 'var(--ok)'; setTimeout(() => inp.style.borderColor = '', 900); } catch (e) { inp.style.borderColor = 'var(--bad)'; } });
+  inp.addEventListener('change', async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { [key]: inp.value } }); g[key] = inp.value; inp.style.borderColor = 'var(--ok)'; setTimeout(() => inp.style.borderColor = '', 900); } catch (e) { inp.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } });
   return inp;
 }
 function render() {
@@ -779,7 +839,7 @@ function roomPicker(g) {
   rooms.forEach(r => sel.append(el('option', { value: r.name, textContent: r.name + ' (' + r.beds + ')' })));
   if (g.accommodation && !rooms.some(r => r.name === g.accommodation)) sel.append(el('option', { value: g.accommodation, textContent: g.accommodation }));
   sel.value = g.accommodation || '';
-  sel.onchange = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { accommodation: sel.value } }); g.accommodation = sel.value; renderRooms(); } catch (e) { sel.style.borderColor = 'var(--bad)'; } };
+  sel.onchange = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { accommodation: sel.value } }); g.accommodation = sel.value; renderRooms(); } catch (e) { sel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } };
   return sel;
 }
 function renderRooms() {
@@ -866,6 +926,10 @@ function showWho() { $('whoBtn').textContent = '👤 ' + (ME ? meLabel() : ''); 
 function setMe(me) {
   ME = me; try { localStorage.setItem('nd27-me', JSON.stringify(me)); } catch (e) {}
   showWho(); $('accessTab').hidden = !me.owner;
+  $('famNote').hidden = me.owner;
+  $('famNote').textContent = 'Signed in as ' + me.name + '. Anything you add or change is sent to Nadeem for approval and shows in the panel once he approves it. Door check-ins work straight away.';
+  $('apprIntro').textContent = me.owner ? 'Requests from the family logins. Nothing they send changes the panel until you approve it.' : 'Everything you have sent for approval, and what was decided.';
+  loadPending();
   if (me.must_change) openAccount();
 }
 function openAccount() {
@@ -931,10 +995,10 @@ function renderPlan() {
   if (!$('tab-todo').hidden) renderTodo();
 }
 // Save one item's data; the change is stamped with who made it
-async function savePlan(it, patch, kind) {
+async function savePlan(it, patch, kind, extra) {
   if (!ME) throw new Error('who');
   const data = Object.assign({}, it ? it.data : {}, patch);
-  const row = await rpc('admin_plan_save', { p_id: it ? it.id : null, p_kind: it ? it.kind : kind, p_data: data, p_by: meLabel() });
+  const row = await rpc('admin_plan_save', Object.assign({ p_id: it ? it.id : null, p_kind: it ? it.kind : kind, p_data: data, p_by: meLabel() }, extra || {}));
   const i = plan.findIndex(x => x.id === row.id); if (i >= 0) plan[i] = row; else plan.push(row);
   return row;
 }
@@ -950,7 +1014,7 @@ function cell(it, key, opts) {
   inp.addEventListener('change', async () => {
     const val = opts.num ? (inp.value === '' ? null : Math.max(0, Math.round(+inp.value))) : inp.value.trim();
     try { await savePlan(it, { [key]: val }); inp.style.borderColor = 'var(--ok)'; setTimeout(() => { inp.style.borderColor = ''; renderPlan(); }, 600); }
-    catch (e) { inp.style.borderColor = 'var(--bad)'; }
+    catch (e) { inp.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; }
   });
   return inp;
 }
@@ -1074,11 +1138,14 @@ $('pAdd').onclick = async () => {
   const amt = Math.round(+$('pAmt').value), msg = $('pMsg');
   if (!$('pItem').value || !(amt > 0)) { msg.style.color = 'var(--bad)'; msg.textContent = 'Choose what it was for and enter the amount.'; return; }
   try {
-    const row = await savePlan(null, { item: $('pItem').value, amount: amt, by: $('pBy').value, person: $('pPerson').value.trim(), date: $('pDate').value || new Date().toISOString().slice(0, 10), how: $('pHow').value, ref: $('pRef').value.trim(), note: $('pNote').value.trim() }, 'payment');
-    const file = $('pFile').files[0];
+    const file = $('pFile').files[0], extra = file && ME && !ME.owner ? { _receipt: await compress(file) } : null;
+    const row = await savePlan(null, { item: $('pItem').value, amount: amt, by: $('pBy').value, person: $('pPerson').value.trim(), date: $('pDate').value || new Date().toISOString().slice(0, 10), how: $('pHow').value, ref: $('pRef').value.trim(), note: $('pNote').value.trim() }, 'payment', extra);
     if (file) { msg.textContent = 'Saving the receipt…'; await addReceipt(row.id, file); }
     msg.style.color = 'var(--ok)'; msg.textContent = 'Payment of ' + inr(amt) + ' recorded' + (file ? ' with its receipt.' : '.'); $('pAmt').value = ''; $('pNote').value = ''; $('pRef').value = ''; $('pFile').value = ''; renderBudget();
-  } catch (e) { if (e.message !== 'who') { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not save. Try again.'; } }
+  } catch (e) {
+    if (queued(e)) { msg.style.color = 'var(--warn)'; msg.textContent = 'Payment of ' + inr(amt) + ' sent to Nadeem for approval.'; $('pAmt').value = ''; $('pNote').value = ''; $('pRef').value = ''; $('pFile').value = ''; }
+    else if (e.message !== 'who') { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not save. Try again.'; }
+  }
 };
 $('capSave').onclick = async () => { const v = Math.max(0, Math.round(+$('capIn').value || 0)); try { await rpc('admin_setting_set', { p_name: 'budget', p_value: { cap: v } }); cap = v; renderBudget(); } catch (e) {} };
 $('bCsv').onclick = () => {
@@ -1223,7 +1290,7 @@ function renderTodo() {
   const EM = [['hospital', 'Nearest hospital'], ['hospital_phone', 'Hospital phone'], ['distance', 'Distance / time from the resort'], ['doctor', 'Doctor on call (name & phone)'], ['manager', 'Resort duty manager (name & phone)'], ['firstaid', 'First aid kit has']];
   $('emBox').replaceChildren(...EM.map(([k, l]) => {
     const inp = el('input', { value: emergency[k] || '', maxLength: 120, style: 'width:100%' });
-    inp.addEventListener('change', async () => { emergency = Object.assign({}, emergency, { [k]: inp.value.trim() }); try { await rpc('admin_setting_set', { p_name: 'emergency', p_value: emergency }); inp.style.borderColor = 'var(--ok)'; } catch (e) { inp.style.borderColor = 'var(--bad)'; } });
+    inp.addEventListener('change', async () => { emergency = Object.assign({}, emergency, { [k]: inp.value.trim() }); try { await rpc('admin_setting_set', { p_name: 'emergency', p_value: emergency }); inp.style.borderColor = 'var(--ok)'; } catch (e) { inp.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } });
     return el('label', { className: 'muted', style: 'font-size:12px' }, l, inp);
   }));
 }
@@ -1259,6 +1326,7 @@ const KINDN = { budget: 'budget line', payment: 'payment', vendor: 'vendor', tas
 function actArea(a) {
   if (a.tbl === 'rsvps') return a.changes && (a.changes.checkins || a.changes.checked_in) && a.action === 'update' ? 'door' : 'guests';
   if (a.tbl === 'invites') return 'guests';
+  if (a.tbl === 'pending') return 'approvals';
   if (a.tbl === 'receipts') return 'money';
   if (a.tbl === 'plan_items') { const k = (a.label || '').split(':')[0]; return k === 'budget' || k === 'payment' ? 'money' : 'plan'; }
   if (a.tbl === 'settings') return a.row_id === 'budget' ? 'money' : 'plan';
@@ -1269,7 +1337,8 @@ function describe(a) {
   const c = a.changes || {}, nm = a.label || '', verb = { insert: 'added', update: 'updated', remove: 'removed', restore: 'brought back', delete: 'deleted' }[a.action] || a.action;
   let text = '', details = [];
   if (a.action === 'update') details = Object.keys(c).filter(k => k !== 'checkins' && k !== 'checked_in_at' && !(k === 'removed')).map(k => fieldName(k) + ': ' + (k === 'passphrase' ? 'changed' : fmtV(k, c[k][0]) + ' → ' + fmtV(k, c[k][1])));
-  if (a.tbl === 'login') text = a.action === 'login' ? 'signed in' : 'Someone tried a wrong passphrase';
+  if (a.tbl === 'pending') { text = ({ propose: 'asked for approval: ', approve: 'approved: ', reject: 'did not approve: ' }[a.action] || '') + nm; if (a.action !== 'propose') details = ['asked by ' + (c.asked_by || '?')].concat(c.note ? ['note: ' + c.note] : []); }
+  else if (a.tbl === 'login') text = a.action === 'login' ? 'signed in' : 'Someone tried a wrong passphrase';
   else if (a.tbl === 'admin_users') text = a.action === 'insert' ? 'created a login for ' + nm + ' (' + (c.fam || '') + ')' : c.active ? (c.active[1] ? 'turned on the login for ' : 'turned off the login for ') + nm : c.passphrase ? 'changed the passphrase for ' + nm : verb + ' the login for ' + nm;
   else if (a.tbl === 'rsvps') {
     if (a.action === 'insert') text = a.actor.startsWith('Guest') ? 'RSVP received: ' + nm + ' (' + (c.guests || 1) + (c.guests > 1 ? ' people' : ' person') + ', ' + (c.side || '') + ')' : 'added the guest ' + nm;
@@ -1305,13 +1374,72 @@ function renderActivity() {
 }
 ['actWho', 'actArea'].forEach(i => $(i).onchange = renderActivity); $('actQ').oninput = renderActivity;
 
+// ---------- approvals: family requests wait for the super admin ----------
+let pend = [];
+let toastT = null;
+function toast(msg) { $('toast').textContent = msg; $('toast').hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { $('toast').hidden = true; }, 4500); }
+const gName = id => (guests.find(g => g.id === id) || {}).name || 'a guest';
+const short = v => { const t = Array.isArray(v) ? v.map(x => x && x.name || x).join(', ') : v && typeof v === 'object' ? JSON.stringify(v) : String(v); return t.length > 50 ? t.slice(0, 47) + '…' : t; };
+// One plain sentence describing what a request will do, so the super admin can decide at a glance
+function describeCall(fn, a) {
+  if (fn === 'admin_plan_save') {
+    const it = a.p_id && plan.find(x => x.id === a.p_id), kind = it ? it.kind : a.p_kind;
+    if (!it) return 'Add ' + planName(null, kind, a.p_data) + (a._receipt ? ' (with receipt)' : '');
+    const ch = Object.keys(a.p_data || {}).filter(k => JSON.stringify(a.p_data[k]) !== JSON.stringify(it.data[k])).map(k => fieldName(k) + ': ' + fmtV(k, it.data[k]) + ' → ' + fmtV(k, a.p_data[k]));
+    return 'Change ' + planName(it.id, kind) + (ch.length ? ' (' + ch.join('; ') + ')' : '');
+  }
+  if (fn === 'admin_plan_remove') { const it = plan.find(x => x.id === a.p_id); return 'Remove ' + (it ? planName(it.id, it.kind) : 'an item'); }
+  if (fn === 'admin_update') { const f = a.p_fields || {}; if (f.removed === true) return 'Remove guest ' + gName(a.p_id); if (f.removed === false) return 'Bring back guest ' + gName(a.p_id); return 'Edit guest ' + gName(a.p_id) + ' (' + Object.keys(f).map(k => fieldName(k) + ': ' + short(f[k])).join('; ') + ')'; }
+  if (fn === 'admin_save_members' || fn === 'admin_set_members') return 'Family names for ' + gName(a.p_id) + ': ' + (short(a.p_members || []) || 'none');
+  if (fn === 'admin_add') return 'Add guest ' + a.p_name + ' (' + a.p_guests + (a.p_guests > 1 ? ' people' : ' person') + ', ' + a.p_side + ', ' + (a.p_events || []).map(d => DAY_CHIP[d]).join(' + ') + ')' + ((a._members || []).length ? ' with ' + short(a._members) : '');
+  if (fn === 'admin_invites_add') return 'Add ' + (a.p_rows || []).length + ' to the invited list: ' + short((a.p_rows || []).map(r => r.name));
+  if (fn === 'admin_invite_update') { const i = invites.find(x => x.id === a.p_id); return (a.p_fields && a.p_fields.removed ? 'Remove ' : 'Update ') + (i ? i.name : 'someone') + ' on the invited list'; }
+  if (fn === 'admin_setting_set') return 'Change ' + (SETN[a.p_name] || a.p_name) + (a.p_name === 'budget' ? ' to ' + inr(a.p_value && a.p_value.cap) : '');
+  if (fn === 'admin_receipt_add') return 'Attach a receipt to the ' + planName(a.p_payment, 'payment');
+  if (fn === 'admin_receipt_remove') return 'Remove a receipt';
+  return fn;
+}
+async function loadPending() {
+  if (!KEY || !ME) return;
+  try { pend = await rpc('admin_pending'); } catch (e) { return; }
+  const n = pend.filter(x => x.status === 'pending').length;
+  $('apprTab').textContent = (ME.owner ? 'Approvals' : 'My requests') + (n ? ' (' + n + ')' : '');
+  $('apprPill').hidden = !(ME.owner && n); $('apprPill').textContent = '🔔 ' + n + ' to approve';
+  if (!$('tab-approvals').hidden) renderPending();
+}
+$('apprPill').onclick = () => $('apprTab').click();
+$('apprShow').onchange = () => renderPending();
+function renderPending() {
+  const show = $('apprShow').value, rows = pend.filter(x => !show || x.status === show);
+  $('apprRows').replaceChildren(...(rows.length ? rows.map(x => {
+    const act = el('td', { style: 'white-space:nowrap' });
+    if (x.has_image) { const v = el('button', { className: 'mini', textContent: 'View receipt' }); v.onclick = async () => { try { $('rcptImg').src = await rpc('admin_pending_image', { p_id: x.id }); $('rcpt').hidden = false; } catch (e) {} }; act.append(v, ' '); }
+    if (x.status === 'pending' && ME.owner) {
+      const ok = el('button', { className: 'btn sm', textContent: 'Approve' }), no = el('button', { className: 'btn ghost sm', textContent: 'Reject' });
+      const decide = async (yes) => {
+        const note = yes ? '' : prompt('Reason for not approving (optional, ' + x.actor.split(' (')[0] + ' will see it):', '');
+        if (note === null) return;
+        ok.disabled = no.disabled = true;
+        try { await rpc('admin_decide', { p_id: x.id, p_ok: yes, p_note: note || null }); toast(yes ? 'Approved and applied ✓' : 'Not approved'); await loadPending(); load(); loadPlan(); if (x.fn.startsWith('admin_invite')) loadInvites(); }
+        catch (e) { ok.disabled = no.disabled = false; toast('Could not apply it. It may clash with a later change. Check and try again.'); }
+      };
+      ok.onclick = () => decide(true); no.onclick = () => decide(false);
+      act.append(ok, ' ', no);
+    } else if (x.status !== 'pending') act.append(el('div', { textContent: (x.status === 'approved' ? '✓ Approved' : '✗ Not approved') + ' by ' + (x.decided_by || '').split(' (')[0], style: 'color:' + (x.status === 'approved' ? 'var(--ok)' : 'var(--bad)') }), el('div', { className: 'muted', style: 'font-size:12px', textContent: x.decided_at ? atTime(x.decided_at) : '' }));
+    else act.append(el('span', { className: 'muted', textContent: '⏳ Waiting for Nadeem' }));
+    return el('tr', {}, el('td', { className: 'muted', style: 'white-space:nowrap', textContent: atTime(x.at) }), el('td', {}, el('b', { textContent: x.actor })),
+      el('td', {}, el('div', { textContent: x.summary }), x.note ? el('div', { className: 'muted', style: 'font-size:12px', textContent: 'Note: ' + x.note }) : ''), act);
+  }) : [el('tr', {}, el('td', { colSpan: 4, className: 'empty', textContent: show === 'pending' ? 'Nothing waiting for approval.' : 'Nothing here yet.' }))]));
+}
+setInterval(() => { if (KEY && ME && document.visibilityState !== 'hidden') loadPending(); }, 60000);
+
 // ---------- logins (owner only) ----------
 let users = [];
 const PW_WORDS = ['peacock', 'jasmine', 'lantern', 'mehndi', 'rose', 'marigold', 'pearl', 'henna', 'saffron', 'lotus', 'crescent', 'emerald'];
 const genPass = () => { const r = n => crypto.getRandomValues(new Uint32Array(1))[0] % n; const i = r(12), j = (i + 1 + r(11)) % 12; return PW_WORDS[i] + '-' + PW_WORDS[j] + '-' + (10 + r(90)); };
 async function loadUsers() { try { users = await rpc('admin_users_list'); renderUsers(); } catch (e) { $('uMsg').textContent = 'Only the owner can manage logins.'; } }
 function shareLogin(name, pass) {
-  const t = 'Assalamu alaikum ' + name + ', here is your own login for the Nadeem & Dariya Wedding Panel:\n' + location.origin + location.pathname + '\nPassphrase: ' + pass + '\nAfter you sign in, tap your name at the top and set a passphrase only you know. Please don\'t share it.';
+  const t = 'Assalamu alaikum ' + name + ', here is your own login for the Nadeem & Dariya Wedding Panel:\n' + new URL('family.html', location.href).href + '\nTap your name and type this passphrase: ' + pass + '\nAfter you sign in, tap your name at the top and set a passphrase only you know. Please don\'t share it.';
   $('uShareText').textContent = t; $('uShare').hidden = false;
   $('uShareWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
   $('uShareCopy').onclick = async () => { try { await navigator.clipboard.writeText(t); $('uShareCopy').textContent = 'Copied'; } catch (e) {} };
@@ -1342,8 +1470,8 @@ $('uAdd').onclick = async () => {
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
-  if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'access') loadUsers();
+  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
   if (['overview', 'budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
   if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') renderAnnounce();
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
@@ -1357,13 +1485,13 @@ $('addForm').addEventListener('submit', async e => {
   if (!days.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Pick at least one day.'; return; }
   try {
     if (addList.blankWithPhone()) { msg.style.color = 'var(--bad)'; msg.textContent = 'Add a name for every phone number, or clear the phone.'; return; }
-    const members = addList.read();
-    const g = await rpc('admin_add', { p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: 1 + members.length, p_note: $('aNote').value });
+    const members = addList.read(), famReq = ME && !ME.owner;
+    const g = await rpc('admin_add', Object.assign({ p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: 1 + members.length, p_note: $('aNote').value }, famReq ? { _members: members, _veg: Math.min(+$('aVeg').value || 0, 1 + members.length) } : {}));
     if (members.length) await saveMembers(g, members, []);
     const veg = Math.min(+$('aVeg').value || 0, 1 + members.length);
     if (veg) await rpc('admin_update', { p_id: g.id, p_fields: { veg } });
     msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + (members.length ? ' and ' + members.length + ' family member' + (members.length > 1 ? 's' : '') : '') + '. Pass code ' + g.pass_code + '.'; e.target.reset(); addList.reset(); await load();
-  } catch (err) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add guest.'; }
+  } catch (err) { if (queued(err)) { msg.style.color = 'var(--warn)'; msg.textContent = 'Sent to Nadeem for approval.'; e.target.reset(); addList.reset(); return; } msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add guest.'; }
 });
 
 // ---------- schedule: what is happening now and next (all times IST) ----------
