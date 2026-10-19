@@ -764,7 +764,7 @@ const memberText = g => (g.members || []).map(m => m.name + (m.phone ? ' (' + m.
 const csvCell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
 $('export').onclick = () => {
   const head = ['Pass Code', 'Name', 'Phone', 'Side', 'Day 1 (Wed 20 Jan)', 'Nikah (Thu 21 Jan AM)', 'Reception (Thu 21 Jan PM)', 'Guests', 'Vegetarians', 'Family Members', 'Note', 'Table', 'Meal', 'Accommodation', 'Checked In', 'Submitted'];
-  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, g.veg || 0, memberText(g), g.note, g.table_no, g.meal, g.accommodation, g.checked_in ? 'Yes' : '', g.created_at]));
+  const lines = [head].concat(active().map(g => [g.pass_code, g.name, g.phone, g.side, g.days.includes(1) ? 'Yes' : '', g.days.includes(2) ? 'Yes' : '', g.days.includes(3) ? 'Yes' : '', g.guests, g.veg || 0, memberText(g), g.note, g.table_no, g.meal, roomsText(g), g.checked_in ? 'Yes' : '', g.created_at]));
   const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-guest-list.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
@@ -971,10 +971,20 @@ $('roomSave').onclick = async () => {
 const overnight = () => active().filter(g => g.days.includes(1) && !/^vendor/i.test(g.side));
 const sideOf = g => /^bride/i.test(g.side) ? 'bride' : /^groom/i.test(g.side) ? 'groom' : '';
 const SIDE_LABEL = { groom: "Groom's side", bride: "Bride's side", '': 'Shared / anyone' };
-const usedBeds = name => overnight().filter(g => g.accommodation === name).reduce((n, g) => n + g.guests, 0);
-function roomPicker(g) {
+// Everyone in a party who needs a bed: the lead, the named family, then anyone not named yet (key null)
+const sleepers = g => { const named = [g.name].concat((g.members || []).map(m => m.name)); return named.map(n => ({ name: n, key: n })).concat(Array.from({ length: Math.max(0, g.guests - named.length) }, (_, i) => ({ name: 'Guest ' + (named.length + i + 1) + ' (no name yet)', key: null }))); };
+// A person's room: their own if they were split off, otherwise the party's room
+const roomOf = (g, p) => { const m = g.room_map || {}; return p.key != null && Object.prototype.hasOwnProperty.call(m, p.key) ? m[p.key] || '' : g.accommodation || ''; };
+const isSplit = g => Object.keys(g.room_map || {}).length > 0;
+const roomless = g => sleepers(g).filter(p => !roomOf(g, p)).length;
+const hasRoom = g => sleepers(g).some(p => roomOf(g, p));
+// "Room 101" for a whole party, or "Ali: Room 101; Sara: Cottage 1" when it is split
+const roomsText = g => { if (!isSplit(g)) return g.accommodation || ''; const by = {}; sleepers(g).forEach(p => { const r = roomOf(g, p) || 'no room'; (by[r] = by[r] || []).push(p.key || 'unnamed'); }); return Object.keys(by).map(r => r + ' (' + by[r].join(', ') + ')').join('; '); };
+const usedBeds = name => overnight().reduce((n, g) => n + sleepers(g).filter(p => roomOf(g, p) === name).length, 0);
+const splitOpen = new Set();
+function roomPicker(g, cur, onPick, first) {
   const sel = el('select', { style: 'min-width:170px' });
-  sel.append(el('option', { value: '', textContent: 'Choose a room' }));
+  sel.append(el('option', { value: '', textContent: first || 'Choose a room' }));
   const mine = sideOf(g), other = mine === 'groom' ? 'bride' : mine === 'bride' ? 'groom' : null;
   const order = [mine, ''].concat(other && ME && ME.owner ? [other] : mine ? [] : ['groom', 'bride']).filter((v, i, a) => a.indexOf(v) === i);
   order.forEach(sd => {
@@ -983,30 +993,59 @@ function roomPicker(g) {
     list.forEach(r => { const free = r.beds - usedBeds(r.name); og.append(el('option', { value: r.name, textContent: r.name + ' · ' + (free > 0 ? free + ' free of ' + r.beds : 'full (' + r.beds + ')') })); });
     sel.append(og);
   });
-  if (g.accommodation && ![...sel.options].some(o => o.value === g.accommodation)) sel.append(el('option', { value: g.accommodation, textContent: g.accommodation }));
-  sel.value = g.accommodation || '';
-  sel.onchange = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { accommodation: sel.value } }); g.accommodation = sel.value; renderRooms(); } catch (e) { sel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } };
+  if (cur && ![...sel.options].some(o => o.value === cur)) sel.append(el('option', { value: cur, textContent: cur }));
+  sel.value = cur || '';
+  sel.onchange = async () => { try { await onPick(sel.value); renderRooms(); } catch (e) { sel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } };
   return sel;
+}
+// One room for the whole party (clears any per-person split)
+const partyPicker = g => roomPicker(g, isSplit(g) ? '' : g.accommodation, async v => { await rpc('admin_update', { p_id: g.id, p_fields: { accommodation: v, room_map: {} } }); g.accommodation = v; g.room_map = {}; }, isSplit(g) ? 'Split · move all to…' : 'Choose a room');
+// A room for one person in the party
+const personPicker = (g, p) => roomPicker(g, roomOf(g, p), async v => {
+  const m = Object.assign({}, g.room_map || {});
+  if (v === (g.accommodation || '')) delete m[p.key]; else m[p.key] = v;
+  await rpc('admin_update', { p_id: g.id, p_fields: { room_map: m } }); g.room_map = m;
+}, 'No room');
+function splitBox(g) {
+  const box = el('div', { style: 'display:flex;flex-direction:column;gap:4px;margin-top:6px;padding:8px;border-left:2px solid var(--gold);background:rgba(255,255,255,.04);border-radius:6px' });
+  sleepers(g).forEach(p => { const pk = p.key ? personPicker(g, p) : el('span', { className: 'muted', style: 'font-size:11px', textContent: 'with the party · name them to move' }); if (p.key) pk.style.cssText = 'min-width:0;width:100%';
+    box.append(el('div', { style: 'display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:8px;align-items:center;font-size:13px' }, el('span', { className: p.key ? '' : 'muted', style: 'overflow-wrap:anywhere', textContent: p.key ? p.name : 'Guest ' + p.name.split(' ')[1] }), pk)); });
+  return box;
+}
+function splitBtn(g) {
+  const open = splitOpen.has(g.id);
+  const b = el('button', { className: 'mini', type: 'button', textContent: open ? 'Close' : 'Split by person' });
+  b.onclick = () => { open ? splitOpen.delete(g.id) : splitOpen.add(g.id); renderRooms(); };
+  return b;
 }
 $('rSide').onchange = () => renderRooms();
 function renderRooms() {
-  const fs = $('rSide').value, all = overnight(), staying = fs ? all.filter(g => sideOf(g) === fs) : all, people = staying.reduce((n, g) => n + g.guests, 0);
-  const shownRooms = fs ? rooms.filter(r => (r.side || '') === fs || !r.side) : rooms;
-  const placed = staying.filter(g => g.accommodation), beds = shownRooms.reduce((n, r) => n + (+r.beds || 0), 0);
-  const placedPeople = placed.reduce((n, g) => n + g.guests, 0);
-  $('rStats').replaceChildren(...[[people, 'Staying Wednesday night'], [placedPeople, 'Given a room'], [people - placedPeople, 'Still to place'], [shownRooms.length + ' / ' + beds, 'Rooms / beds' + (fs ? ' (incl. shared)' : '')]]
+  const fs = $('rSide').value, all = overnight(), staying = fs ? all.filter(g => sideOf(g) === fs) : all, total = staying.reduce((n, g) => n + sleepers(g).length, 0);
+  const shownRooms = fs ? rooms.filter(r => (r.side || '') === fs || !r.side) : rooms, beds = shownRooms.reduce((n, r) => n + (+r.beds || 0), 0);
+  const placedPeople = total - staying.reduce((n, g) => n + roomless(g), 0);
+  $('rStats').replaceChildren(...[[total, 'Staying Wednesday night'], [placedPeople, 'Given a room'], [total - placedPeople, 'Still to place'], [shownRooms.length + ' / ' + beds, 'Rooms / beds' + (fs ? ' (incl. shared)' : '')]]
     .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
-  const un = staying.filter(g => !g.accommodation).sort((a, b) => b.guests - a.guests);
-  $('rUnassigned').replaceChildren(...(un.length ? un.map(g => el('div', { className: 'panel row', style: 'padding:10px 12px;gap:10px;align-items:center;justify-content:space-between' },
-    el('div', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person') + ' · ' + g.side.replace(' Guest', '') })), roomPicker(g))) :
-    [el('p', { className: 'muted', textContent: staying.length ? 'Everyone staying on Wednesday has a room.' : 'No one has RSVPed for Day 1 yet.' })]));
-  const byRoom = name => all.filter(g => g.accommodation === name);
+  const un = staying.filter(g => roomless(g)).sort((a, b) => roomless(b) - roomless(a));
+  $('rUnassigned').replaceChildren(...(un.length ? un.map(g => {
+    const left = roomless(g), n = sleepers(g).length;
+    return el('div', { className: 'panel', style: 'padding:10px 12px' },
+      el('div', { className: 'row', style: 'gap:10px;align-items:center;justify-content:space-between' },
+        el('div', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + (left < n ? left + ' of ' + n + ' still need a room' : n + (n > 1 ? ' people' : ' person')) + ' · ' + g.side.replace(' Guest', '') })),
+        el('div', { className: 'row', style: 'gap:6px;align-items:center' }, partyPicker(g), n > 1 ? splitBtn(g) : '')),
+      splitOpen.has(g.id) ? splitBox(g) : '');
+  }) : [el('p', { className: 'muted', textContent: staying.length ? 'Everyone staying on Wednesday has a room.' : 'No one has RSVPed for Day 1 yet.' })]));
   const card = r => {
-    const inRoom = byRoom(r.name), used = inRoom.reduce((n, g) => n + g.guests, 0), over = used > r.beds;
+    const inRoom = all.map(g => ({ g, ps: sleepers(g).filter(p => roomOf(g, p) === r.name) })).filter(x => x.ps.length);
+    const used = inRoom.reduce((n, x) => n + x.ps.length, 0), over = used > r.beds;
     return el('div', { className: 'panel', style: 'padding:12px;' + (over ? 'border-color:var(--bad)' : '') },
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:baseline' }, el('b', { className: 'cin', textContent: r.name }), el('span', { style: 'color:' + (over ? 'var(--bad)' : used === +r.beds ? 'var(--ok)' : 'var(--gold2)'), textContent: used + ' / ' + r.beds + (over ? ' · too many' : '') })),
-      ...inRoom.map(g => el('div', { style: 'margin-top:6px;font-size:13px' }, el('div', {}, el('b', { textContent: g.name }), ' ', roomPicker(g)),
-        (g.members || []).length ? el('div', { className: 'muted', style: 'font-size:12px', textContent: g.members.map(m => m.name).join(', ') }) : '')),
+      ...inRoom.map(({ g, ps }) => {
+        const whole = ps.length === sleepers(g).length, lead = ps[0] === sleepers(g)[0] || ps[0].key === g.name;
+        return el('div', { style: 'margin-top:6px;font-size:13px' },
+          el('div', { className: 'row', style: 'gap:6px;align-items:center' }, el('b', { textContent: g.name + (whole ? '' : ' party') }), whole ? partyPicker(g) : '', sleepers(g).length > 1 && lead ? splitBtn(g) : ''),
+          el('div', { className: 'muted', style: 'font-size:12px', textContent: whole ? ps.slice(1).map(p => p.key || 'unnamed guest').join(', ') : ps.length + ' of ' + sleepers(g).length + ' here: ' + ps.map(p => p.key || 'unnamed guest').join(', ') }),
+          splitOpen.has(g.id) && lead ? splitBox(g) : '');
+      }),
       inRoom.length ? '' : el('p', { className: 'muted', style: 'margin:6px 0 0;font-size:12px', textContent: 'Empty' }));
   };
   // Room cards grouped by the family they are for
@@ -1056,7 +1095,7 @@ $('aTpl').replaceChildren(...TPL.map((t, i) => el('option', { value: i, textCont
 function audience() {
   const w = $('aWho').value, a = active().filter(g => !/^vendor/i.test(g.side));
   if (w === 'all') return a;
-  if (w === '1s') { const d1 = a.filter(g => g.days.includes(1)); return d1.some(g => g.accommodation) ? d1.filter(g => g.accommodation) : d1; }  // once rooms are given out, only those with a room
+  if (w === '1s') { const d1 = a.filter(g => g.days.includes(1)); return d1.some(hasRoom) ? d1.filter(hasRoom) : d1; }  // once rooms are given out, only those with a room
   return a.filter(g => g.days.includes(+w));
 }
 function renderAnnounce() {
@@ -1386,7 +1425,7 @@ function renderOverview() {
   const days = Math.max(0, Math.floor((T(20, '12:00') - Date.now()) / 864e5));
   const open = items('task').filter(t => !t.data.done), late = open.filter(t => t.data.due && t.data.due < today());
   const ms = items('menu'), vs = items('vendor'), notBooked = vs.filter(v => /Enquiry|Quotes|To book/.test(v.data.status));
-  const staying = gst.filter(g => g.days.includes(1)), placed = staying.filter(g => g.accommodation);
+  const staying = gst.filter(g => g.days.includes(1)), placed = staying.filter(g => !roomless(g)), roomed = staying.reduce((n, g) => n + sleepers(g).length - roomless(g), 0), stayN = staying.reduce((n, g) => n + sleepers(g).length, 0);
   $('oStats').replaceChildren(...[[days, 'Days to go'], [sum(gst), 'Guests RSVPed'], [inr(m.paid.groom + m.paid.bride) + ' / ' + inr(m.total.groom + m.total.bride), 'Paid of the total'], [late.length, 'Overdue to-dos']]
     .map(([n, l]) => el('div', { className: 'stat', style: l === 'Overdue to-dos' && n ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
   const card = (title, tab, lines) => {
@@ -1403,7 +1442,7 @@ function renderOverview() {
     card('To-do', 'todo', [open.length + ' still to do · ' + late.length + ' overdue', ...open.sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9'))).slice(0, 4).map(t => (t.data.due < today() ? warn : (x => x))((t.data.due ? new Date(t.data.due).toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' · ' : '') + t.data.title + ' (' + t.data.owner + ')'))]),
     card('Vendors', 'vendors', [vs.filter(v => /Booked|Paid|Advance/.test(v.data.status)).length + ' booked · ' + notBooked.length + ' still to close', ...notBooked.slice(0, 5).map(v => '• ' + v.data.area + ' (' + v.data.status + ')')]),
     card('Menu', 'menu', [ms.filter(it => it.data.status === 'Final').length + ' of ' + ms.length + ' meals final', ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' approved by both families', ...ms.filter(it => !(it.data.ok_groom && it.data.ok_bride)).slice(0, 3).map(it => '• ' + it.data.meal + ': waiting for ' + [it.data.ok_groom ? '' : "groom's", it.data.ok_bride ? '' : "bride's"].filter(Boolean).join(' and ') + ' approval')]),
-    card('Rooms (Wednesday night)', 'rooms', [sum(placed) + ' of ' + sum(staying) + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
+    card('Rooms (Wednesday night)', 'rooms', [roomed + ' of ' + stayN + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
 }
 
 // ---------- vendors ----------
@@ -1482,11 +1521,11 @@ function fmtV(k, v) {
   if (v == null || v === '') return '—';
   if (typeof v === 'boolean') return v ? 'yes' : 'no';
   if (Array.isArray(v)) return v.length ? v.map(x => x && typeof x === 'object' ? (x.name || '?') : (k === 'days' ? DAY_CHIP[x] || x : x)).join(', ') : 'none';
-  if (typeof v === 'object') return Object.keys(v).length + ' entries';
+  if (typeof v === 'object') { const e = Object.entries(v); return !e.length ? 'none' : e.every(([, x]) => typeof x !== 'object') ? e.map(([a, x]) => a + ' → ' + (x === '' ? 'no room' : x)).join(', ') : e.length + ' entries'; }
   if (typeof v === 'number' && MONEYK.some(m => k.includes(m))) return inr(v);
   const t = String(v); return t.length > 60 ? t.slice(0, 57) + '…' : t;
 }
-const FIELDN = { members: 'family names', removed_members: 'removed names', accommodation: 'room', table_no: 'table', veg: 'veg meals', days: 'functions', guests: 'people' };
+const FIELDN = { members: 'family names', removed_members: 'removed names', accommodation: 'room', room_map: 'rooms per person', table_no: 'table', veg: 'veg meals', days: 'functions', guests: 'people' };
 const fieldName = k => FIELDN[k] || k.replace(/^data\./, '').replace(/_/g, ' ').replace(/^ok groom$/, "groom's approval").replace(/^ok bride$/, "bride's approval").replace(/^by$/, 'paid by').replace(/^ref$/, 'UTR / ref').replace(/^how$/, 'paid via');
 function planName(id, kind, data) {
   const it = plan.find(x => x.id === id), d = data || (it ? it.data : null);
@@ -1550,7 +1589,7 @@ let pend = [];
 let toastT = null;
 function toast(msg) { $('toast').textContent = msg; $('toast').hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { $('toast').hidden = true; }, 4500); }
 const gName = id => (guests.find(g => g.id === id) || {}).name || 'a guest';
-const short = v => { const t = Array.isArray(v) ? v.map(x => x && x.name || x).join(', ') : v && typeof v === 'object' ? JSON.stringify(v) : String(v); return t.length > 50 ? t.slice(0, 47) + '…' : t; };
+const short = v => { const t = Array.isArray(v) ? v.map(x => x && x.name || x).join(', ') : v && typeof v === 'object' ? fmtV('', v) : String(v); return t.length > 50 ? t.slice(0, 47) + '…' : t; };
 // One plain sentence describing what a request will do, so the super admin can decide at a glance
 function describeCall(fn, a) {
   if (fn === 'admin_plan_save') {
@@ -1744,7 +1783,7 @@ function showResult(kind, title, lines, extra) {
   box.replaceChildren(el('h2', { className: 'cin', textContent: title }), ...lines.map(t => el('div', { textContent: t })), ...(extra ? [extra] : []));
 }
 function when(ts) { return ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; }
-function infoOf(g) { return [g.name + ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person'), (g.members || []).length ? 'With: ' + g.members.map(m => m.name).join(', ') : '', 'RSVP: ' + g.days.map(d => EV_SHORT[d]).join(', '), g.table_no ? 'Table ' + g.table_no : '', g.accommodation ? 'Room: ' + g.accommodation : ''].filter(Boolean); }
+function infoOf(g) { return [g.name + ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person'), (g.members || []).length ? 'With: ' + g.members.map(m => m.name).join(', ') : '', 'RSVP: ' + g.days.map(d => EV_SHORT[d]).join(', '), g.table_no ? 'Table ' + g.table_no : '', roomsText(g) ? 'Room: ' + roomsText(g) : ''].filter(Boolean); }
 function undoBtn(code, ev) { const u = el('button', { className: 'mini', style: 'margin-top:8px', textContent: 'Undo check-in' }); u.onclick = () => doCheckin(code, ev, true); return u; }
 // Offline queue: check-ins made without signal are kept on this phone and sent when the connection returns
 const QK = 'nd27-queue';
