@@ -58,6 +58,18 @@
         .gold-input { box-sizing:border-box; background:rgba(255,255,255,.14); border:1px solid rgba(245,184,46,.3); color:#fffdfa; border-radius:.75rem; padding:.65rem 1rem; width:100%; font-size:.875rem; transition:border-color .3s; }
         .gold-input:focus { outline:none; border-color:#f5b82e; box-shadow:0 0 0 3px rgba(245,184,46,.15); }
         select.gold-input option { background:#0b7d86; }
+        /* RSVP form: numbered questions and big tap targets */
+        .q { display:flex; align-items:center; gap:.6rem; font-size:1rem; font-weight:600; color:#fff6dc; }
+        .qn { flex:none; width:1.6rem; height:1.6rem; border-radius:50%; background:#f5b82e; color:#086670; font-size:.85rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+        .ql { display:block; font-size:.85rem; color:#fff0b8; margin-bottom:.3rem; }
+        .gold-input.big { font-size:1rem; padding:.8rem 1rem; }
+        .choice { position:relative; display:flex; align-items:center; gap:.65rem; padding:.85rem 1rem; border-radius:.9rem; cursor:pointer; background:rgba(255,255,255,.1); border:1.5px solid rgba(245,184,46,.3); font-size:.95rem; color:#fffdfa; transition:background .2s, border-color .2s; }
+        .choice input { width:1.15rem; height:1.15rem; accent-color:#f5b82e; flex:none; }
+        .choice i { color:#ffd36b; width:1.1rem; text-align:center; }
+        .choice.small { font-size:.85rem; padding:.6rem 1rem; }
+        .choice.day span { display:flex; flex-direction:column; line-height:1.3; }
+        .choice.day small { font-size:.8rem; color:rgba(255,255,255,.72); }
+        .choice:has(input:checked) { background:rgba(245,184,46,.18); border-color:#f5b82e; }
 
         /* Islamic-inspired pointed arch frame */
         .arch { border-radius:999px 999px 1.5rem 1.5rem; border:1px solid rgba(245,184,46,.5); box-shadow:inset 0 0 60px rgba(245,184,46,.08), 0 0 50px rgba(245,184,46,.12); }
@@ -491,29 +503,30 @@
         <div class="glass-deep w-full max-w-lg rounded-2xl p-6 sm:p-8 relative glow max-h-[92vh] overflow-y-auto">
             <button onclick="closeRsvp()" class="absolute top-4 right-4 text-ivory-200/60 hover:text-gold-400 text-xl" aria-label="Close"><i class="fas fa-times"></i></button>
 
-            <form id="rsvp-form" onsubmit="submitRsvp(event)" class="space-y-4">
-                <div class="text-center mb-2">
-                    <p class="font-cinzel text-xs text-gold-400 tracking-widest uppercase">Kindly Respond</p>
-                    <h3 id="rsvp-title" class="font-cinzel text-2xl font-bold gold-text mt-1">Wedding RSVP</h3>
-                    <p class="text-[11px] sm:text-xs text-ivory-200/70 mt-2">Kindly respond by <strong class="text-gold-300">15 December 2026</strong>. RSVP is mandatory. You will receive an entry pass with a QR code. Please show it at the entrance.</p>
+            <form id="rsvp-form" onsubmit="submitRsvp(event)" class="space-y-6">
+                <div class="text-center">
+                    <h3 id="rsvp-title" class="font-cinzel text-2xl font-bold gold-text">Wedding RSVP</h3>
+                    <p class="text-sm text-ivory-200/80 mt-2">Please reply by <strong class="text-gold-300">15 December</strong>.<br>You will get an entry pass to show at the gate.</p>
                 </div>
 
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOUR FULL NAME *</span>
-                    <input class="gold-input" type="text" name="name" required autocomplete="name" placeholder="e.g. Mohsin Khan"></label>
+                <div class="space-y-3">
+                    <p class="q"><span class="qn">1</span> About you</p>
+                    <label class="block"><span class="ql">Your name *</span>
+                        <input class="gold-input big" type="text" name="name" required autocomplete="name" placeholder="Full name"></label>
+                    <label class="block"><span class="ql">Your phone number *</span>
+                        <input class="gold-input big" type="tel" name="phone" required autocomplete="tel" inputmode="tel" pattern="[0-9+\s\(\)\-]{7,}" placeholder="98765 43210"></label>
+                </div>
 
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOUR PHONE NUMBER *</span>
-                    <input class="gold-input" type="tel" name="phone" required autocomplete="tel" inputmode="tel" pattern="[0-9+\s\(\)\-]{7,}" placeholder="+91 98765 43210"></label>
-
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">YOU ARE *</span>
-                    <select class="gold-input" name="side" required onchange="toggleVendor()">
-                        <option>Groom's Guest</option>
-                        <option>Bride's Guest</option>
-                        <option value="Vendor">Vendor / Service Team</option>
-                    </select></label>
-
-                <div id="vendor-fields" class="hidden space-y-4">
-                    <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">SERVICE *</span>
-                        <select class="gold-input" name="vtype">
+                <fieldset class="space-y-3">
+                    <legend class="q"><span class="qn">2</span> Whose guest are you? *</legend>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="choice"><input type="radio" name="side" value="Groom's Guest" required onchange="toggleVendor()"><i class="fas fa-user-tie"></i><span>Groom's side</span></label>
+                        <label class="choice"><input type="radio" name="side" value="Bride's Guest" onchange="toggleVendor()"><i class="fas fa-heart"></i><span>Bride's side</span></label>
+                    </div>
+                    <label class="choice small"><input type="radio" name="side" value="Vendor" onchange="toggleVendor()"><i class="fas fa-briefcase"></i><span>I am a vendor / service team</span></label>
+                    <div id="vendor-fields" class="hidden space-y-3">
+                        <label class="block"><span class="ql">Your service *</span>
+                        <select class="gold-input big" name="vtype">
                             <option>Photography &amp; Video</option>
                             <option>Decor &amp; Flowers</option>
                             <option>Catering</option>
@@ -525,47 +538,46 @@
                             <option>Transport</option>
                             <option>Other</option>
                         </select></label>
-                    <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">COMPANY / BUSINESS NAME *</span>
-                        <input class="gold-input" type="text" name="company" maxlength="80" placeholder="e.g. Lens &amp; Light Studio"></label>
-                </div>
-
-                <fieldset>
-                    <legend class="font-cinzel text-xs text-gold-300 mb-2">ATTENDING EVENTS *</legend>
-                    <div class="space-y-2 text-xs sm:text-sm text-ivory-200/85">
-                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Day 1 (Wed Jan 20) - Haldi & Mehendi, Shukrana, DJ Night" checked class="accent-[#f5b82e] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Day 1 · Wed, Jan 20</b> — Arrival, Haldi &amp; Mehendi, Shukrana &amp; DJ Night</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Nikah (Thu Jan 21, morning) - Nikah, Lunch & Julwa" checked class="accent-[#f5b82e] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Nikah · Thu, Jan 21, morning</b> — Nikah at 10:00 AM, lunch &amp; Julwa</span></label>
-                        <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="event" value="Reception (Thu Jan 21, evening) - Reception / Walima" checked class="accent-[#f5b82e] w-4 h-4 mt-0.5 shrink-0"> <span><b class="text-gold-300 font-semibold">Reception · Thu, Jan 21, evening</b> — Reception / Walima from 6:30 PM</span></label>
-                        <p class="text-[11px] text-ivory-200/55 pt-1">Tick every part you will attend, so we know how many people to expect at each.</p>
+                        <label class="block"><span class="ql">Company name *</span>
+                            <input class="gold-input big" type="text" name="company" maxlength="80" placeholder="e.g. Lens &amp; Light Studio"></label>
                     </div>
                 </fieldset>
 
-                <fieldset>
-                    <legend id="who-title" class="font-cinzel text-xs text-gold-300 mb-2">WHO IS COMING? *</legend>
-                    <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm text-ivory-200/85">
-                        <label class="glass rounded-xl px-3 py-2.5 flex items-center gap-2 cursor-pointer"><input type="radio" name="who" value="solo" required class="accent-[#f5b82e] w-4 h-4" onchange="setWho()"> <span id="who-solo">Just me</span></label>
-                        <label class="glass rounded-xl px-3 py-2.5 flex items-center gap-2 cursor-pointer"><input type="radio" name="who" value="group" class="accent-[#f5b82e] w-4 h-4" onchange="setWho()"> <span id="who-group">Me + family members</span></label>
+                <fieldset class="space-y-2">
+                    <legend class="q"><span class="qn">3</span> Which functions are you coming to? *</legend>
+                    <p class="text-xs text-ivory-200/60">Tick all that apply.</p>
+                    <label class="choice day"><input type="checkbox" name="event" value="Day 1 (Wed Jan 20) - Haldi & Mehendi, Shukrana, DJ Night" checked><i class="fas fa-sun"></i><span><b>Wednesday 20 Jan</b><small>Haldi, Mehendi &amp; DJ Night</small></span></label>
+                    <label class="choice day"><input type="checkbox" name="event" value="Nikah (Thu Jan 21, morning) - Nikah, Lunch & Julwa" checked><i class="fas fa-mosque"></i><span><b>Thursday 21 Jan, morning</b><small>Nikah at 10 AM and lunch</small></span></label>
+                    <label class="choice day"><input type="checkbox" name="event" value="Reception (Thu Jan 21, evening) - Reception / Walima" checked><i class="fas fa-star"></i><span><b>Thursday 21 Jan, evening</b><small>Reception from 6:30 PM</small></span></label>
+                </fieldset>
+
+                <fieldset class="space-y-3">
+                    <legend id="who-title" class="q"><span class="qn">4</span> Who is coming? *</legend>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="choice"><input type="radio" name="who" value="solo" required onchange="setWho()"><i class="fas fa-user"></i><span id="who-solo">Just me</span></label>
+                        <label class="choice"><input type="radio" name="who" value="group" onchange="setWho()"><i class="fas fa-users"></i><span id="who-group">Me + family</span></label>
+                    </div>
+                    <div id="members-box" class="hidden space-y-2">
+                        <p id="members-title" class="ql">Names of your family members *</p>
+                        <p id="members-help" class="text-xs text-ivory-200/60">Write every person's name. Phone is optional.</p>
+                        <div id="members" class="space-y-2"></div>
+                        <div class="flex items-center justify-between gap-3">
+                            <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2.5 rounded-full text-gold-300 text-sm font-semibold hover:border-gold-500/60">+ Add <span id="member-word">another person</span></button>
+                            <span id="party-total" class="text-sm text-ivory-200/85" aria-live="polite">Total: 1</span>
+                        </div>
                     </div>
                 </fieldset>
 
-                <fieldset id="members-box" class="hidden">
-                    <legend id="members-title" class="font-cinzel text-xs text-gold-300 mb-1">FAMILY MEMBERS COMING WITH YOU *</legend>
-                    <p id="members-help" class="text-[11px] text-ivory-200/55 mb-2">Add each person by name, so everyone is on the guest list and gets in at the entrance. Names are required; phone numbers are optional (leave them blank for children).</p>
-                    <div id="members" class="space-y-2"></div>
-                    <div class="flex items-center justify-between gap-3 mt-2">
-                        <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2 rounded-full text-gold-300 font-cinzel text-[11px] tracking-widest hover:border-gold-500/60">+ ADD <span id="member-word">FAMILY MEMBER</span></button>
-                        <span id="party-total" class="text-xs text-ivory-200/80" aria-live="polite">Total guests: 1</span>
-                    </div>
-                </fieldset>
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">HOW MANY IN YOUR GROUP ARE VEGETARIAN?</span>
-                    <select class="gold-input" name="veg" id="veg"><option value="0">None</option><option value="1">1</option></select>
-                    <span class="block text-[11px] text-ivory-200/55 mt-1">Food is cooked to these numbers, so a vegetarian meal is set aside for each person you count here.</span></label>
-                <p id="rooms-note" class="text-[11px] text-ivory-200/55">Rooms and cottages are assigned by the family. We will confirm with you directly if you have a room; please do not book or ask the resort for one.</p>
+                <label class="block space-y-2"><span class="q"><span class="qn">5</span> Anyone vegetarian?</span>
+                    <select class="gold-input big" name="veg" id="veg"><option value="0">No one</option><option value="1">1</option></select></label>
 
-                <label class="block"><span class="block font-cinzel text-xs text-gold-300 mb-1">WARM NOTE / BLESSINGS</span>
-                    <textarea class="gold-input" name="note" rows="3" placeholder="Write your warm blessings..."></textarea></label>
+                <label class="block space-y-2"><span class="q"><span class="qn">6</span><span>A message for the couple <span class="text-ivory-200/50 font-normal">(optional)</span></span></span>
+                    <textarea class="gold-input big" name="note" rows="2" placeholder="Your duas and wishes"></textarea></label>
 
-                <p id="rsvp-error" class="text-xs text-red-300 min-h-[1em]" role="alert"></p>
-                <button type="submit" class="btn-gold w-full py-3 rounded-xl font-cinzel text-xs font-bold tracking-widest glow">CONFIRM RESERVATION</button>
+                <p id="rooms-note" class="text-xs text-ivory-200/60"><i class="fas fa-bed mr-1 text-gold-400"></i>Rooms are arranged by the family. Please do not book with the resort.</p>
+
+                <p id="rsvp-error" class="text-sm text-red-300 min-h-[1em]" role="alert"></p>
+                <button type="submit" class="btn-gold w-full py-4 rounded-xl text-base font-bold tracking-wide glow"><i class="fas fa-paper-plane mr-2"></i>Send my RSVP</button>
             </form>
 
             <div id="rsvp-success" class="hidden text-center space-y-3">
@@ -937,9 +949,9 @@
         function memberRows() { return [...membersEl.children]; }
         function updateParty() {
             const n = memberRows().length;
-            document.getElementById('party-total').textContent = 'Total guests: ' + (n + 1);
+            document.getElementById('party-total').textContent = 'Total: ' + (n + 1) + (n ? ' people' : ' person');
             const veg = form.veg, keep = Math.min(+veg.value || 0, n + 1);
-            veg.replaceChildren(...Array.from({ length: n + 2 }, (_, i) => { const o = el('option', '', i ? String(i) : 'None'); o.value = i; return o; }));
+            veg.replaceChildren(...Array.from({ length: n + 2 }, (_, i) => { const o = el('option', '', i ? String(i) : 'No one'); o.value = i; return o; }));
             veg.value = keep;
             document.getElementById('add-member').classList.toggle('hidden', n >= MAX_MEMBERS);
             memberRows().forEach((row, i) => row.querySelector('.m-num').textContent = (i + 2) + '.');
@@ -954,8 +966,8 @@
         function addMember() {
             if (memberRows().length >= MAX_MEMBERS) return;
             const row = el('div', 'flex items-start gap-2');
-            const name = el('input', 'gold-input m-name'); name.type = 'text'; name.required = true; name.maxLength = 100; name.placeholder = 'Full name *'; name.setAttribute('aria-label', 'Family member name');
-            const phone = el('input', 'gold-input m-phone'); phone.type = 'tel'; phone.inputMode = 'tel'; phone.maxLength = 30; phone.pattern = '[0-9+\\s\\(\\)\\-]{7,}'; phone.placeholder = 'Phone (optional)'; phone.setAttribute('aria-label', 'Family member phone');
+            const name = el('input', 'gold-input big m-name'); name.type = 'text'; name.required = true; name.maxLength = 100; name.placeholder = 'Full name *'; name.setAttribute('aria-label', 'Family member name');
+            const phone = el('input', 'gold-input big m-phone'); phone.type = 'tel'; phone.inputMode = 'tel'; phone.maxLength = 30; phone.pattern = '[0-9+\\s\\(\\)\\-]{7,}'; phone.placeholder = 'Phone (optional)'; phone.setAttribute('aria-label', 'Family member phone');
             const fields = el('div', 'flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2'); fields.append(name, phone);
             const rm = el('button', 'glass w-9 h-9 shrink-0 rounded-full text-gold-300 hover:text-red-300', '×'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove this person');
             rm.onclick = () => { row.remove(); updateParty(); };
@@ -969,12 +981,12 @@
             document.getElementById('vendor-fields').classList.toggle('hidden', !v);
             form.company.required = v;
             document.getElementById('rooms-note').classList.toggle('hidden', v);
-            document.getElementById('members-title').textContent = v ? 'CREW MEMBERS COMING WITH YOU *' : 'FAMILY MEMBERS COMING WITH YOU *';
-            document.getElementById('who-group').textContent = v ? 'Me + crew members' : 'Me + family members';
-            document.getElementById('member-word').textContent = v ? 'CREW MEMBER' : 'FAMILY MEMBER';
+            document.getElementById('members-title').textContent = v ? 'Names of your crew members *' : 'Names of your family members *';
+            document.getElementById('who-group').textContent = v ? 'Me + my team' : 'Me + family';
+            document.getElementById('member-word').textContent = 'another person';
             document.getElementById('members-help').textContent = v
-                ? 'Add everyone in your team who will be on site, with a phone number, so they can be let in at the entrance.'
-                : 'Add each person by name, so everyone is on the guest list and gets in at the entrance. Names are required; phone numbers are optional (leave them blank for children).';
+                ? 'Write the name of everyone in your team. Phone is optional.'
+                : 'Write every person\'s name. Phone is optional.';
         }
         function readMembers() {
             return memberRows().map(row => ({ name: row.querySelector('.m-name').value.trim(), phone: row.querySelector('.m-phone').value.trim() })).filter(m => m.name);
