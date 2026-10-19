@@ -173,7 +173,8 @@
   /* Notifications, dialogs, the approvals bell */
   #toast:not([hidden]) { animation:toastIn .5s var(--spring) both; backdrop-filter:blur(10px); background:rgba(8,79,87,.92); }
   @keyframes toastIn { from { opacity:0; transform:translate(-50%,30px) scale(.9); } to { opacity:1; transform:translate(-50%,0); } }
-  #whoDlg:not([hidden]) { animation:sheetUp .45s var(--spring) both; }
+  #whoDlg:not([hidden]), #viewDlg:not([hidden]) { animation:sheetUp .45s var(--spring) both; }
+  .vw-diff { background:rgba(245,184,46,.14); } #viewBody td, #viewBody th { overflow-wrap:anywhere; } #viewBody th:first-child, #viewBody td:first-child { width:22%; } .vw-mine { border-style:dashed !important; border-color:var(--warn) !important; }
   @keyframes sheetUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:none; } }
   #rcpt:not([hidden]) { animation:fade .25s ease both; } #rcpt:not([hidden]) img { animation:zoomIn .4s var(--spring) both; }
   @keyframes fade { from { opacity:0; } } @keyframes zoomIn { from { transform:scale(.85); opacity:0; } }
@@ -517,6 +518,11 @@
     </section>
 
     <!-- My account -->
+    <div id="viewDlg" class="panel" hidden role="dialog" aria-labelledby="viewTitle" style="position:fixed;inset:5vh 12px auto 12px;max-width:760px;max-height:88vh;overflow:auto;margin:0 auto;z-index:55;background:#075c66;box-shadow:0 10px 40px rgba(0,0,0,.55)">
+      <div class="row" style="justify-content:space-between;align-items:center;gap:8px"><p class="cin" style="margin:0;color:var(--gold2)" id="viewTitle">Both families' views</p><button class="btn ghost sm" id="viewClose" type="button">Close</button></div>
+      <p class="muted" id="viewHint" style="margin:6px 0 10px;font-size:13px"></p>
+      <div id="viewBody"></div>
+    </div>
     <div id="whoDlg" class="panel" hidden style="position:fixed;inset:auto 16px 16px 16px;max-width:460px;margin:0 auto;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.5)">
       <p class="cin" style="margin:0 0 6px;color:var(--gold2)" id="whoTitle">My account</p>
       <p class="muted" id="whoMust" hidden style="margin:0 0 10px;font-size:13px;color:var(--warn)">Please choose your own passphrase now. Don't share it with anyone, so every change under your name is really yours.</p>
@@ -625,6 +631,9 @@ let guests = [], timer = null;
 // Family logins cannot change data directly: their edits become requests the super admin approves
 const WRITES = new Set(['admin_add', 'admin_update', 'admin_save_members', 'admin_set_members', 'admin_invites_add', 'admin_invite_update', 'admin_setting_set', 'admin_plan_save', 'admin_plan_remove', 'admin_receipt_add', 'admin_receipt_remove']);
 const queued = e => e && e.message === 'queued';
+// Family logins can only change their own side's guests and invites
+const otherFam = side => !!(ME && !ME.owner && (ME.fam[0] === 'G' ? /^bride/i : /^groom/i).test(side || ''));
+const LOCK_T = "This is the other family's guest. Only they or Nadeem can change it.";
 async function rpc(fn, args) {
   if (ME && !ME.owner && WRITES.has(fn)) {
     await rpc('admin_propose', { p_fn: fn, p_args: args || {}, p_summary: (() => { try { return describeCall(fn, args || {}); } catch (e) { return fn.replace('admin_', '').replace(/_/g, ' '); } })() });
@@ -633,7 +642,7 @@ async function rpc(fn, args) {
   }
   const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ p_key: KEY }, args || {})) });
   if (r.status === 403 || r.status === 401) { signOut(); throw new Error('forbidden'); }
-  if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+  if (!r.ok) { const j = await r.json().catch(() => ({})); if (j && j.message === 'other family') { toast(LOCK_T); throw new Error('other family'); } throw new Error('Request failed (' + r.status + ')'); }
   return r.json();
 }
 
@@ -698,6 +707,7 @@ function filtered() {
 }
 function field(g, key, ph) {
   const inp = el('input', { value: g[key] || '', placeholder: ph, maxLength: 100 }); inp.setAttribute('aria-label', key.replace('_', ' ') + ' for ' + g.name);
+  if (otherFam(g.side)) { inp.disabled = true; inp.title = LOCK_T; }
   inp.addEventListener('change', async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { [key]: inp.value } }); g[key] = inp.value; inp.style.borderColor = 'var(--ok)'; setTimeout(() => inp.style.borderColor = '', 900); } catch (e) { inp.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } });
   return inp;
 }
@@ -728,6 +738,7 @@ function render() {
         }
       } catch (e) {}
     };
+    const theirs = otherFam(g.side);
     const nameTd = el('td', { style: 'min-width:240px' }, el('div', { textContent: g.name, style: 'font-weight:600' }));
     const missing = g.guests - 1 - (g.members || []).length;
     if (missing > 0) nameTd.append(el('div', { style: 'font-size:12px;margin-top:2px;color:var(--warn)', textContent: missing + (missing > 1 ? ' names' : ' name') + ' not given yet' }));
@@ -737,21 +748,21 @@ function render() {
       else if (m.phone && /Hidden/.test(m.phone)) line.append(' · 🔒');
       const x = el('button', { className: 'mini', textContent: 'Remove', title: 'Take ' + m.name + ' off the guest list' });
       x.onclick = () => moveMember(g, m, false, x);
-      line.append(' ', x); nameTd.append(line);
+      if (!theirs) line.append(' ', x); nameTd.append(line);
     });
     (g.removed_members || []).forEach(m => {
       const line = el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px;opacity:.75' }, el('s', { textContent: m.name }), ' · removed ');
       const r = el('button', { className: 'mini', textContent: 'Restore', title: 'Put ' + m.name + ' back on the guest list' });
       r.onclick = () => moveMember(g, m, true, r);
-      line.append(r); nameTd.append(line);
+      if (!theirs) line.append(r); nameTd.append(line);
     });
     const ed = el('button', { className: 'btn ghost sm', textContent: (g.members || []).length ? 'Edit names' : '+ Add names', style: 'margin-top:6px' });
     ed.onclick = () => editNames(g, nameTd, ed);
-    nameTd.append(ed);
+    if (!theirs) nameTd.append(ed);
     tr.append(nameTd, phone, el('td', { textContent: g.side.replace(' Guest', '') }), days,
       el('td', { style: 'text-align:center' }, String(g.guests), g.veg ? el('div', { className: 'muted', style: 'font-size:12px', textContent: g.veg + ' veg' }) : ''),
       el('td', {}, field(g, 'table_no', 'Table')), el('td', {}, field(g, 'meal', 'Meal')), el('td', {}, field(g, 'accommodation', 'Room / hotel')),
-      noteTd, el('td', { className: 'code', textContent: g.pass_code }), el('td', {}, ci), el('td', {}, rm));
+      noteTd, el('td', { className: 'code', textContent: g.pass_code }), el('td', {}, ci), el('td', {}, theirs ? el('span', { className: 'muted', style: 'font-size:12px', title: LOCK_T, textContent: '🔒 Their family' }) : rm));
     return tr;
   }));
   $('count').textContent = 'Showing ' + list.length + ' of ' + guests.length + ' records';
@@ -916,14 +927,15 @@ function renderInvites() {
   $('iRows').replaceChildren(...(list.length ? list.map(i => {
     const reply = i.rsvp ? el('td', {}, el('span', { className: 'chip', style: 'border-color:var(--ok);color:var(--ok)', textContent: '✓ Replied' }), el('div', { className: 'muted', style: 'font-size:12px', textContent: i.rsvp.guests + (i.rsvp.guests > 1 ? ' people · ' : ' person · ') + i.rsvp.pass_code })) : el('td', {}, el('span', { className: 'chip', style: 'border-color:var(--warn);color:var(--warn)', textContent: 'Not yet' }));
     const act = el('td', { style: 'white-space:nowrap' });
-    if (!i.rsvp && waNum(i.phone)) {
+    if (otherFam(i.side)) act.append(el('span', { className: 'muted', style: 'font-size:12px', title: LOCK_T, textContent: '🔒 Their family' }));
+    else if (!i.rsvp && waNum(i.phone)) {
       const w = el('a', { className: 'btn sm', href: waLink(i.phone, remindMsg(i.name)), target: '_blank', rel: 'noopener', textContent: 'WhatsApp reminder' });
       w.addEventListener('click', () => { rpc('admin_invite_update', { p_id: i.id, p_fields: { reminded: true } }).then(loadInvites).catch(() => {}); });
       act.append(w, ' ');
     }
     const rm = el('button', { className: 'mini', textContent: 'Remove' });
     rm.onclick = async () => { await rpc('admin_invite_update', { p_id: i.id, p_fields: { removed: true } }); loadInvites(); };
-    act.append(rm);
+    if (!otherFam(i.side)) act.append(rm);
     return el('tr', {}, el('td', { textContent: i.name, style: 'font-weight:600' }), el('td', { className: 'muted', textContent: i.phone || '—' }), el('td', { textContent: i.side.replace(' Guest', '') }),
       reply, el('td', { className: 'muted', textContent: i.reminded_at ? new Date(i.reminded_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '' }), act);
   }) : [el('tr', {}, el('td', { colSpan: 6, className: 'empty', textContent: all.length ? 'No one matches these filters.' : 'No one on the invited list yet. Add the people you have invited above.' }))]));
@@ -995,6 +1007,7 @@ function roomPicker(g, cur, onPick, first) {
   });
   if (cur && ![...sel.options].some(o => o.value === cur)) sel.append(el('option', { value: cur, textContent: cur }));
   sel.value = cur || '';
+  if (otherFam(g.side)) { sel.disabled = true; sel.title = LOCK_T; }
   sel.onchange = async () => { try { await onPick(sel.value); renderRooms(); } catch (e) { sel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } };
   return sel;
 }
@@ -1121,8 +1134,9 @@ function showWho() { $('whoBtn').textContent = '👤 ' + (ME ? meLabel() : ''); 
 function setMe(me) {
   ME = me; try { localStorage.setItem('nd27-me', JSON.stringify(me)); } catch (e) {}
   showWho(); $('accessTab').hidden = !me.owner;
+  ['aSide', 'iSide'].forEach(id => { const sel = $(id); [...sel.options].forEach(o => { o.disabled = otherFam(o.value); }); if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = [...sel.options].find(o => !o.disabled).value; });
   $('famNote').hidden = me.owner;
-  $('famNote').textContent = 'Signed in as ' + me.name + '. Anything you add or change is sent to Nadeem for approval and shows in the panel once he approves it. Door check-ins work straight away.';
+  $('famNote').textContent = 'Signed in as ' + me.name + '. On Menu, Vendors and Budget your edits are saved as your family\'s view (dashed amber boxes), next to the other family\'s view, and Nadeem picks the final one. Guest changes, new items and removals are sent to Nadeem for approval; you can only change your own side\'s guests. Door check-ins work straight away.';
   $('apprIntro').textContent = me.owner ? 'Requests from the family logins. Nothing they send changes the panel until you approve it.' : 'Everything you have sent for approval, and what was decided.';
   loadPending();
   if (me.must_change) openAccount();
@@ -1147,7 +1161,7 @@ $('pwSave').onclick = async () => {
 };
 
 // ---------- planning data (budget, payments, vendors, to-dos, duties) ----------
-let plan = [], cap = 300000, emergency = {};
+let plan = [], cap = 300000, emergency = {}, opinions = [];
 const inr = n => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
 const items = k => plan.filter(x => x.kind === k && !x.removed);
 let receipts = [];
@@ -1174,8 +1188,8 @@ async function addReceipt(paymentId, file) {
 async function showReceipt(id) { try { $('rcptImg').src = await rpc('admin_receipt_get', { p_id: id }); $('rcpt').hidden = false; } catch (e) {} }
 async function loadPlan() {
   try {
-    const [rows, st, rc] = await Promise.all([rpc('admin_plan'), rpc('admin_settings'), rpc('admin_receipts')]);
-    plan = rows; receipts = rc;
+    const [rows, st, rc, ops] = await Promise.all([rpc('admin_plan'), rpc('admin_settings'), rpc('admin_receipts'), rpc('admin_opinions').catch(() => [])]);
+    plan = rows; receipts = rc; opinions = ops || [];
     const b = st.find(x => x.key === 'budget'); cap = b && b.value && b.value.cap != null ? +b.value.cap : 300000;
     const em = st.find(x => x.key === 'emergency'); emergency = em ? em.value : {};
     const r = st.find(x => x.key === 'rooms'); if (r && Array.isArray(r.value)) rooms = r.value;
@@ -1188,24 +1202,102 @@ function renderPlan() {
   if (!$('tab-budget').hidden) renderBudget();
   if (!$('tab-vendors').hidden) renderVendors();
   if (!$('tab-todo').hidden) renderTodo();
+  if (!$('viewDlg').hidden) renderViewDlg();
 }
 // Save one item's data; the change is stamped with who made it
 async function savePlan(it, patch, kind, extra) {
   if (!ME) throw new Error('who');
+  if (it && mySide() && VIEW_KINDS[it.kind] && Object.keys(patch).some(k => !/^ok_/.test(k))) return saveView(it, mySide(), patch);
   const data = Object.assign({}, it ? it.data : {}, patch);
   const row = await rpc('admin_plan_save', Object.assign({ p_id: it ? it.id : null, p_kind: it ? it.kind : kind, p_data: data, p_by: meLabel() }, extra || {}));
   const i = plan.findIndex(x => x.id === row.id); if (i >= 0) plan[i] = row; else plan.push(row);
   return row;
 }
 async function removePlan(it) { await rpc('admin_plan_remove', { p_id: it.id, p_removed: true, p_by: meLabel() }); it.removed = true; renderPlan(); }
+// ---------- two views: each family keeps its own version of a menu, vendor or budget item; Nadeem picks the final ----------
+const VIEW_KINDS = {
+  menu: [['dishes', 'Dishes'], ['veg', 'Vegetarian option'], ['rate', '₹ per plate'], ['plates', 'Plates'], ['payer', 'Paid by'], ['status', 'Status'], ['notes', 'Notes for the caterer']],
+  vendor: [['area', 'Area'], ['name', 'Vendor / business'], ['contact', 'Contact person'], ['phone', 'Phone'], ['quote', 'Quote / amount'], ['status', 'Status'], ['owner', 'Handled by'], ['scope', 'What they cover'], ['upi', 'UPI ID'], ['bank', 'Bank account'], ['ifsc', 'IFSC'], ['adv_due', 'Advance due by'], ['bal_due', 'Balance due by'], ['notes', 'Notes']],
+  budget: [['item', 'Item'], ['budget', 'Budget'], ['agreed', 'Agreed price'], ['split_groom', "Groom's family %"], ['group', 'Section'], ['status', 'Status'], ['notes', 'Notes']]
+};
+const SIDEN = { groom: "Groom's family", bride: "Bride's family" };
+const mySide = () => ME && !ME.owner ? (ME.fam[0] === 'G' ? 'groom' : 'bride') : null;
+const viewOf = (it, side) => opinions.find(o => o.item_id === it.id && o.side === side);
+const openViews = it => opinions.filter(o => o.item_id === it.id && o.status === 'open' && (Object.keys(o.data).length || o.note));
+const same = (a, b) => String(a == null ? '' : a) === String(b == null ? '' : b);
+// What a family login sees in a box: their own view if they have one, otherwise the final value
+const viewVal = (it, key) => { const sd = mySide(), o = sd && VIEW_KINDS[it.kind] && viewOf(it, sd); return o && key in o.data ? o.data[key] : it.data[key]; };
+const isMine = (it, key) => { const sd = mySide(), o = sd && viewOf(it, sd); return !!(o && key in o.data && !same(o.data[key], it.data[key])); };
+async function saveView(it, side, patch, note) {
+  const o = viewOf(it, side), data = Object.assign({}, o ? o.data : {}, patch);
+  Object.keys(data).forEach(k => { if (same(data[k], it.data[k])) delete data[k]; });  // keep only what differs from the final
+  const row = await rpc('admin_opinion_save', { p_item: it.id, p_side: side, p_data: data, p_note: note != null ? note : o ? o.note : '' });
+  opinions = opinions.filter(x => !(x.item_id === it.id && x.side === side)); if (row && row.item_id) opinions.push(row);
+  if (mySide()) toast("Saved as your family's view ✓ Nadeem will pick the final.");
+  return it;
+}
+const fmtField = (k, v) => v == null || v === '' ? '—' : k === 'payer' || k === 'group' ? (PAYER[v] || v) : typeof v === 'number' && /rate|budget|agreed/.test(k) ? inr(v) : String(v);
+function viewsBtn(it) {
+  if (!VIEW_KINDS[it.kind]) return '';
+  const n = openViews(it).length, sd = mySide();
+  if (!n && !sd) return '';
+  const b = el('button', { className: 'mini', type: 'button', textContent: n ? (ME && ME.owner ? n + (n > 1 ? ' views' : ' view') + ' to settle' : 'Views (' + n + ')') : 'Compare views', title: "See the groom's and bride's views side by side" });
+  if (n && ME && ME.owner) b.style.cssText = 'border-color:var(--warn);color:var(--warn)';
+  b.onclick = () => openViewDlg(it);
+  return b;
+}
+const itemTitle = it => it.kind === 'menu' ? (it.data.when ? it.data.when + ' · ' : '') + it.data.meal : it.kind === 'vendor' ? (it.data.area || 'Vendor') + (it.data.name ? ' · ' + it.data.name : '') : it.data.item;
+let viewIt = null;
+function openViewDlg(it) { viewIt = it; renderViewDlg(); $('viewDlg').hidden = false; }
+$('viewClose').onclick = () => { $('viewDlg').hidden = true; viewIt = null; };
+function renderViewDlg() {
+  const it = viewIt && plan.find(x => x.id === viewIt.id); if (!it) { $('viewDlg').hidden = true; return; }
+  viewIt = it;
+  const owner = ME && ME.owner, sd = mySide(), g = viewOf(it, 'groom'), b = viewOf(it, 'bride');
+  $('viewTitle').textContent = itemTitle(it);
+  $('viewHint').textContent = owner ? "Each family's changes are kept apart from the final. Tap Use to take one value, or finalise one family's whole view." : 'Your edits on this page are your family\'s view. They do not change the final; Nadeem picks between both views.';
+  const val = (o, k) => o && k in o.data ? o.data[k] : it.data[k];
+  const fields = VIEW_KINDS[it.kind].filter(([k]) => [g, b].some(o => o && k in o.data) || it.data[k] != null && it.data[k] !== '');
+  const colHead = o => el('th', {}, SIDEN[o], (o === 'groom' ? g : b) ? el('div', { className: 'by', textContent: ((o === 'groom' ? g : b).status !== 'open' ? (o === 'groom' ? g : b).status + ' · ' : '') + atTime((o === 'groom' ? g : b).at) }) : el('div', { className: 'by', textContent: 'no changes' }));
+  const useBtn = (k, v) => { const u = el('button', { className: 'mini', type: 'button', textContent: 'Use', title: 'Make this the final' }); u.onclick = async () => { try { await savePlan(it, { [k]: v }); renderPlan(); renderViewDlg(); } catch (e) { toast('Could not save. Try again.'); } }; return u; };
+  const cellFor = (o, side, k) => {
+    const v = val(o, k), diff = o && k in o.data && !same(v, it.data[k]);
+    return el('td', { className: diff ? 'vw-diff' : 'muted', style: 'white-space:pre-wrap;max-width:240px' }, fmtField(k, v), owner && diff ? el('div', { style: 'margin-top:4px' }, useBtn(k, v)) : '');
+  };
+  const rows = fields.map(([k, label]) => el('tr', {}, el('td', { style: 'font-weight:600' }, label), el('td', { style: 'white-space:pre-wrap;max-width:240px' }, fmtField(k, it.data[k])), cellFor(g, 'groom', k), cellFor(b, 'bride', k)));
+  const notes = el('tr', {}, el('td', { style: 'font-weight:600' }, 'Why / note'), el('td', { className: 'muted' }, '—'), ...['groom', 'bride'].map(side => {
+    const o = viewOf(it, side);
+    if (side !== sd) return el('td', { className: 'muted', style: 'white-space:pre-wrap' }, o && o.note ? o.note : '—');
+    const t = el('textarea', { rows: 2, maxLength: 500, value: o ? o.note : '', placeholder: 'Why your family prefers this' }); t.style.width = '100%';
+    t.onchange = async () => { try { await saveView(it, side, {}, t.value.trim()); t.style.borderColor = 'var(--ok)'; } catch (e) { t.style.borderColor = 'var(--bad)'; } };
+    return el('td', {}, t);
+  }));
+  const tbl = el('div', { className: 'scroll' }, el('table', { style: 'width:100%;min-width:520px;table-layout:fixed;font-size:13px' }, el('thead', {}, el('tr', {}, el('th', {}, 'Field'), el('th', {}, 'Final now'), colHead('groom'), colHead('bride'))), el('tbody', {}, ...rows, notes)));
+  const act = el('div', { className: 'row', style: 'gap:8px;margin-top:10px;flex-wrap:wrap' });
+  if (owner) {
+    [['groom', g], ['bride', b]].forEach(([side, o]) => { if (!o || !Object.keys(o.data).length) return;
+      const f = el('button', { className: 'btn sm', type: 'button', textContent: 'Finalise ' + (side === 'groom' ? "groom's" : "bride's") + ' view' });
+      f.onclick = async () => { f.disabled = true; try { await savePlan(it, o.data); await rpc('admin_opinion_close', { p_item: it.id, p_chosen: side }); await loadPlan(); renderViewDlg(); toast(SIDEN[side] + "'s view is now final ✓"); } catch (e) { f.disabled = false; toast('Could not save. Try again.'); } };
+      act.append(f); });
+    if (g || b) { const k = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Settle with the final as it is' });
+      k.onclick = async () => { try { await rpc('admin_opinion_close', { p_item: it.id, p_chosen: 'final' }); await loadPlan(); renderViewDlg(); toast('Settled ✓'); } catch (e) { toast('Could not save. Try again.'); } }; act.append(k); }
+  } else if (sd && viewOf(it, sd)) {
+    const c = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Clear my view' });
+    c.onclick = async () => { try { await rpc('admin_opinion_save', { p_item: it.id, p_side: sd, p_data: {}, p_note: '' }); opinions = opinions.filter(x => !(x.item_id === it.id && x.side === sd)); renderPlan(); renderViewDlg(); } catch (e) { toast('Could not clear it. Try again.'); } };
+    act.append(c);
+  }
+  $('viewBody').replaceChildren(tbl, act);
+}
+
 // A text or number input that saves itself when it loses focus
 function cell(it, key, opts) {
   opts = opts || {};
-  const v = it.data[key], inp = el(opts.area ? 'textarea' : 'input', { value: v == null ? '' : v, placeholder: opts.ph || '', maxLength: opts.max || 300 });
+  const v = viewVal(it, key), inp = el(opts.area ? 'textarea' : 'input', { value: v == null ? '' : v, placeholder: opts.ph || '', maxLength: opts.max || 300 });
   if (opts.num) { inp.type = 'number'; inp.min = 0; inp.className = 'num'; }
   if (opts.date) inp.type = 'date';
   if (opts.area) inp.rows = opts.rows || 2;
   inp.style.width = '100%';
+  if (isMine(it, key)) { inp.classList.add('vw-mine'); inp.title = "Your family's view · final: " + fmtField(key, it.data[key]); }
   inp.addEventListener('change', async () => {
     const val = opts.num ? (inp.value === '' ? null : Math.max(0, Math.round(+inp.value))) : inp.value.trim();
     try { await savePlan(it, { [key]: val }); inp.style.borderColor = 'var(--ok)'; setTimeout(() => { inp.style.borderColor = ''; renderPlan(); }, 600); }
@@ -1215,8 +1307,9 @@ function cell(it, key, opts) {
 }
 function pick(it, key, options) {
   const s = el('select', {}); options.forEach(o => s.append(el('option', { value: o, textContent: o })));
-  s.value = it.data[key] || options[0];
-  s.addEventListener('change', async () => { try { await savePlan(it, { [key]: s.value }); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; s.value = it.data[key] || options[0]; } });
+  s.value = viewVal(it, key) || options[0];
+  if (isMine(it, key)) { s.classList.add('vw-mine'); s.title = "Your family's view · final: " + (it.data[key] || options[0]); }
+  s.addEventListener('change', async () => { try { await savePlan(it, { [key]: s.value }); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; s.value = viewVal(it, key) || options[0]; } });
   return s;
 }
 const stamp = it => it.updated_by ? el('div', { className: 'by', textContent: 'Updated by ' + it.updated_by + ' · ' + new Date(it.updated_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) }) : '';
@@ -1261,7 +1354,7 @@ function renderBudget() {
       const c = cost(it), paid = paidFor(it.id), over = it.data.agreed != null && it.data.agreed !== '' && +it.data.agreed > +it.data.budget;
       const x = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); x.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
       body.append(el('tr', {},
-        el('td', { style: 'min-width:260px' }, cell(it, 'item', { max: 200 }), stamp(it)),
+        el('td', { style: 'min-width:260px' }, cell(it, 'item', { max: 200 }), stamp(it), viewsBtn(it)),
         el('td', { className: 'money' }, cell(it, 'budget', { num: true })),
         el('td', { className: 'money' }, cell(it, 'agreed', { num: true, ph: '—' }), over ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(+it.data.agreed - it.data.budget) + ' over' }) : ''),
         el('td', { className: 'money', textContent: inr(paid) }),
@@ -1288,9 +1381,9 @@ function renderBudget() {
       // Edit the cost here: it sets the agreed price (the budget figure shows until a price is agreed)
       const price = cell(it, 'agreed', { num: true, ph: String(+it.data.budget || 0) }); price.style.minWidth = '115px'; price.style.maxWidth = '130px'; price.title = 'Agreed price. Leave blank to use the budget of ' + inr(it.data.budget);
       const sec = el('select', { title: 'Move this line to another section' }); GROUPS.forEach(([gk, gl]) => sec.append(el('option', { value: gk, textContent: gl })));
-      sec.value = it.data.group; sec.onchange = async () => { try { await savePlan(it, { group: sec.value, split_groom: null }); renderPlan(); } catch (e) { sec.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; sec.value = it.data.group; } };
+      sec.value = viewVal(it, 'group'); if (isMine(it, 'group')) sec.classList.add('vw-mine'); sec.onchange = async () => { try { await savePlan(it, { group: sec.value, split_groom: null }); renderPlan(); } catch (e) { sec.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; sec.value = it.data.group; } };
       const rm = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); rm.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
-      wb.append(el('tr', {}, el('td', { style: 'min-width:240px' }, cell(it, 'item', { max: 200 })), el('td', { className: 'money' }, price, it.data.status === 'Not needed' ? el('div', { className: 'by', textContent: 'Not needed: counts as ₹0' }) : ''), el('td', {}, pct), el('td', {}, sec),
+      wb.append(el('tr', {}, el('td', { style: 'min-width:240px' }, cell(it, 'item', { max: 200 }), viewsBtn(it)), el('td', { className: 'money' }, price, it.data.status === 'Not needed' ? el('div', { className: 'by', textContent: 'Not needed: counts as ₹0' }) : ''), el('td', {}, pct), el('td', {}, sec),
         el('td', { className: 'money', textContent: inr(sv.gs) }), el('td', { className: 'money', textContent: inr(sv.bs) }),
         el('td', { className: 'money', textContent: inr(sv.gp) }), el('td', { className: 'money', textContent: inr(sv.bp) }), due(sv.gd), due(sv.bd), el('td', {}, rm)));
     });
@@ -1404,11 +1497,11 @@ function renderMenu() {
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('div', {}, el('div', { className: 'by', textContent: it.data.when }), el('b', { className: 'cin', textContent: it.data.meal })), pick(it, 'status', M_STATUS)),
       lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
       lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
-      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t }))); s.value = it.data.payer; s.onchange = async () => { try { await savePlan(it, { payer: s.value }); renderMenu(); } catch (e) {} }; return s; })())),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t }))); s.value = viewVal(it, 'payer'); if (isMine(it, 'payer')) s.classList.add('vw-mine'); s.onchange = async () => { try { await savePlan(it, { payer: s.value }); renderMenu(); } catch (e) {} }; return s; })())),
       el('div', { className: 'by', style: 'margin-top:4px', textContent: 'From RSVPs: ' + pl.n + ' guests (' + pl.veg + ' veg) + 5% spare = ' + pl.auto + ' plates' + (pl.crew ? ' · plus ' + pl.crew + ' vendor crew' : '') + ' · estimate ' + inr((+it.data.rate || 0) * pl.plates) }),
       lab('Notes for the caterer', cell(it, 'notes', { area: true, rows: 2, max: 400 })),
       el('div', { className: 'row', style: 'gap:8px;margin-top:8px' }, approve(it, 'groom'), approve(it, 'bride')),
-      el('div', { style: 'margin-top:6px' }, stamp(it)));
+      el('div', { className: 'row', style: 'margin-top:6px;justify-content:space-between;align-items:center' }, stamp(it), viewsBtn(it)));
   }));
 }
 $('mCopy').onclick = async () => {
@@ -1442,6 +1535,7 @@ function renderOverview() {
     card('To-do', 'todo', [open.length + ' still to do · ' + late.length + ' overdue', ...open.sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9'))).slice(0, 4).map(t => (t.data.due < today() ? warn : (x => x))((t.data.due ? new Date(t.data.due).toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' · ' : '') + t.data.title + ' (' + t.data.owner + ')'))]),
     card('Vendors', 'vendors', [vs.filter(v => /Booked|Paid|Advance/.test(v.data.status)).length + ' booked · ' + notBooked.length + ' still to close', ...notBooked.slice(0, 5).map(v => '• ' + v.data.area + ' (' + v.data.status + ')')]),
     card('Menu', 'menu', [ms.filter(it => it.data.status === 'Final').length + ' of ' + ms.length + ' meals final', ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' approved by both families', ...ms.filter(it => !(it.data.ok_groom && it.data.ok_bride)).slice(0, 3).map(it => '• ' + it.data.meal + ': waiting for ' + [it.data.ok_groom ? '' : "groom's", it.data.ok_bride ? '' : "bride's"].filter(Boolean).join(' and ') + ' approval')]),
+    ...(() => { const w = plan.filter(x => !x.removed && VIEW_KINDS[x.kind] && openViews(x).length); return w.length ? [card('Views to settle', w[0].kind === 'budget' ? 'budget' : w[0].kind === 'vendor' ? 'vendors' : 'menu', [w.length + (w.length > 1 ? ' items have' : ' item has') + " a family's view waiting", ...w.slice(0, 4).map(x => '• ' + itemTitle(x) + ' (' + openViews(x).map(o => SIDEN[o.side].replace(' family', '')).join(' + ') + ')')])] : []; })(),
     card('Rooms (Wednesday night)', 'rooms', [roomed + ' of ' + stayN + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
 }
 
@@ -1468,7 +1562,7 @@ function renderVendors() {
       el('div', { className: 'row', style: 'gap:6px' }, lab('Advance due by', cell(v, 'adv_due', { date: true })), lab('Balance due by', cell(v, 'bal_due', { date: true }))),
       lab('What they cover', cell(v, 'scope', { area: true, rows: 3, max: 600 })),
       lab('Notes (terms, advance, dates)', cell(v, 'notes', { area: true, rows: 2, max: 600 })),
-      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-top:8px' }, stamp(v), x));
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-top:8px' }, stamp(v), el('div', { className: 'row', style: 'gap:6px' }, viewsBtn(v), x)));
   }) : [el('p', { className: 'muted', textContent: 'No vendors match.' })]));
 }
 ['vq', 'vStatusF', 'vOwnerF'].forEach(id => $(id).addEventListener('input', renderVendors));
@@ -1525,7 +1619,7 @@ function fmtV(k, v) {
   if (typeof v === 'number' && MONEYK.some(m => k.includes(m))) return inr(v);
   const t = String(v); return t.length > 60 ? t.slice(0, 57) + '…' : t;
 }
-const FIELDN = { members: 'family names', removed_members: 'removed names', accommodation: 'room', room_map: 'rooms per person', table_no: 'table', veg: 'veg meals', days: 'functions', guests: 'people' };
+const FIELDN = { note: 'note', members: 'family names', removed_members: 'removed names', accommodation: 'room', room_map: 'rooms per person', table_no: 'table', veg: 'veg meals', days: 'functions', guests: 'people' };
 const fieldName = k => FIELDN[k] || k.replace(/^data\./, '').replace(/_/g, ' ').replace(/^ok groom$/, "groom's approval").replace(/^ok bride$/, "bride's approval").replace(/^by$/, 'paid by').replace(/^ref$/, 'UTR / ref').replace(/^how$/, 'paid via');
 function planName(id, kind, data) {
   const it = plan.find(x => x.id === id), d = data || (it ? it.data : null);
@@ -1540,6 +1634,7 @@ function actArea(a) {
   if (a.tbl === 'receipts') return 'money';
   if (a.tbl === 'plan_items') { const k = (a.label || '').split(':')[0]; return k === 'budget' || k === 'payment' ? 'money' : 'plan'; }
   if (a.tbl === 'settings') return a.row_id === 'budget' ? 'money' : 'plan';
+  if (a.tbl === 'opinions') return / budget /.test(a.label || '') ? 'money' : 'plan';
   return 'access';
 }
 // Turn one log row into a plain sentence plus the field-by-field details
@@ -1560,6 +1655,12 @@ function describe(a) {
   else if (a.tbl === 'invites') text = a.action === 'insert' ? 'added ' + nm + ' to the invited list' : verb + ' the invite for ' + nm;
   else if (a.tbl === 'settings') { text = 'updated ' + (SETN[a.row_id] || a.row_id); details = a.row_id === 'budget' && c.value ? ['cap: ' + inr((c.value[0] || {}).cap) + ' → ' + inr((c.value[1] || {}).cap)] : []; }
   else if (a.tbl === 'receipts') { const pay = plan.find(x => x.id === c.payment_id); text = (a.action === 'insert' ? 'attached a receipt' : verb + ' a receipt') + (pay ? ' to the ' + planName(pay.id, 'payment') : ''); }
+  else if (a.tbl === 'opinions') {
+    const st = c.status && c.status[1];
+    text = a.action === 'insert' ? 'gave the ' + nm : a.action === 'delete' ? 'cleared the ' + nm : st === 'chosen' ? 'finalised the ' + nm : st === 'set aside' ? 'set aside the ' + nm : 'updated the ' + nm;
+    if (a.action === 'insert') details = Object.keys(c.data || {}).map(k => fieldName(k) + ': ' + fmtV(k, c.data[k])).concat(c.note ? ['note: ' + c.note] : []);
+    else details = details.filter(d => !/^status:|^by:|^at:/.test(d));
+  }
   else if (a.tbl === 'plan_items') { const kind = (nm.split(':')[0] || '').trim(); text = verb + ' the ' + planName(a.row_id, kind, a.action === 'insert' ? c.data : null); }
   else text = verb + ' ' + a.tbl + ' ' + nm;
   return { text, details };
