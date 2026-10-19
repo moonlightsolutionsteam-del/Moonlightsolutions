@@ -749,7 +749,7 @@
         // ---------- Scroll effects: progress bar, nav, hero parallax, itinerary timeline ----------
         (function () {
             const bar = document.getElementById('scroll-progress'), nav = document.getElementById('topnav');
-            const hero = document.getElementById('hero'), inner = document.getElementById('hero-inner');
+            const hero = document.getElementById('hero');
             const lanterns = hero.querySelector('.lanterns'), blobs = hero.querySelectorAll('.ambient');
             let lastY = window.scrollY, queued = false;
             function frame() {
@@ -759,10 +759,6 @@
                 nav.classList.toggle('at-top', y < 40);
                 if (Math.abs(y - lastY) > 8) { nav.classList.toggle('up', y > lastY && y > vh * .7); lastY = y; }
                 if (!STILL && y < vh * 1.4) {
-                    const p = Math.min(1, y / (vh * .9));
-                    inner.style.translate = '0 ' + (y * .3).toFixed(1) + 'px';
-                    inner.style.scale = (1 - p * .06).toFixed(4);
-                    inner.style.opacity = (1 - p * .85).toFixed(3);
                     lanterns.style.translate = '0 ' + (-y * .22).toFixed(1) + 'px';
                     blobs.forEach((b, i) => { b.style.translate = '0 ' + (y * (i ? .45 : .3)).toFixed(1) + 'px'; });
                 }
