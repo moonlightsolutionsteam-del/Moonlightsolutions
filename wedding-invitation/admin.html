@@ -11,7 +11,7 @@
   * { box-sizing:border-box; }
   body { margin:0; min-height:100vh; background:#0c8790 radial-gradient(ellipse at 50% 0%,#15a8a3 0%,#0c868d 45%,#08707b 100%) fixed; color:var(--ink); font:14px/1.5 'Plus Jakarta Sans',system-ui,sans-serif; padding:0 16px 48px; }
   h1,h2,.cin { font-family:'Cinzel',serif; letter-spacing:.08em; }
-  button,input,select { font:inherit; color:inherit; }
+  button,input,select,textarea { font:inherit; color:inherit; }
   .wrap { max-width:1200px; margin:0 auto; }
   header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid var(--line); }
   header h1 { margin:0; font-size:18px; color:var(--gold2); }
@@ -22,7 +22,7 @@
   .btn:hover { filter:brightness(1.1); }
   .btn.sm { padding:4px 12px; font-size:12px; }
   .btn:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--gold2); outline-offset:2px; }
-  input, select { background:rgba(255,255,255,.14); border:1px solid var(--line); border-radius:8px; padding:7px 10px; min-width:0; }
+  input, select, textarea { background:rgba(255,255,255,.14); border:1px solid var(--line); border-radius:8px; padding:7px 10px; min-width:0; }
   select option { background:#0b7d86; }
   ::placeholder { color:rgba(255,255,255,.55); opacity:1; }
   .tabs { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
@@ -87,6 +87,7 @@
 
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-tab="guests" aria-selected="true">Guests</button>
+      <button class="tab" role="tab" data-tab="names" aria-selected="false">All names</button>
       <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door scanner</button>
       <button class="tab" role="tab" data-tab="add" aria-selected="false">Add guest</button>
     </div>
@@ -106,6 +107,27 @@
         <tbody id="rows"></tbody>
       </table></div>
       <p class="muted" id="count"></p>
+    </section>
+
+    <!-- Every person, one per row: for games, chits and name cards -->
+    <section id="tab-names" hidden>
+      <div class="bar">
+        <input type="search" id="nq" placeholder="Search a name" aria-label="Search names">
+        <select id="nDay" aria-label="Filter by event"><option value="">All events</option><option value="1">Day 1 · Wed 20 Jan</option><option value="2">Nikah · Thu 21 Jan AM</option><option value="3">Reception · Thu 21 Jan PM</option></select>
+        <select id="nSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option></select>
+        <label class="muted"><input type="checkbox" id="nVendors"> Include vendor crews</label>
+      </div>
+      <div class="row" style="gap:8px;margin-bottom:12px">
+        <button class="btn sm" id="nCopy">Copy names</button>
+        <button class="btn ghost sm" id="nCsv">Download names (CSV)</button>
+        <button class="btn ghost sm" id="nChits">Print chits</button>
+      </div>
+      <p class="muted" id="nMissing" style="margin:0 0 10px"></p>
+      <div class="scroll"><table style="min-width:640px">
+        <thead><tr><th>#</th><th>Name</th><th>Side</th><th>Events</th><th>Phone</th><th>RSVP by</th></tr></thead>
+        <tbody id="nRows"></tbody>
+      </table></div>
+      <p class="muted" id="nCount"></p>
     </section>
 
     <!-- Scanner -->
@@ -131,8 +153,10 @@
           <label>Name<input id="aName" required maxlength="100"></label>
           <label>Phone<input id="aPhone" maxlength="30" inputmode="tel"></label>
           <label>Side<select id="aSide"><option>Groom's Guest</option><option>Bride's Guest</option><option>Vendor · Photography &amp; Video</option><option>Vendor · Decor &amp; Flowers</option><option>Vendor · Catering</option><option>Vendor · DJ &amp; Sound</option><option>Vendor · Other</option></select></label>
-          <label>Guests<input id="aGuests" type="number" min="1" max="15" value="1"></label>
         </div>
+        <label class="muted" style="display:block;margin:12px 0">Family members coming with them: one per line, with a phone number after a comma if you have it
+          <textarea id="aMembers" rows="4" style="width:100%;margin-top:4px" placeholder="Ayesha Khan, 98450 00000&#10;Zaid Khan"></textarea></label>
+        <label class="muted" style="display:block;margin-bottom:12px">How many of them are vegetarian<input id="aVeg" type="number" min="0" max="15" value="0" style="max-width:90px;margin-left:8px"></label>
         <div class="checks">
           <label><input type="checkbox" name="aDay" value="1" checked> Day 1 · Wed 20 Jan</label>
           <label><input type="checkbox" name="aDay" value="2" checked> Nikah · Thu 21 Jan AM</label>
@@ -174,8 +198,8 @@ $('loginForm').addEventListener('submit', async e => {
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
 $('logout').onclick = signOut;
-function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows')) load(); }, 30000); }
-async function load() { try { guests = await rpc('admin_list'); render(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
+function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('textarea')) load(); }, 30000); }
+async function load() { try { guests = await rpc('admin_list'); render(); if (!$('tab-names').hidden) renderNames(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
 
@@ -221,11 +245,16 @@ function render() {
     const rm = el('button', { className: 'btn ghost sm', textContent: g.removed ? 'Restore' : 'Remove' });
     rm.onclick = async () => { try { await rpc('admin_update', { p_id: g.id, p_fields: { removed: !g.removed } }); await load(); } catch (e) {} };
     const nameTd = el('td', {}, el('div', { textContent: g.name, style: 'font-weight:600' }));
+    const missing = g.guests - 1 - (g.members || []).length;
+    if (missing > 0) nameTd.append(el('div', { style: 'font-size:12px;margin-top:2px;color:var(--warn)', textContent: missing + (missing > 1 ? ' names' : ' name') + ' not given yet' }));
     (g.members || []).forEach(m => {
       const mw = (m.phone || '').replace(/[^\d]/g, ''), line = el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px' }, '+ ' + m.name);
       if (mw) line.append(' · ', el('a', { href: 'https://wa.me/' + mw, target: '_blank', rel: 'noopener', textContent: m.phone, style: 'color:var(--gold2)' }));
       nameTd.append(line);
     });
+    const ed = el('button', { className: 'btn ghost sm', textContent: (g.members || []).length ? 'Edit names' : '+ Add names', style: 'margin-top:6px' });
+    ed.onclick = () => editNames(g, nameTd, ed);
+    nameTd.append(ed);
     tr.append(nameTd, phone, el('td', { textContent: g.side.replace(' Guest', '') }), days,
       el('td', { style: 'text-align:center' }, String(g.guests), g.veg ? el('div', { className: 'muted', style: 'font-size:12px', textContent: g.veg + ' veg' }) : ''),
       el('td', {}, field(g, 'table_no', 'Table')), el('td', {}, field(g, 'meal', 'Meal')), el('td', {}, field(g, 'accommodation', 'Room / hotel')),
@@ -246,11 +275,82 @@ $('export').onclick = () => {
   const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-guest-list.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
 
+// ---------- family member names ----------
+// One person per line: "Name" or "Name, phone"
+function parseNames(text) {
+  return text.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.lastIndexOf(','), tail = i > 0 ? l.slice(i + 1).trim() : '';
+    return /^[0-9+()\s-]{7,}$/.test(tail) ? { name: l.slice(0, i).trim().slice(0, 100), phone: tail.slice(0, 30) } : { name: l.slice(0, 100), phone: '' };
+  }).filter(m => m.name);
+}
+function editNames(g, td, btn) {
+  if (td.querySelector('textarea')) return;
+  const ta = el('textarea', { rows: Math.max(4, g.guests - 1, (g.members || []).length + 1), style: 'width:100%;min-width:220px;margin-top:6px', placeholder: 'One name per line\nAdd a phone after a comma' });
+  ta.value = (g.members || []).map(m => m.name + (m.phone ? ', ' + m.phone : '')).join('\n');
+  const save = el('button', { className: 'btn sm', textContent: 'Save names' }), cancel = el('button', { className: 'btn ghost sm', textContent: 'Cancel' });
+  const note = el('div', { className: 'muted', style: 'font-size:12px', textContent: 'Not counting ' + g.name + '. The guest count updates to match.' });
+  const box = el('div', { style: 'margin-top:6px;display:flex;flex-direction:column;gap:6px' }, ta, note, el('div', { className: 'row', style: 'gap:6px' }, save, cancel));
+  btn.hidden = true; td.append(box); ta.focus();
+  cancel.onclick = () => { box.remove(); btn.hidden = false; };
+  save.onclick = async () => {
+    const members = parseNames(ta.value);
+    if (members.length > 14) { note.style.color = 'var(--bad)'; note.textContent = 'Up to 14 family members per entry.'; return; }
+    save.disabled = true;
+    try { await rpc('admin_set_members', { p_id: g.id, p_members: members }); await load(); }
+    catch (e) { save.disabled = false; note.style.color = 'var(--bad)'; note.textContent = 'Could not save. Try again.'; }
+  };
+}
+// Everyone attending, one row per person: the person who replied, then their family members
+function people() {
+  const d = $('nDay').value, s = $('nSide').value, q = $('nq').value.trim().toLowerCase(), vendors = $('nVendors').checked;
+  const out = [];
+  active().filter(g => (vendors || !/^vendor/i.test(g.side)) && (!d || g.days.includes(+d)) && (!s || new RegExp(s, 'i').test(g.side)))
+    .forEach(g => [{ name: g.name, phone: g.phone }].concat(g.members || []).forEach(m => out.push({ name: m.name, phone: m.phone || '', side: g.side.replace(' Guest', ''), days: g.days, by: g.name, code: g.pass_code })));
+  return out.filter(p => !q || p.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
+}
+function renderNames() {
+  const list = people(), body = $('nRows');
+  const gaps = active().filter(g => !/^vendor/i.test(g.side) && g.guests - 1 - (g.members || []).length > 0);
+  $('nMissing').textContent = gaps.length ? gaps.reduce((n, g) => n + g.guests - 1 - (g.members || []).length, 0) + ' guests have no name yet (' + gaps.map(g => g.name).join(', ') + '). Add them from the Guests tab with "+ Add names".' : '';
+  $('nMissing').style.color = 'var(--warn)';
+  body.replaceChildren(...(list.length ? list.map((p, i) => el('tr', {},
+    el('td', { className: 'muted', textContent: i + 1 }), el('td', { textContent: p.name, style: 'font-weight:600' }), el('td', { textContent: p.side }),
+    el('td', {}, ...p.days.map(x => el('span', { className: 'chip', textContent: DAY_CHIP[x] || 'D' + x, title: DAYS[x] }))),
+    el('td', { className: 'muted', textContent: p.phone }), el('td', { className: 'muted', textContent: p.by === p.name ? '—' : p.by }))) :
+    [el('tr', {}, el('td', { colSpan: 6, className: 'empty', textContent: 'No names match these filters.' }))]));
+  $('nCount').textContent = list.length + (list.length === 1 ? ' person' : ' people');
+}
+['nq', 'nDay', 'nSide', 'nVendors'].forEach(id => $(id).addEventListener('input', renderNames));
+$('nCopy').onclick = async () => {
+  const text = people().map(p => p.name).join('\n');
+  try { await navigator.clipboard.writeText(text); $('nCount').textContent = 'Copied ' + people().length + ' names.'; }
+  catch (e) { const ta = el('textarea', { value: text, style: 'width:100%', rows: 8 }); $('nCount').replaceChildren('Select and copy:', ta); ta.select(); }
+};
+$('nCsv').onclick = () => {
+  const lines = [['Name', 'Side', 'Day 1', 'Nikah', 'Reception', 'Phone', 'RSVP by', 'Pass Code']].concat(people().map(p => [p.name, p.side, p.days.includes(1) ? 'Yes' : '', p.days.includes(2) ? 'Yes' : '', p.days.includes(3) ? 'Yes' : '', p.phone, p.by, p.code]));
+  const blob = new Blob(['\ufeff' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-all-names.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+// A printable A4 sheet of name chits, 3 across, with dashed cut lines
+$('nChits').onclick = () => {
+  const w = window.open('', '_blank'); if (!w) return;
+  const d = w.document;
+  d.title = 'Name chits';
+  const link = d.createElement('link'); link.rel = 'stylesheet'; link.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Great+Vibes&display=swap'; d.head.append(link);
+  const st = d.createElement('style');
+  st.textContent = '@page{size:A4;margin:10mm}body{margin:0;font-family:Cinzel,serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.g{display:grid;grid-template-columns:repeat(3,1fr)}.c{height:30mm;border:1px dashed #9bb;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2mm;break-inside:avoid}.c b{font-size:14pt;color:#075a63;font-weight:600}.c i{font-family:"Great Vibes",cursive;font-style:normal;font-size:11pt;color:#d99a12}';
+  d.head.append(st);
+  const grid = d.createElement('div'); grid.className = 'g';
+  people().forEach(p => { const c = d.createElement('div'); c.className = 'c'; const b = d.createElement('b'); b.textContent = p.name; const i = d.createElement('i'); i.textContent = 'Nadeem & Dariya'; c.append(b, i); grid.append(c); });
+  d.body.append(grid);
+  setTimeout(() => w.print(), 700);
+};
+
 // ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'scan', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
-  if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load();
+  ['guests', 'names', 'scan', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
 }));
 
 // ---------- add guest ----------
@@ -258,8 +358,13 @@ $('addForm').addEventListener('submit', async e => {
   e.preventDefault(); const days = [...document.querySelectorAll('input[name=aDay]:checked')].map(c => +c.value), msg = $('addMsg');
   if (!days.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Pick at least one day.'; return; }
   try {
-    const g = await rpc('admin_add', { p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: +$('aGuests').value || 1, p_note: $('aNote').value });
-    msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + '. Pass code ' + g.pass_code + '.'; e.target.reset(); await load();
+    const members = parseNames($('aMembers').value);
+    if (members.length > 14) { msg.style.color = 'var(--bad)'; msg.textContent = 'Up to 14 family members per entry.'; return; }
+    const g = await rpc('admin_add', { p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: 1 + members.length, p_note: $('aNote').value });
+    if (members.length) await rpc('admin_set_members', { p_id: g.id, p_members: members });
+    const veg = Math.min(+$('aVeg').value || 0, 1 + members.length);
+    if (veg) await rpc('admin_update', { p_id: g.id, p_fields: { veg } });
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + (members.length ? ' and ' + members.length + ' family member' + (members.length > 1 ? 's' : '') : '') + '. Pass code ' + g.pass_code + '.'; e.target.reset(); await load();
   } catch (err) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add guest.'; }
 });
 
