@@ -89,6 +89,8 @@
         <button class="btn ghost sm" id="logout">Sign out</button>
       </div>
     </header>
+    <div id="offline" class="panel" hidden style="margin-top:12px;border-color:var(--warn);color:var(--warn)"></div>
+    <div id="nowbar" class="panel" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline"></div>
 
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-tab="guests" aria-selected="true">Guests</button>
@@ -96,7 +98,8 @@
       <button class="tab" role="tab" data-tab="names" aria-selected="false">All names</button>
       <button class="tab" role="tab" data-tab="rooms" aria-selected="false">Rooms</button>
       <button class="tab" role="tab" data-tab="food" aria-selected="false">Food counts</button>
-      <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door scanner</button>
+      <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door</button>
+      <button class="tab" role="tab" data-tab="announce" aria-selected="false">Announce</button>
       <button class="tab" role="tab" data-tab="add" aria-selected="false">Add guest</button>
     </div>
 
@@ -107,7 +110,7 @@
         <input type="search" id="q" placeholder="Search name, phone or pass code" aria-label="Search">
         <select id="fDay" aria-label="Filter by day"><option value="">All days</option><option value="1">Day 1 · Wed 20 Jan</option><option value="2">Nikah · Thu 21 Jan AM</option><option value="3">Reception · Thu 21 Jan PM</option></select>
         <select id="fSide" aria-label="Filter by side"><option value="">Both sides</option><option value="Groom">Groom's</option><option value="Bride">Bride's</option><option value="Vendor">Vendors</option></select>
-        <select id="fIn" aria-label="Filter by check-in"><option value="">All guests</option><option value="in">Checked in</option><option value="out">Not yet in</option></select>
+        <select id="fIn" aria-label="Filter by check-in"><option value="">All guests</option><option value="in">Arrived (current function)</option><option value="out">Not arrived yet</option></select>
         <label class="muted"><input type="checkbox" id="fRemoved"> Show removed entries <span id="rmCount"></span></label>
       </div>
       <div class="scroll"><table>
@@ -191,17 +194,52 @@
 
     <!-- Scanner -->
     <section id="tab-scan" hidden>
+      <div class="row" style="gap:8px;align-items:center;margin-bottom:10px">
+        <span class="muted">Checking in for:</span>
+        <div class="row" id="evPick" style="gap:6px"></div>
+      </div>
+      <div class="stats" id="doorStats"></div>
       <div class="panel">
-        <p class="muted" style="margin-top:0">Point the camera at a guest's entry pass QR code. Each pass can be admitted once.</p>
         <video id="cam" playsinline muted></video>
         <canvas id="grab" hidden></canvas>
         <div style="text-align:center;margin:12px 0"><button class="btn" id="camBtn">Start camera</button></div>
         <form id="manual" class="row" style="justify-content:center">
-          <input id="manualCode" placeholder="or type pass code" maxlength="6" autocapitalize="characters" aria-label="Pass code" style="text-transform:uppercase;max-width:200px">
+          <input id="manualCode" placeholder="Pass code" maxlength="6" autocapitalize="characters" aria-label="Pass code" style="text-transform:uppercase;max-width:200px">
           <button class="btn ghost" type="submit">Check in</button>
         </form>
         <div id="result" class="result" hidden aria-live="polite"></div>
       </div>
+      <div class="panel" style="margin-top:12px">
+        <p class="cin" style="margin:0 0 8px;color:var(--gold2)">No pass? Find the guest by name or phone</p>
+        <input type="search" id="findQ" placeholder="Type a name or phone number" aria-label="Find a guest" style="width:100%">
+        <div id="findRows" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+      </div>
+      <details class="panel" id="missingBox" style="margin-top:12px">
+        <summary class="cin" style="cursor:pointer;color:var(--gold2)">Not arrived yet <span id="missingCount"></span></summary>
+        <p class="muted" style="margin:8px 0">Everyone who said they would come to this function and has not been checked in. Call or message the late ones.</p>
+        <div id="missingRows" style="display:flex;flex-direction:column;gap:6px"></div>
+      </details>
+    </section>
+
+    <!-- Announcements on WhatsApp to everyone at a function -->
+    <section id="tab-announce" hidden>
+      <div class="panel">
+        <label class="muted" style="display:block;margin-bottom:10px">Message
+          <select id="aTpl" style="width:100%;margin-top:4px"></select></label>
+        <label class="muted" style="display:block;margin-bottom:10px">Send to
+          <select id="aWho" style="width:100%;margin-top:4px">
+            <option value="1">Everyone coming on Day 1 (Wed)</option><option value="1s">Guests staying Wednesday night</option>
+            <option value="2">Everyone coming to the Nikah</option><option value="3">Everyone coming to the Reception</option><option value="all">Everyone who RSVPed</option>
+          </select></label>
+        <label class="muted" style="display:block">Text (you can edit it)
+          <textarea id="aText" rows="5" style="width:100%;margin-top:4px"></textarea></label>
+        <div class="row" style="gap:8px;margin-top:10px">
+          <button class="btn sm" id="aCopy">Copy message</button>
+          <button class="btn ghost sm" id="aNums">Copy phone numbers</button>
+        </div>
+        <p class="muted" id="aMsg" style="margin-bottom:0">Tip: paste the numbers into a WhatsApp broadcast list once, then paste the message there. Or tap each name below to send it one by one.</p>
+      </div>
+      <div id="aRows" style="display:flex;flex-direction:column;gap:6px;margin-top:12px"></div>
     </section>
 
     <!-- Add guest -->
@@ -252,15 +290,15 @@ async function rpc(fn, args) {
 
 // ---------- sign in ----------
 function showLogin(msg) { $('app').hidden = true; $('login').hidden = false; $('loginErr').textContent = msg || ''; $('key').focus(); }
-function signOut() { KEY = ''; try { sessionStorage.removeItem('nd27-admin'); } catch (e) {} clearInterval(timer); stopCam(); showLogin(); }
+function signOut() { KEY = ''; try { sessionStorage.removeItem('nd27-admin'); localStorage.removeItem('nd27-cache'); } catch (e) {} clearInterval(timer); stopCam(); showLogin(); }
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault(); KEY = $('key').value.trim(); $('loginErr').textContent = 'Checking...';
   try { guests = await rpc('admin_list'); try { sessionStorage.setItem('nd27-admin', KEY); } catch (e2) {} $('key').value = ''; enter(); }
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
 $('logout').onclick = signOut;
-function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) load(); }, 30000); }
-async function load() { try { guests = await rpc('admin_list'); render(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
+function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue(); }
+async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
 
@@ -277,14 +315,14 @@ function stats() {
     [veg(all.filter(g => g.days.includes(1))) + ' / ' + veg(all.filter(g => g.days.includes(2))) + ' / ' + veg(all.filter(g => g.days.includes(3))), 'Veg · Day 1 / Nikah / Reception'],
     [sum(a.filter(g => /groom/i.test(g.side))), "Groom's side"], [sum(a.filter(g => /bride/i.test(g.side))), "Bride's side"],
     [sum(v) + ' (' + v.length + ')', 'Vendor crew (teams)'],
-    [sum(all.filter(g => g.checked_in)) + ' / ' + sum(all), 'Checked in']
+    [[1, 2, 3].map(e => sum(all.filter(g => arrived(g, e)))).join(' / '), 'Arrived · Day 1 / Nikah / Recep']
   ];
   $('stats').replaceChildren(...items.map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
 }
 function filtered() {
   const q = $('q').value.trim().toLowerCase(), d = $('fDay').value, s = $('fSide').value, i = $('fIn').value, rm = $('fRemoved').checked;
   return guests.filter(g => (rm || !g.removed) && (!q || (g.name + ' ' + g.phone + ' ' + g.pass_code + ' ' + (g.members || []).map(m => m.name + ' ' + m.phone).join(' ')).toLowerCase().includes(q))
-    && (!d || g.days.includes(+d)) && (!s || new RegExp(s, 'i').test(g.side)) && (!i || (i === 'in') === g.checked_in));
+    && (!d || g.days.includes(+d)) && (!s || new RegExp(s, 'i').test(g.side)) && (!i || (i === 'in') === arrived(g, curEvent)));
 }
 function field(g, key, ph) {
   const inp = el('input', { value: g[key] || '', placeholder: ph, maxLength: 100 }); inp.setAttribute('aria-label', key.replace('_', ' ') + ' for ' + g.name);
@@ -296,14 +334,16 @@ function render() {
   const list = filtered(), body = $('rows');
   if (!list.length) { body.replaceChildren(el('tr', {}, el('td', { colSpan: 12, className: 'empty', textContent: guests.length ? 'No guests match these filters.' : 'No RSVPs yet. They will appear here as guests respond.' }))); }
   else body.replaceChildren(...list.map(g => {
-    const tr = el('tr', { className: (g.removed ? 'out ' : '') + (g.checked_in ? 'in' : '') });
+    const tr = el('tr', { className: (g.removed ? 'out ' : '') + (arrived(g, curEvent) ? 'in' : '') });
     const wa = (g.phone || '').replace(/[^\d]/g, '');
     const phone = el('td', {}, wa ? el('a', { href: 'https://wa.me/' + wa, target: '_blank', rel: 'noopener', textContent: g.phone, style: 'color:var(--gold2)' }) : '');
     if (waNum(g.phone)) phone.append(el('div', { style: 'margin-top:4px' }, el('a', { className: 'mini', href: waLink(g.phone, passMsg(g)), target: '_blank', rel: 'noopener', textContent: 'WhatsApp pass', title: 'Send their entry pass code on WhatsApp' })));
     const days = el('td', {}, ...g.days.map(d => el('span', { className: 'chip', textContent: DAY_CHIP[d] || 'D' + d, title: DAYS[d] })));
     const noteTd = el('td', { className: 'muted', textContent: g.note, style: 'max-width:200px' });
-    const ci = el('button', { className: 'btn sm' + (g.checked_in ? '' : ' ghost'), textContent: g.checked_in ? 'In ✓' : 'Check in' });
-    ci.onclick = async () => { try { await rpc('admin_checkin', { p_code: g.pass_code, p_undo: g.checked_in }); await load(); } catch (e) {} };
+    const inNow = arrived(g, curEvent);
+    const ci = el('div', {}, el('button', { className: 'btn sm' + (inNow ? '' : ' ghost'), textContent: inNow ? EV_SHORT[curEvent] + ' ✓' : 'Check in · ' + EV_SHORT[curEvent] }),
+      ...[1, 2, 3].filter(e => arrived(g, e) && e !== curEvent).map(e => el('div', { className: 'muted', style: 'font-size:11px', textContent: EV_SHORT[e] + ' ✓ ' + when(g.checkins[e]) })));
+    ci.firstChild.onclick = () => doCheckin(g.pass_code, curEvent, inNow);
     const rm = el('button', { className: 'btn ghost sm', textContent: g.removed ? 'Restore' : 'Remove' });
     rm.onclick = async () => {
       try {
@@ -604,10 +644,45 @@ $('fCopy').onclick = async () => {
   try { await navigator.clipboard.writeText(text); $('fMsg').textContent = 'Copied. Paste it into WhatsApp for the caterer.'; } catch (e) { $('fMsg').textContent = text; }
 };
 
+// ---------- announcements ----------
+const TPL = [
+  ['Haldi starting', '1', 'Assalamu Alaikum 🌼 The Haldi & Mehendi is starting at 4:45 PM on the lawn. Yellow, mustard or green outfits, and clothes you don\'t mind getting turmeric on!'],
+  ['Shukrana', '1', 'Assalamu Alaikum 🤍 Shukrana (prayer of gratitude and family duas) starts at 6:45 PM in the covered area. Whites or pastels, please.'],
+  ['DJ Night & dinner', '1', 'Assalamu Alaikum ✨ DJ Night and dinner start at 8:00 PM at the covered shed and lawn. Come dancing!'],
+  ['Breakfast is open', '1s', 'Good morning! Breakfast is served at the covered shed until 9:00 AM. The Nikah starts at 10:00 AM; please be seated by 9:50.'],
+  ['Nikah: please be seated', '2', 'Assalamu Alaikum 🌙 The Nikah starts at 10:00 AM on the lawn. Please be seated by 9:50 AM and keep your phone switched off during the ceremony.'],
+  ['Nikah lunch served', '2', 'Lunch is now being served at the covered shed. JazakAllah Khair for joining the Nikah 🤍'],
+  ['Reception starting', '3', 'Assalamu Alaikum ✨ The Reception begins at 6:30 PM on the lawn and the couple enters at 7:15 PM. Please keep your entry pass ready at the gate.'],
+  ['Checkout reminder', '1s', 'A gentle reminder for guests who stayed overnight: please return your room keys at the front desk by 10:00 PM tonight. JazakAllah Khair!'],
+  ['Write my own', 'all', '']];
+$('aTpl').replaceChildren(...TPL.map((t, i) => el('option', { value: i, textContent: t[0] })));
+function audience() {
+  const w = $('aWho').value, a = active().filter(g => !/^vendor/i.test(g.side));
+  if (w === 'all') return a;
+  if (w === '1s') { const d1 = a.filter(g => g.days.includes(1)); return d1.some(g => g.accommodation) ? d1.filter(g => g.accommodation) : d1; }  // once rooms are given out, only those with a room
+  return a.filter(g => g.days.includes(+w));
+}
+function renderAnnounce() {
+  const list = audience(), text = $('aText').value;
+  $('aRows').replaceChildren(...(list.length ? list.map(g => el('div', { className: 'panel row', style: 'padding:8px 12px;gap:10px;align-items:center;justify-content:space-between' },
+    el('span', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + (g.phone || 'no phone') })),
+    waNum(g.phone) ? el('a', { className: 'btn sm', href: waLink(g.phone, text), target: '_blank', rel: 'noopener', textContent: 'Send' }) : el('span', { className: 'muted', textContent: '—' }))) :
+    [el('p', { className: 'muted', textContent: 'No one in this group yet.' })]));
+}
+$('aTpl').onchange = () => { const t = TPL[+$('aTpl').value]; $('aText').value = t[2]; $('aWho').value = t[1]; renderAnnounce(); };
+['aWho', 'aText'].forEach(id => $(id).addEventListener('input', renderAnnounce));
+$('aCopy').onclick = async () => { try { await navigator.clipboard.writeText($('aText').value); $('aMsg').textContent = 'Message copied.'; } catch (e) { $('aMsg').textContent = 'Select the text above and copy it.'; } };
+$('aNums').onclick = async () => {
+  const nums = [...new Set(audience().map(g => waNum(g.phone)).filter(Boolean))].map(n => '+' + n);
+  try { await navigator.clipboard.writeText(nums.join('\n')); $('aMsg').textContent = 'Copied ' + nums.length + ' numbers.'; } catch (e) { $('aMsg').textContent = nums.join(', '); }
+};
+$('aTpl').onchange();
+
 // ---------- tabs ----------
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') renderAnnounce();
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
 }));
@@ -628,24 +703,141 @@ $('addForm').addEventListener('submit', async e => {
   } catch (err) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add guest.'; }
 });
 
-// ---------- door scanner ----------
+// ---------- schedule: what is happening now and next (all times IST) ----------
+const T = (d, hm) => new Date('2027-01-' + d + 'T' + hm + ':00+05:30').getTime();
+const SCHEDULE = [
+  [T(20, '12:00'), T(20, '12:30'), 'Arrival & welcome drinks', 'Lawn'], [T(20, '12:30'), T(20, '13:00'), 'Welcome address', 'Lawn'],
+  [T(20, '13:30'), T(20, '14:30'), 'Arrival lunch', 'Covered shed'], [T(20, '14:30'), T(20, '15:15'), 'Family Face-Off', 'Lawn'],
+  [T(20, '15:15'), T(20, '16:15'), 'Pool session', 'Pool'], [T(20, '16:00'), T(20, '16:30'), 'Rooms handed over', 'Rooms'],
+  [T(20, '16:45'), T(20, '18:15'), 'Haldi & Mehendi', 'Lawn'], [T(20, '18:45'), T(20, '19:30'), 'Shukrana', 'Covered area'],
+  [T(20, '20:00'), T(20, '23:00'), 'DJ Night & dinner', 'Covered shed & lawn'],
+  [T(21, '07:30'), T(21, '09:00'), 'Breakfast', 'Covered shed'], [T(21, '10:00'), T(21, '11:30'), 'Nikah (seated by 9:50)', 'Lawn'],
+  [T(21, '11:30'), T(21, '12:15'), 'Refreshments & family photos', 'Lawn'], [T(21, '13:00'), T(21, '14:30'), 'Nikah lunch', 'Covered shed'],
+  [T(21, '15:00'), T(21, '16:00'), 'Julwa', 'Covered area'], [T(21, '17:30'), T(21, '18:30'), 'Sundowner tea', 'Lawn'],
+  [T(21, '18:30'), T(21, '21:30'), 'Reception / Walima (couple enters 7:15)', 'Lawn'], [T(21, '21:30'), T(21, '22:00'), 'Rukhsati & farewell', 'Lawn']];
+const hm = t => new Date(t).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+function inWords(ms) {
+  const m = Math.round(ms / 60000); if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60); if (h < 48) return h + ' h ' + (m % 60) + ' min';
+  return Math.floor(h / 24) + ' days';
+}
+function renderNow() {
+  const now = Date.now(), cur = SCHEDULE.filter(e => e[0] <= now && now < e[1]), next = SCHEDULE.find(e => e[0] > now);
+  const bar = $('nowbar'); bar.replaceChildren();
+  if (now < SCHEDULE[0][0]) bar.append(el('span', {}, el('b', { className: 'cin', textContent: 'Wedding starts in ' + inWords(SCHEDULE[0][0] - now) }), el('span', { className: 'muted', textContent: ' · Arrival Wed 20 Jan, 12:00 PM' })));
+  else if (now >= SCHEDULE[SCHEDULE.length - 1][1]) bar.append(el('b', { className: 'cin', textContent: 'Alhamdulillah, the wedding is complete 🤍' }));
+  else {
+    bar.append(el('span', {}, el('span', { className: 'muted', textContent: 'NOW ' }), cur.length ? el('b', { textContent: cur.map(e => e[2]).join(' + ') + ' · ' + cur[0][3] + ' · until ' + hm(cur[0][1]) }) : el('b', { textContent: 'Break' })));
+    if (next) bar.append(el('span', {}, el('span', { className: 'muted', textContent: 'NEXT ' }), el('b', { textContent: next[2] + ' at ' + hm(next[0]) }), el('span', { style: 'color:var(--warn)', textContent: ' · in ' + inWords(next[0] - now) })));
+  }
+}
+setInterval(renderNow, 30000); renderNow();
+
+// ---------- door: check in per function, offline-safe ----------
 let stream = null, scanning = false, lastCode = '', lastAt = 0;
-function showResult(kind, title, lines) {
+const EV_SHORT = { 1: 'Day 1', 2: 'Nikah', 3: 'Reception' };
+// The function the door is checking in for, picked from the clock: Day 1 until Thursday 5 AM, Nikah until 4:30 PM, then Reception
+const autoEvent = () => { const n = Date.now(); return n < T(21, '05:00') ? 1 : n < T(21, '16:30') ? 2 : 3; };
+let curEvent = autoEvent(), evManual = false;
+setInterval(() => { if (!evManual && autoEvent() !== curEvent) { curEvent = autoEvent(); renderDoor(); render(); } }, 60000);
+const arrived = (g, e) => !!(g.checkins && g.checkins[e]);
+function renderEvPick() {
+  $('evPick').replaceChildren(...[1, 2, 3].map(e => {
+    const b = el('button', { className: 'tab', textContent: EV_SHORT[e] + (e === autoEvent() ? ' (now)' : '') }); b.setAttribute('aria-selected', e === curEvent);
+    b.onclick = () => { curEvent = e; evManual = e !== autoEvent(); renderDoor(); render(); };
+    return b;
+  }));
+}
+function renderDoor() {
+  renderEvPick();
+  const exp = active().filter(g => g.days.includes(curEvent)), sum = a => a.reduce((n, g) => n + g.guests, 0);
+  const inn = active().filter(g => arrived(g, curEvent));
+  $('doorStats').replaceChildren(...[[sum(inn) + ' / ' + sum(exp), 'People arrived · ' + EV_SHORT[curEvent]], [inn.length + ' / ' + exp.length, 'Passes checked in'],
+    [sum(exp.filter(g => !arrived(g, curEvent))), 'Still to arrive'], [queue().length, 'Waiting to sync (offline)']]
+    .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  const miss = exp.filter(g => !arrived(g, curEvent)).sort((a, b) => b.guests - a.guests);
+  $('missingCount').textContent = '(' + miss.length + (miss.length === 1 ? ' pass, ' : ' passes, ') + sum(miss) + (sum(miss) === 1 ? ' person)' : ' people)');
+  $('missingRows').replaceChildren(...(miss.length ? miss.map(g => personRow(g)) : [el('p', { className: 'muted', textContent: 'Everyone expected has arrived.' })]));
+  renderFind();
+}
+function personRow(g) {
+  const tools = el('div', { className: 'row', style: 'gap:6px;align-items:center' });
+  if (waNum(g.phone)) tools.append(el('a', { className: 'mini', href: 'tel:+' + waNum(g.phone), textContent: 'Call' }), el('a', { className: 'mini', href: 'https://wa.me/' + waNum(g.phone), target: '_blank', rel: 'noopener', textContent: 'WhatsApp' }));
+  const inNow = arrived(g, curEvent), b = el('button', { className: 'btn sm' + (inNow ? '' : ' ghost'), textContent: inNow ? 'Arrived ✓' : 'Check in' });
+  b.onclick = () => doCheckin(g.pass_code, curEvent, inNow);
+  tools.append(b);
+  return el('div', { className: 'panel row', style: 'padding:10px 12px;gap:10px;align-items:center;justify-content:space-between' },
+    el('div', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person') + ' · ' + g.side.replace(' Guest', '') + ' · ' + g.pass_code }),
+      (g.members || []).length ? el('div', { className: 'muted', style: 'font-size:12px', textContent: 'With ' + g.members.map(m => m.name).join(', ') }) : ''), tools);
+}
+function renderFind() {
+  const q = $('findQ').value.trim().toLowerCase(), digits = q.replace(/\D/g, '');
+  if (q.length < 2) { $('findRows').replaceChildren(); return; }
+  const hits = active().filter(g => [{ name: g.name, phone: g.phone }].concat(g.members || []).some(p => p.name.toLowerCase().includes(q) || (digits.length >= 4 && String(p.phone || '').replace(/\D/g, '').includes(digits)))).slice(0, 8);
+  $('findRows').replaceChildren(...(hits.length ? hits.map(personRow) : [el('p', { className: 'muted', textContent: 'No one by that name. Check the spelling, or add them from "Add guest".' })]));
+}
+$('findQ').addEventListener('input', renderFind);
+function showResult(kind, title, lines, extra) {
   const box = $('result'); box.hidden = false; box.className = 'result ' + kind;
-  box.replaceChildren(el('h2', { className: 'cin', textContent: title }), ...lines.map(t => el('div', { textContent: t })));
+  box.replaceChildren(el('h2', { className: 'cin', textContent: title }), ...lines.map(t => el('div', { textContent: t })), ...(extra ? [extra] : []));
 }
 function when(ts) { return ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; }
-async function checkIn(code) {
-  code = code.toUpperCase().trim(); if (!/^[A-Z0-9]{6}$/.test(code)) return showResult('bad', 'Not a valid pass', ['Please ask the guest for their entry pass.']);
+function infoOf(g) { return [g.name + ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person'), (g.members || []).length ? 'With: ' + g.members.map(m => m.name).join(', ') : '', 'RSVP: ' + g.days.map(d => EV_SHORT[d]).join(', '), g.table_no ? 'Table ' + g.table_no : '', g.accommodation ? 'Room: ' + g.accommodation : ''].filter(Boolean); }
+function undoBtn(code, ev) { const u = el('button', { className: 'mini', style: 'margin-top:8px', textContent: 'Undo check-in' }); u.onclick = () => doCheckin(code, ev, true); return u; }
+// Offline queue: check-ins made without signal are kept on this phone and sent when the connection returns
+const QK = 'nd27-queue';
+const queue = () => { try { return JSON.parse(localStorage.getItem(QK) || '[]'); } catch (e) { return []; } };
+const saveQueue = q => { try { localStorage.setItem(QK, JSON.stringify(q)); } catch (e) {} };
+const isNetErr = e => e instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(e.message || '');
+async function doCheckin(code, ev, undo) {
+  code = String(code || '').toUpperCase().trim();
+  if (!/^[A-Z0-9]{6}$/.test(code)) return showResult('bad', 'Not a valid pass', ['Please ask the guest for their entry pass, or find them by name below.']);
   try {
-    const r = await rpc('admin_checkin', { p_code: code }), g = r.guest;
-    if (r.status === 'not_found') return showResult('bad', 'Pass not found', ['Code ' + code + ' is not on the guest list.']);
-    const info = [g.name, 'Party of ' + g.guests, (g.members || []).length ? 'With: ' + g.members.map(m => m.name).join(', ') : '', 'Days: ' + g.days.map(d => DAYS[d]).join(', '), g.table_no ? 'Table ' + g.table_no : ''].filter(Boolean);
-    if (g.removed) return showResult('bad', 'Guest was removed', info);
-    if (r.status === 'already') return showResult('already', 'Already checked in', info.concat(['At ' + when(g.checked_in_at)]));
-    showResult('ok', 'Welcome!', info); load();
-  } catch (e) { if (e.message !== 'forbidden') showResult('bad', 'Connection problem', ['Could not reach the server. Try again.']); }
+    const r = await rpc('admin_checkin_event', { p_code: code, p_event: ev, p_undo: !!undo });
+    if (r.status === 'not_found') return showResult('bad', 'Pass not found', ['Code ' + code + ' is not on the guest list. Find the guest by name below.']);
+    const g = r.guest, old = guests.find(x => x.id === g.id); if (old) Object.assign(old, g); else guests.push(g);
+    cacheGuests();
+    if (g.removed) showResult('bad', 'Guest was removed', infoOf(g));
+    else if (r.status === 'undone') showResult('already', 'Check-in undone', infoOf(g));
+    else if (r.status === 'already') showResult('already', 'Already checked in for ' + EV_SHORT[ev], infoOf(g).concat(['Arrived at ' + when(g.checkins[ev])]));
+    else if (r.status === 'not_for_event') showResult('already', 'Let in, but not on the list for ' + EV_SHORT[ev], infoOf(g).concat(['They did not tick ' + EV_SHORT[ev] + ' in their RSVP. Undo if they should not come in.']), undoBtn(code, ev));
+    else showResult('ok', 'Welcome!', infoOf(g), undoBtn(code, ev));
+  } catch (e) {
+    if (e.message === 'forbidden') return;
+    if (!isNetErr(e)) return showResult('bad', 'Could not check in', ['The server said no (' + e.message + '). Try again.']);
+    // No signal: decide from the copy of the guest list on this phone and queue it
+    const g = guests.find(x => x.pass_code === code);
+    if (!g) return showResult('bad', 'Offline: pass not in the saved list', ['Code ' + code + '. Write the name down and check again when the signal returns.']);
+    g.checkins = Object.assign({}, g.checkins);
+    if (undo) delete g.checkins[ev]; else if (g.checkins[ev]) return showResult('already', 'Already checked in for ' + EV_SHORT[ev] + ' (offline)', infoOf(g).concat(['Arrived at ' + when(g.checkins[ev])]));
+    else g.checkins[ev] = new Date().toISOString();
+    saveQueue(queue().concat([{ code, ev, undo: !!undo, at: new Date().toISOString() }])); cacheGuests();
+    showResult(undo ? 'already' : 'ok', undo ? 'Undone (offline)' : 'Welcome! (saved offline)', infoOf(g).concat(['No signal: this will sync automatically.']), undo ? null : undoBtn(code, ev));
+    setOffline(true);
+  }
+  renderDoor(); render();
 }
+async function flushQueue() {
+  let q = queue(); if (!q.length || !KEY) return;
+  while (q.length) {
+    const it = q[0];
+    try { await rpc('admin_checkin_event', { p_code: it.code, p_event: it.ev, p_undo: it.undo, p_at: it.at }); }
+    catch (e) { if (isNetErr(e)) { setOffline(true); return; } }
+    q = q.slice(1); saveQueue(q);
+  }
+  setOffline(false); load();
+}
+window.addEventListener('online', flushQueue); setInterval(flushQueue, 20000);
+function setOffline(on) {
+  const n = queue().length, box = $('offline');
+  box.hidden = !on && !n;
+  box.textContent = on ? 'No connection. Showing the guest list saved on this phone' + (cacheAt() ? ' (' + when(cacheAt()) + ')' : '') + '. Check-ins are kept and will sync when the signal returns' + (n ? ' (' + n + ' waiting).' : '.') : n + ' offline check-ins are syncing…';
+}
+const CK = 'nd27-cache';
+function cacheGuests() { try { localStorage.setItem(CK, JSON.stringify({ at: Date.now(), guests })); } catch (e) {} }
+function cacheAt() { try { return (JSON.parse(localStorage.getItem(CK) || 'null') || {}).at; } catch (e) { return 0; } }
+function cachedGuests() { try { return (JSON.parse(localStorage.getItem(CK) || 'null') || {}).guests || null; } catch (e) { return null; } }
+async function checkIn(code) { return doCheckin(code, curEvent, false); }
 $('manual').addEventListener('submit', e => { e.preventDefault(); checkIn($('manualCode').value); $('manualCode').value = ''; });
 async function startCam() {
   try {
@@ -667,7 +859,14 @@ function tick() {
 $('camBtn').onclick = () => scanning ? stopCam() : startCam();
 
 // ---------- boot ----------
-if (KEY) { rpc('admin_list').then(r => { guests = r; enter(); }).catch(() => showLogin()); } else showLogin();
+if (KEY) {
+  rpc('admin_list').then(r => { guests = r; enter(); }).catch(e => {
+    const c = cachedGuests();
+    if (e.message !== 'forbidden' && isNetErr(e) && c) { guests = c; enter(); setOffline(true); } else showLogin();
+  });
+} else showLogin();
+// Keep the page itself available without signal on the door phone
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('admin-sw.js', { scope: './admin.html' }).catch(() => {});
 </script>
 </body>
 </html>
