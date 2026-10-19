@@ -46,6 +46,9 @@
   .muted { color:var(--mute); }
   .mini { background:none; border:1px solid var(--line); border-radius:999px; padding:0 8px; font-size:11px; color:var(--gold2); cursor:pointer; line-height:1.6; }
   .mini:hover { border-color:var(--gold); }
+  .nl { min-width:340px; }
+  .nl-row { display:flex; gap:6px; align-items:center; }
+  .nl-row .nl-name { flex:1.4 1 0; min-width:0; } .nl-row .nl-phone { flex:1 1 0; min-width:0; }
   .empty { padding:36px 16px; text-align:center; color:var(--mute); }
   .panel { background:var(--panel); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 0 40px rgba(245,184,46,.12); border:1px solid var(--line); border-radius:14px; padding:16px; }
   #login { max-width:380px; margin:12vh auto; text-align:center; }
@@ -156,8 +159,10 @@
           <label>Phone<input id="aPhone" maxlength="30" inputmode="tel"></label>
           <label>Side<select id="aSide"><option>Groom's Guest</option><option>Bride's Guest</option><option>Vendor · Photography &amp; Video</option><option>Vendor · Decor &amp; Flowers</option><option>Vendor · Catering</option><option>Vendor · DJ &amp; Sound</option><option>Vendor · Other</option></select></label>
         </div>
-        <label class="muted" style="display:block;margin:12px 0">Family members coming with them: one per line, with a phone number after a comma if you have it
-          <textarea id="aMembers" rows="4" style="width:100%;margin-top:4px" placeholder="Ayesha Khan, 98450 00000&#10;Zaid Khan"></textarea></label>
+        <div style="margin:12px 0">
+          <p class="muted" style="margin:0 0 6px">Family members coming with them (phone optional)</p>
+          <div id="aMembers"></div>
+        </div>
         <label class="muted" style="display:block;margin-bottom:12px">How many of them are vegetarian<input id="aVeg" type="number" min="0" max="15" value="0" style="max-width:90px;margin-left:8px"></label>
         <div class="checks">
           <label><input type="checkbox" name="aDay" value="1" checked> Day 1 · Wed 20 Jan</label>
@@ -200,7 +205,7 @@ $('loginForm').addEventListener('submit', async e => {
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
 $('logout').onclick = signOut;
-function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('textarea')) load(); }, 30000); }
+function enter() { $('login').hidden = true; $('app').hidden = false; render(); clearInterval(timer); timer = setInterval(() => { if (!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) load(); }, 30000); }
 async function load() { try { guests = await rpc('admin_list'); render(); if (!$('tab-names').hidden) renderNames(); } catch (e) { if (e.message !== 'forbidden') flash('Could not refresh. Retrying soon.'); } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
@@ -296,25 +301,50 @@ $('export').onclick = () => {
 };
 
 // ---------- family member names ----------
-// One person per line: "Name" or "Name, phone"
-function parseNames(text) {
-  return text.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-    const i = l.lastIndexOf(','), tail = i > 0 ? l.slice(i + 1).trim() : '';
-    return /^[0-9+()\s-]{7,}$/.test(tail) ? { name: l.slice(0, i).trim().slice(0, 100), phone: tail.slice(0, 30) } : { name: l.slice(0, 100), phone: '' };
-  }).filter(m => m.name);
+// A list of name + phone rows with remove buttons and "+ Add person"
+function nameList(initial, blanks) {
+  const box = el('div', { className: 'nl' }), rowsEl = el('div', { style: 'display:flex;flex-direction:column;gap:6px' });
+  const add = el('button', { type: 'button', className: 'btn ghost sm', textContent: '+ Add person', style: 'align-self:flex-start' });
+  const count = el('span', { className: 'muted', style: 'font-size:12px' });
+  function renumber() {
+    [...rowsEl.children].forEach((r, i) => r.firstChild.textContent = (i + 1) + '.');
+    count.textContent = rowsEl.children.length + (rowsEl.children.length === 1 ? ' person' : ' people');
+    add.hidden = rowsEl.children.length >= 14;
+  }
+  function addRow(m, focus) {
+    if (rowsEl.children.length >= 14) return;
+    const name = el('input', { className: 'nl-name', placeholder: 'Full name', maxLength: 100, value: m ? m.name : '' });
+    const phone = el('input', { className: 'nl-phone', placeholder: 'Phone (optional)', maxLength: 30, inputMode: 'tel', value: m ? m.phone || '' : '' });
+    name.setAttribute('aria-label', 'Name'); phone.setAttribute('aria-label', 'Phone');
+    const x = el('button', { type: 'button', className: 'mini', textContent: '×', title: 'Remove this person', style: 'font-size:14px;padding:2px 9px' });
+    const row = el('div', { className: 'nl-row' }, el('span', { className: 'muted', style: 'width:22px;font-size:12px' }), name, phone, x);
+    x.onclick = () => { row.remove(); renumber(); };
+    rowsEl.append(row); renumber(); if (focus) name.focus();
+  }
+  (initial || []).forEach(m => addRow(m));
+  for (let i = 0; i < (blanks || 0); i++) addRow(null);
+  add.onclick = () => addRow(null, true);
+  box.append(rowsEl, el('div', { className: 'row', style: 'gap:10px;align-items:center;margin-top:6px' }, add, count));
+  renumber();
+  return {
+    node: box,
+    // Rows with a name; rows left completely empty are ignored
+    read: () => [...rowsEl.children].map(r => ({ name: r.querySelector('.nl-name').value.trim(), phone: r.querySelector('.nl-phone').value.trim() })).filter(m => m.name),
+    blankWithPhone: () => [...rowsEl.children].some(r => !r.querySelector('.nl-name').value.trim() && r.querySelector('.nl-phone').value.trim()),
+    reset: () => { rowsEl.replaceChildren(); addRow(null); }
+  };
 }
 function editNames(g, td, btn) {
-  if (td.querySelector('textarea')) return;
-  const ta = el('textarea', { rows: Math.max(4, g.guests - 1, (g.members || []).length + 1), style: 'width:100%;min-width:220px;margin-top:6px', placeholder: 'One name per line\nAdd a phone after a comma' });
-  ta.value = (g.members || []).map(m => m.name + (m.phone ? ', ' + m.phone : '')).join('\n');
+  if (td.querySelector('.nl')) return;
+  const have = (g.members || []).length, list = nameList(g.members, Math.max(have ? 0 : 1, g.guests - 1 - have));
   const save = el('button', { className: 'btn sm', textContent: 'Save names' }), cancel = el('button', { className: 'btn ghost sm', textContent: 'Cancel' });
   const note = el('div', { className: 'muted', style: 'font-size:12px', textContent: 'Not counting ' + g.name + '. The guest count updates to match.' });
-  const box = el('div', { style: 'margin-top:6px;display:flex;flex-direction:column;gap:6px' }, ta, note, el('div', { className: 'row', style: 'gap:6px' }, save, cancel));
-  btn.hidden = true; td.append(box); ta.focus();
+  const box = el('div', { style: 'margin-top:8px;display:flex;flex-direction:column;gap:6px' }, list.node, note, el('div', { className: 'row', style: 'gap:6px' }, save, cancel));
+  btn.hidden = true; td.append(box); const first = box.querySelector('.nl-name'); if (first) first.focus();
   cancel.onclick = () => { box.remove(); btn.hidden = false; };
   save.onclick = async () => {
-    const members = parseNames(ta.value);
-    if (members.length > 14) { note.style.color = 'var(--bad)'; note.textContent = 'Up to 14 family members per entry.'; return; }
+    if (list.blankWithPhone()) { note.style.color = 'var(--bad)'; note.textContent = 'Add a name for every phone number, or clear the phone.'; return; }
+    const members = list.read();
     save.disabled = true;
     const kept = new Set(members.map(m => m.name.toLowerCase()));
     const removed = (g.removed_members || []).concat((g.members || []).filter(m => !kept.has(m.name.toLowerCase()))).filter(m => !kept.has(m.name.toLowerCase()));
@@ -387,17 +417,18 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
 }));
 
 // ---------- add guest ----------
+const addList = nameList([], 1); $('aMembers').append(addList.node);
 $('addForm').addEventListener('submit', async e => {
   e.preventDefault(); const days = [...document.querySelectorAll('input[name=aDay]:checked')].map(c => +c.value), msg = $('addMsg');
   if (!days.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Pick at least one day.'; return; }
   try {
-    const members = parseNames($('aMembers').value);
-    if (members.length > 14) { msg.style.color = 'var(--bad)'; msg.textContent = 'Up to 14 family members per entry.'; return; }
+    if (addList.blankWithPhone()) { msg.style.color = 'var(--bad)'; msg.textContent = 'Add a name for every phone number, or clear the phone.'; return; }
+    const members = addList.read();
     const g = await rpc('admin_add', { p_name: $('aName').value, p_phone: $('aPhone').value, p_side: $('aSide').value, p_events: days, p_guests: 1 + members.length, p_note: $('aNote').value });
     if (members.length) await saveMembers(g, members, []);
     const veg = Math.min(+$('aVeg').value || 0, 1 + members.length);
     if (veg) await rpc('admin_update', { p_id: g.id, p_fields: { veg } });
-    msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + (members.length ? ' and ' + members.length + ' family member' + (members.length > 1 ? 's' : '') : '') + '. Pass code ' + g.pass_code + '.'; e.target.reset(); await load();
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Added ' + g.name + (members.length ? ' and ' + members.length + ' family member' + (members.length > 1 ? 's' : '') : '') + '. Pass code ' + g.pass_code + '.'; e.target.reset(); addList.reset(); await load();
   } catch (err) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not add guest.'; }
 });
 
