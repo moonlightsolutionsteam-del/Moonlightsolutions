@@ -238,6 +238,28 @@
         @keyframes ctaBreathe { 0%,100% { box-shadow:0 0 18px rgba(255,79,147,.3); } 50% { box-shadow:0 0 30px rgba(255,79,147,.65), 0 0 0 4px rgba(255,79,147,.12); } }
         /* Itinerary day buttons */
         #tabs button[aria-selected="true"] { animation:choicePop .4s var(--spring); }
+        /* ---------- lighter reading: tap-to-open details ---------- */
+        .ev-desc { display:none; }
+        .open > .ev-desc { display:block; animation:uxUp .35s var(--ease); }
+        .ev-more { margin-top:.6rem; display:inline-flex; align-items:center; gap:.4rem; font-family:'Cinzel',serif; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:#ffd36b; padding:.3rem .75rem; border-radius:999px; border:1px solid rgba(245,184,46,.35); background:rgba(245,184,46,.08); }
+        .ev-more i { font-size:.6rem; transition:transform .3s var(--ease); }
+        .open > .ev-more i { transform:rotate(180deg); }
+        .gk-grid { display:flex !important; flex-wrap:wrap; justify-content:center; gap:.75rem !important; }
+        .gk-grid > .gk { width:calc(50% - .375rem); }
+        @media (min-width:768px) { .gk-grid > .gk { width:calc(25% - .5625rem); } }
+        .gk-grid > .gk.open { width:100%; }
+        .gk { flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:.6rem !important; cursor:pointer; padding:1rem .7rem !important; transition:transform .25s var(--ease), border-color .3s, background-color .3s; }
+        .gk:hover { border-color:rgba(245,184,46,.6); }
+        .gk > i { flex:none; width:2.9rem !important; height:2.9rem; margin:0 !important; border-radius:50%; display:flex !important; align-items:center; justify-content:center; font-size:1.1rem;
+            background:radial-gradient(circle at 35% 30%,rgba(255,240,184,.25),rgba(245,184,46,.06)); border:1px solid rgba(245,184,46,.45); box-shadow:0 0 16px rgba(245,184,46,.15); transition:transform .4s var(--spring); }
+        .gk:hover > i, .gk.open > i { transform:scale(1.08) rotate(-6deg); }
+        .gk h4 { font-size:.78rem !important; line-height:1.35; }
+        .gk h4::after { content:'\f078'; font-family:'Font Awesome 6 Free'; font-weight:900; font-size:.55rem; margin-left:.4rem; color:#ffd36b; opacity:.7; display:inline-block; transition:transform .3s var(--ease); }
+        .gk p { display:none; }
+        .gk.open { flex-direction:row; justify-content:flex-start; align-items:flex-start; text-align:left; background:rgba(255,255,255,.16); border-color:rgba(245,184,46,.6); }
+        .gk.open h4 { font-size:.9rem !important; } .gk.open h4::after { transform:rotate(180deg); }
+        .gk.open p { display:block; animation:uxUp .35s var(--ease); }
+        .gk-hint { text-align:center; font-size:.7rem; letter-spacing:.12em; color:rgba(255,240,184,.7); margin-top:.6rem; }
         /* ---------- icons ---------- */
         .sec-ic { width:3.1rem; height:3.1rem; margin:0 auto .9rem; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#ffd36b; font-size:1.2rem;
             background:radial-gradient(circle at 35% 30%,rgba(255,240,184,.28),rgba(245,184,46,.08)); border:1px solid rgba(245,184,46,.55); box-shadow:0 0 22px rgba(245,184,46,.25), inset 0 0 12px rgba(245,184,46,.15); }
@@ -753,10 +775,15 @@
                 const dot = el('span', 'tl-dot absolute -left-[3.05rem] top-5 w-9 h-9 rounded-full bg-emerald-950 border border-gold-500/50 flex items-center justify-center text-gold-400 text-sm');
                 dot.innerHTML = '<i class="fas ' + ev.icon + '"></i>';
                 const row = el('div', 'flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1');
-                row.append(el('h4', 'font-cinzel font-bold text-lg text-gold-300', ev.name), el('span', 'font-cinzel text-xs tracking-wider text-gold-400', ev.time));
+                const tm = el('span', 'font-cinzel text-xs tracking-wider text-gold-400 whitespace-nowrap'); tm.innerHTML = '<i class="far fa-clock mr-1.5"></i>'; tm.append(ev.time);
+                row.append(el('h4', 'font-cinzel font-bold text-lg text-gold-300', ev.name), tm);
                 const tone = TONES[ev.tone];
                 if (tone) { item.style.borderLeft = '3px solid ' + tone; dot.style.borderColor = tone; dot.style.color = tone; dot.style.boxShadow = '0 0 14px ' + tone + '80'; }
-                item.append(dot, row, el('p', 'text-xs text-ivory-200/60 mt-1', ev.place), el('p', 'text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-2', ev.desc));
+                const pl = el('p', 'text-xs text-ivory-200/70 mt-1'); pl.innerHTML = '<i class="fas fa-location-dot text-gold-400/80 mr-1.5"></i>'; pl.append(ev.place);
+                const desc = el('p', 'ev-desc text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-2', ev.desc);
+                const more = el('button', 'ev-more'); more.type = 'button'; more.setAttribute('aria-expanded', 'false'); more.innerHTML = '<span>Details</span><i class="fas fa-chevron-down"></i>';
+                more.addEventListener('click', e => { e.stopPropagation(); const o = item.classList.toggle('open'); more.setAttribute('aria-expanded', o); more.firstChild.textContent = o ? 'Less' : 'Details'; });
+                item.append(dot, row, pl, desc, more);
                 if (ev.dress) {
                     const dc = el('p', 'mt-3 text-xs text-ivory-200/80');
                     const dots = el('span', 'inline-flex gap-1 mr-2 align-middle');
@@ -1299,6 +1326,23 @@
     if (!RM) ['days', 'hours', 'minutes', 'seconds'].forEach(id => watchEl(id, { childList: true, characterData: true, subtree: true }, n => {
         if (n._v === n.textContent) return; n._v = n.textContent; n.classList.remove('ux-flip'); void n.offsetWidth; n.classList.add('ux-flip');
     }));
+
+    // Good to Know: compact icon tiles that open on tap
+    const tiles = [...document.querySelectorAll('#guide .stagger:not(#contacts) > .glass')].filter(t => t.querySelector('h4') && t.querySelector('p'));
+    tiles.forEach(t => {
+        t.classList.add('gk'); t.parentElement.classList.add('gk-grid');
+        t.setAttribute('role', 'button'); t.setAttribute('tabindex', '0'); t.setAttribute('aria-expanded', 'false');
+        const toggle = () => {
+            const open = !t.classList.contains('open');
+            t.parentElement.querySelectorAll('.gk.open').forEach(o => { if (o !== t) { o.classList.remove('open'); o.setAttribute('aria-expanded', 'false'); } });
+            t.classList.toggle('open', open); t.setAttribute('aria-expanded', open);
+            if (open && !RM) setTimeout(() => { const r = t.getBoundingClientRect(); if (r.bottom > innerHeight || r.top < 70) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
+        };
+        t.addEventListener('click', toggle);
+        t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
+    const firstGrid = tiles[0] && tiles[0].parentElement;
+    if (firstGrid) { const h = document.createElement('p'); h.className = 'gk-hint'; h.innerHTML = '<i class="fas fa-hand-pointer mr-1.5"></i>TAP A CARD TO READ MORE'; firstGrid.before(h); }
     // Highlight the menu link for the section on screen
     const links = [...document.querySelectorAll('#topnav a[href^="#"]')].filter(a => a.getAttribute('href').length > 1 && a.closest('.md\\:flex'));
     if ('IntersectionObserver' in window && links.length) {
