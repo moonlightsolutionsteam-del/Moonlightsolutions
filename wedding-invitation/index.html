@@ -238,6 +238,15 @@
         @keyframes ctaBreathe { 0%,100% { box-shadow:0 0 18px rgba(255,79,147,.3); } 50% { box-shadow:0 0 30px rgba(255,79,147,.65), 0 0 0 4px rgba(255,79,147,.12); } }
         /* Itinerary day buttons */
         #tabs button[aria-selected="true"] { animation:choicePop .4s var(--spring); }
+        /* ---------- icons ---------- */
+        .sec-ic { width:3.1rem; height:3.1rem; margin:0 auto .9rem; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#ffd36b; font-size:1.2rem;
+            background:radial-gradient(circle at 35% 30%,rgba(255,240,184,.28),rgba(245,184,46,.08)); border:1px solid rgba(245,184,46,.55); box-shadow:0 0 22px rgba(245,184,46,.25), inset 0 0 12px rgba(245,184,46,.15); }
+        .reveal.in .sec-ic { animation:secIc 1s var(--spring) both; }
+        @keyframes secIc { from { transform:scale(.3) rotate(-60deg); opacity:0; } to { transform:none; opacity:1; } }
+        .meal-ic { flex:none; width:2.3rem; height:2.3rem; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffd36b; font-size:.9rem; background:rgba(245,184,46,.12); border:1px solid rgba(245,184,46,.45); }
+        .dish { font-size:.72rem; line-height:1.2; padding:.25rem .55rem; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(245,184,46,.22); color:rgba(255,253,250,.88); }
+        #tabs button::before { font-family:'Font Awesome 6 Free'; font-weight:900; margin-right:.45rem; }
+        #tabs button:nth-child(1)::before { content:'\f06c'; } #tabs button:nth-child(2)::before { content:'\f70b'; }
         @media (prefers-reduced-motion: reduce) {
             .choice, .choice i, #rsvp-modal > div, #members-box, #members-box > *, #vendor-fields, #rsvp-success, #pass-cv, .ux-flip, .rsvp-cta, #tabs button { animation:none !important; transition:none !important; transform:none !important; }
             .ux-ripple { display:none; }
@@ -282,7 +291,7 @@
                     </div>
                     <p id="scratch-hint" class="font-cinzel text-[11px] tracking-[.25em] text-gold-400 mt-4">SCRATCH THE GOLD TO REVEAL THE DATE</p>
                     <button type="button" id="reveal-link" class="text-[11px] text-ivory-200/50 underline mt-2">or tap here to reveal</button>
-                    <button type="button" id="enter-btn" class="btn-gold hidden w-full mt-5 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">OPEN INVITATION</button>
+                    <button type="button" id="enter-btn" class="btn-gold hidden w-full mt-5 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow"><i class="fas fa-envelope-open mr-2"></i>OPEN INVITATION</button>
                 </div>
             </div>
         </div>
@@ -309,7 +318,7 @@
                 <a href="#venues" class="hover:text-gold-400 transition-colors">VENUES</a>
                 <a href="#guide" class="hover:text-gold-400 transition-colors">GOOD TO KNOW</a>
             </div>
-            <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
+            <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow"><i class="fas fa-envelope mr-1.5"></i>RSVP NOW</button>
         </div>
     </nav>
 
@@ -355,18 +364,18 @@
             <div class="hs relative my-8 w-full max-w-lg px-2" style="--d:2.95s">
                 <p class="font-cinzel text-[10px] sm:text-xs tracking-[.2em] text-gold-400/80 mb-4 uppercase">Counting down to the celebration</p>
                 <div class="grid grid-cols-4 gap-2 sm:gap-4" role="timer" aria-live="off">
-                    <div class="glass rounded-xl p-3 sm:p-4"><span id="days" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Days</span></div>
-                    <div class="glass rounded-xl p-3 sm:p-4"><span id="hours" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Hours</span></div>
-                    <div class="glass rounded-xl p-3 sm:p-4"><span id="minutes" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Mins</span></div>
-                    <div class="glass rounded-xl p-3 sm:p-4"><span id="seconds" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest">Secs</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="days" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest"><i class="fas fa-calendar mr-1 opacity-70"></i>Days</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="hours" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest"><i class="fas fa-clock mr-1 opacity-70"></i>Hours</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="minutes" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest"><i class="fas fa-hourglass-half mr-1 opacity-70"></i>Mins</span></div>
+                    <div class="glass rounded-xl p-3 sm:p-4"><span id="seconds" class="block font-cinzel text-2xl sm:text-4xl font-bold text-gold-300">00</span><span class="text-[10px] sm:text-xs text-ivory-200/60 uppercase tracking-widest"><i class="fas fa-stopwatch mr-1 opacity-70"></i>Secs</span></div>
                 </div>
             </div>
 
             <div class="hs relative flex flex-wrap justify-center gap-4" style="--d:3.1s">
-                <a href="#itinerary" class="glass glow-hover px-6 py-3 rounded-full text-gold-300 font-cinzel text-xs font-bold tracking-widest hover:bg-gold-500 hover:text-emerald-950">VIEW ITINERARY</a>
-                <button onclick="openRsvp()" class="rsvp-cta btn-gold px-6 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow">RSVP NOW</button>
+                <a href="#itinerary" class="glass glow-hover px-6 py-3 rounded-full text-gold-300 font-cinzel text-xs font-bold tracking-widest hover:bg-gold-500 hover:text-emerald-950"><i class="fas fa-scroll mr-2"></i>VIEW ITINERARY</a>
+                <button onclick="openRsvp()" class="rsvp-cta btn-gold px-6 py-3 rounded-full font-cinzel text-xs font-bold tracking-widest glow"><i class="fas fa-envelope-open-text mr-2"></i>RSVP NOW</button>
             </div>
-            <p class="hs relative mt-5 max-w-sm text-[11px] sm:text-xs text-gold-300/90 font-cinzel tracking-[.15em] leading-relaxed" style="--d:3.25s">RSVP IS MANDATORY · KINDLY RESPOND BY 15 DECEMBER 2026<br>YOUR ENTRY PASS IS YOUR TICKET IN</p>
+            <p class="hs relative mt-5 max-w-sm text-[11px] sm:text-xs text-gold-300/90 font-cinzel tracking-[.15em] leading-relaxed" style="--d:3.25s"><i class="fas fa-bell mr-1.5"></i>RSVP IS MANDATORY · KINDLY RESPOND BY 15 DECEMBER 2026<br><i class="fas fa-ticket mr-1.5"></i>YOUR ENTRY PASS IS YOUR TICKET IN</p>
             </div>
         </section>
 
@@ -384,7 +393,7 @@
         <section id="itinerary" class="py-20 px-4 max-w-5xl mx-auto">
             <div class="text-center mb-10 reveal">
                 <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">The Wedding Itinerary</p>
-                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Two Days of Celebration</h2>
+                <span class="sec-ic" aria-hidden="true"><i class="fas fa-calendar-days"></i></span><h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Two Days of Celebration</h2>
                 <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
             </div>
 
@@ -401,7 +410,7 @@
         <section id="menu" class="band band-light py-20 px-4 max-w-5xl mx-auto">
             <div class="text-center mb-10 reveal">
                 <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Food &amp; Refreshments</p>
-                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Menu</h2>
+                <span class="sec-ic" aria-hidden="true"><i class="fas fa-utensils"></i></span><h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Menu</h2>
                 <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
                 <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">Everything is halal and cooked fresh at the resort. Drinking water is available around the lawn all day. The menu may change slightly closer to the date.</p>
             </div>
@@ -413,7 +422,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 reveal">
                     <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Locations &amp; Directions</p>
-                    <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Venue</h2>
+                    <span class="sec-ic" aria-hidden="true"><i class="fas fa-location-dot"></i></span><h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">The Venue</h2>
                     <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
                 </div>
                 <div class="max-w-xl mx-auto" id="venue-grid"></div>
@@ -424,7 +433,7 @@
             <div class="max-w-5xl mx-auto">
                 <div class="text-center mb-4 reveal">
                     <p class="font-cinzel text-xs tracking-[.3em] text-gold-400 uppercase mb-2">Guest Guidelines</p>
-                    <h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Good to Know</h2>
+                    <span class="sec-ic" aria-hidden="true"><i class="fas fa-circle-info"></i></span><h2 class="font-cinzel text-3xl sm:text-4xl font-bold gold-text">Good to Know</h2>
                     <svg class="divider art" viewBox="0 0 240 32" aria-hidden="true"><use href="#a-divider"/></svg>
                     <p class="text-sm text-ivory-200/70 mt-4 max-w-xl mx-auto">A few things that help both days run smoothly. Please share them with everyone in your family who is coming.</p>
                 </div>
@@ -441,7 +450,7 @@
                     </div>
                 </div>
                 <p class="text-center text-xs text-ivory-200/70 mt-3 reveal">Questions about the RSVP, rooms, food or travel? Call or WhatsApp your side's family coordinator above.</p>
-                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">Before you come</h3>
+                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal"><i class="fas fa-suitcase-rolling text-gold-400 mr-2"></i>Before you come</h3>
                 <div class="grid md:grid-cols-2 gap-4 reveal stagger">
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-ticket text-gold-400 mt-1 w-5 text-center"></i>
@@ -472,7 +481,7 @@
                         <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">January weather</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Days are pleasant but mornings and evenings get cool. Pack a shawl or light jacket, comfortable footwear for lawns and stone paths, and swimwear if you plan to use the pool.</p></div>
                     </div>
                 </div>
-                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">At the resort</h3>
+                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal"><i class="fas fa-hotel text-gold-400 mr-2"></i>At the resort</h3>
                 <div class="grid md:grid-cols-2 gap-4 reveal stagger">
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-children text-gold-400 mt-1 w-5 text-center"></i>
@@ -495,7 +504,7 @@
                         <div><h4 class="font-cinzel font-bold text-gold-300 text-sm">Resort property</h4><p class="text-xs sm:text-sm text-ivory-200/80 leading-relaxed mt-1">Please treat rooms, furniture and plants with care. Any damage charged by the resort is payable by the guest responsible. No smoking inside rooms or cottages.</p></div>
                     </div>
                 </div>
-                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal">During the celebrations</h3>
+                <h3 class="font-cinzel text-lg text-ivory-50 mt-10 mb-4 reveal"><i class="fas fa-star-and-crescent text-gold-400 mr-2"></i>During the celebrations</h3>
                 <div class="grid md:grid-cols-2 gap-4 reveal stagger">
                     <div class="glass rounded-xl p-4 flex gap-3">
                         <i class="fas fa-clock text-gold-400 mt-1 w-5 text-center"></i>
@@ -539,9 +548,9 @@
     <footer class="band py-14 px-4 text-center" style="--band:#086670">
         <svg class="art reveal crest-in w-16 h-16 mx-auto mb-3" viewBox="0 0 104 104" aria-hidden="true"><use href="#a-crest"/></svg>
         <p class="font-script text-4xl gold-text mb-1 reveal">Nadeem &amp; Dariya</p>
-        <p class="text-xs text-ivory-200/60 font-cinzel tracking-widest mb-4">JANUARY 20–21, 2027 • GREENWOOD RESORT, BENGALURU</p>
+        <p class="text-xs text-ivory-200/60 font-cinzel tracking-widest mb-4"><i class="far fa-calendar mr-1.5"></i>JANUARY 20–21, 2027 • <i class="fas fa-location-dot mx-1.5"></i>GREENWOOD RESORT, BENGALURU</p>
         <p class="text-[11px] text-ivory-200/40">Crafted with warm wishes for our cherished family &amp; friends.</p>
-        <p class="text-[11px] text-ivory-200/60 mb-3">Groom's side: <a class="text-gold-300" href="tel:+919535286680">Nadeem 95352 86680</a> · <a class="text-gold-300" href="tel:+917411197567">Simran 74111 97567</a><br>Bride's side: <a class="text-gold-300" href="tel:+919886263952">Allah Bakash 98862 63952</a> · <a class="text-gold-300" href="tel:+918892004045">Fatima 88920 04045</a></p>
+        <p class="text-[11px] text-ivory-200/60 mb-3">Groom's side: <a class="text-gold-300" href="tel:+919535286680"><i class="fas fa-phone text-[9px] mr-1"></i>Nadeem 95352 86680</a> · <a class="text-gold-300" href="tel:+917411197567"><i class="fas fa-phone text-[9px] mr-1"></i>Simran 74111 97567</a><br>Bride's side: <a class="text-gold-300" href="tel:+919886263952"><i class="fas fa-phone text-[9px] mr-1"></i>Allah Bakash 98862 63952</a> · <a class="text-gold-300" href="tel:+918892004045"><i class="fas fa-phone text-[9px] mr-1"></i>Fatima 88920 04045</a></p>
         <p class="text-[11px] text-ivory-200/40 mt-1">Designed by Moonlight Solutions</p>
     </footer>
 
@@ -636,8 +645,8 @@
                 <p class="text-xs text-ivory-200/60">Save this pass to your phone and show it at the entrance. You can reopen it any time from this page.</p>
                 <div id="cal-links" class="glass rounded-xl p-3 text-xs text-ivory-200/85 space-y-2 text-left"></div>
                 <div class="flex flex-wrap justify-center gap-3 pt-1">
-                    <button type="button" onclick="savePass()" class="btn-gold px-6 py-2 rounded-full font-cinzel text-xs font-bold tracking-widest">SAVE PASS</button>
-                    <button type="button" onclick="closeRsvp()" class="glass px-6 py-2 rounded-full text-gold-300 font-cinzel text-xs tracking-widest">CLOSE</button>
+                    <button type="button" onclick="savePass()" class="btn-gold px-6 py-2 rounded-full font-cinzel text-xs font-bold tracking-widest"><i class="fas fa-download mr-2"></i>SAVE PASS</button>
+                    <button type="button" onclick="closeRsvp()" class="glass px-6 py-2 rounded-full text-gold-300 font-cinzel text-xs tracking-widest"><i class="fas fa-xmark mr-2"></i>CLOSE</button>
                 </div>
             </div>
         </div>
@@ -682,18 +691,18 @@
         // Menu: edit dishes here; the Menu section is built from this list
         const MENU = [
             { day:'Day 1 · Wednesday, January 20', meals:[
-                { time:'12:00 PM', name:'Welcome Drinks', items:'Nimbu pani, rose sharbat' },
-                { time:'1:30 PM', name:'Arrival Lunch', items:'Ghee rice, dal fry, chicken curry, salad, papad, gulab jamun' },
-                { time:'4:45 PM', name:'High Tea (during Haldi)', items:'Masala chai, filter coffee, samosas' },
-                { time:'6:45 PM', name:'Shukrana', items:'Rooh Afza sharbat, dates, sweets' },
-                { time:'8:00 PM', name:'DJ Night Dinner', items:'Chicken dum biryani, mirchi ka salan, burani raita, double ka meetha' }
+                { time:'12:00 PM', name:'Welcome Drinks', icon:'fa-glass-water', items:'Nimbu pani, rose sharbat' },
+                { time:'1:30 PM', name:'Arrival Lunch', icon:'fa-bowl-rice', items:'Ghee rice, dal fry, chicken curry, salad, papad, gulab jamun' },
+                { time:'4:45 PM', name:'High Tea (during Haldi)', icon:'fa-mug-hot', items:'Masala chai, filter coffee, samosas' },
+                { time:'6:45 PM', name:'Shukrana', icon:'fa-hands-praying', items:'Rooh Afza sharbat, dates, sweets' },
+                { time:'8:00 PM', name:'DJ Night Dinner', icon:'fa-music', items:'Chicken dum biryani, mirchi ka salan, burani raita, double ka meetha' }
             ] },
             { day:'Day 2 · Thursday, January 21', meals:[
-                { time:'7:30 AM', name:'Breakfast', items:'Idli, vada, sambar, coconut chutney, tea & coffee' },
-                { time:'11:30 AM', name:'Post-Nikah Refreshments', items:'Dates, Rooh Afza sharbat' },
-                { time:'1:00 PM', name:'Nikah Lunch', items:'Mutton kacchi biryani, mirchi ka salan, raita, double ka meetha' },
-                { time:'5:30 PM', name:'Sundowner Tea', items:'Tea, filter coffee, biscuits' },
-                { time:'8:00 PM', name:'Reception Dinner', items:'Mutton dum biryani, mirchi ka salan, burani raita, kaddu ka halwa' }
+                { time:'7:30 AM', name:'Breakfast', icon:'fa-mug-saucer', items:'Idli, vada, sambar, coconut chutney, tea & coffee' },
+                { time:'11:30 AM', name:'Post-Nikah Refreshments', icon:'fa-heart', items:'Dates, Rooh Afza sharbat' },
+                { time:'1:00 PM', name:'Nikah Lunch', icon:'fa-bowl-rice', items:'Mutton kacchi biryani, mirchi ka salan, raita, double ka meetha' },
+                { time:'5:30 PM', name:'Sundowner Tea', icon:'fa-mug-hot', items:'Tea, filter coffee, biscuits' },
+                { time:'8:00 PM', name:'Reception Dinner', icon:'fa-utensils', items:'Mutton dum biryani, mirchi ka salan, burani raita, kaddu ka halwa' }
             ] }
         ];
 
@@ -806,14 +815,18 @@
 
         MENU.forEach(d => {
             const card = el('div', 'glass-deep rounded-2xl p-6 reveal');
-            card.append(el('h3', 'font-cinzel text-lg font-bold text-gold-300 mb-4', d.day));
+            const h = el('h3', 'font-cinzel text-lg font-bold text-gold-300 mb-4'); h.innerHTML = '<i class="fas ' + (d.day.startsWith('Day 1') ? 'fa-sun' : 'fa-moon') + ' mr-2 text-gold-400"></i>'; h.append(d.day); card.append(h);
             const list = el('div', 'space-y-4');
             d.meals.forEach(m => {
-                const row = el('div', 'flex gap-4');
-                row.append(el('span', 'font-cinzel text-xs tracking-wider text-gold-400 w-20 shrink-0 pt-0.5', m.time));
-                const body = el('div', 'min-w-0');
-                body.append(el('p', 'font-semibold text-ivory-50 text-sm', m.name), el('p', 'text-xs sm:text-sm text-ivory-200/75 leading-relaxed', m.items));
-                row.append(body); list.append(row);
+                const row = el('div', 'flex gap-3.5 items-start');
+                const bub = el('span', 'meal-ic'); bub.innerHTML = '<i class="fas ' + (m.icon || 'fa-utensils') + '"></i>';
+                const body = el('div', 'min-w-0 flex-1');
+                const head = el('div', 'flex flex-wrap items-baseline justify-between gap-x-3');
+                head.append(el('p', 'font-semibold text-ivory-50 text-sm', m.name), el('span', 'font-cinzel text-[11px] tracking-wider text-gold-400', m.time));
+                const chips = el('div', 'flex flex-wrap gap-1.5 mt-1.5');
+                m.items.split(/,\s*/).forEach(t => chips.append(el('span', 'dish', t)));
+                body.append(head, chips);
+                row.append(bub, body); list.append(row);
             });
             card.append(list);
             document.getElementById('menu-grid').append(card);
@@ -990,7 +1003,7 @@
         }
         const loadPass = () => { try { return JSON.parse(localStorage.getItem(PASS_KEY)); } catch (e) { return null; } };
         const storePass = p => { try { localStorage.setItem(PASS_KEY, JSON.stringify(p)); } catch (e) {} };
-        function updateCtas() { const has = !!loadPass(); document.querySelectorAll('.rsvp-cta').forEach(b => b.textContent = has ? 'MY ENTRY PASS' : 'RSVP NOW'); }
+        function updateCtas() { const has = !!loadPass(); document.querySelectorAll('.rsvp-cta').forEach(b => { b.innerHTML = '<i class="fas ' + (has ? 'fa-ticket' : 'fa-envelope-open-text') + ' mr-2"></i>'; b.append(has ? 'MY ENTRY PASS' : 'RSVP NOW'); }); }
 
         function showForm() { form.classList.remove('hidden'); document.getElementById('rsvp-success').classList.add('hidden'); }
         function showPass(p, justSent) {
