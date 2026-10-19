@@ -390,8 +390,8 @@
       </table></div>
       <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px"><i class="fas fa-scale-balanced"></i>Who pays what</h2>
       <p class="muted" style="margin:0 0 8px;font-size:13px">Each line's split between the families. Shared lines start at 50/50; change the groom's family % on any line (for example 60 for a 60/40 split).</p>
-      <div class="scroll"><table style="min-width:980px">
-        <thead><tr><th>Item</th><th class="money">Cost</th><th>Groom's %</th><th class="money">Groom's share</th><th class="money">Bride's share</th><th class="money">Groom's paid</th><th class="money">Bride's paid</th><th class="money">Groom's due</th><th class="money">Bride's due</th></tr></thead>
+      <div class="scroll"><table style="min-width:1250px">
+        <thead><tr><th>Item</th><th class="money">Cost</th><th>Groom's %</th><th>Section</th><th class="money">Groom's share</th><th class="money">Bride's share</th><th class="money">Groom's paid</th><th class="money">Bride's paid</th><th class="money">Groom's due</th><th class="money">Bride's due</th><th></th></tr></thead>
         <tbody id="wRows"></tbody>
       </table></div>
       <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px"><i class="fas fa-people-group"></i>Who has paid, person by person</h2>
@@ -414,7 +414,7 @@
         </div>
         <p class="err" id="pMsg" role="status"></p>
       </div>
-      <div class="scroll" style="margin-top:10px"><table style="min-width:760px">
+      <div class="scroll" style="margin-top:10px"><table style="min-width:1100px">
         <thead><tr><th>Date</th><th>For</th><th class="money">Amount</th><th>Paid by</th><th>How / reference</th><th>Note</th><th>Receipt</th><th></th></tr></thead>
         <tbody id="pRows"></tbody>
       </table></div>
@@ -1151,7 +1151,7 @@ function cell(it, key, opts) {
 function pick(it, key, options) {
   const s = el('select', {}); options.forEach(o => s.append(el('option', { value: o, textContent: o })));
   s.value = it.data[key] || options[0];
-  s.addEventListener('change', async () => { try { await savePlan(it, { [key]: s.value }); renderPlan(); } catch (e) { s.style.borderColor = 'var(--bad)'; } });
+  s.addEventListener('change', async () => { try { await savePlan(it, { [key]: s.value }); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; s.value = it.data[key] || options[0]; } });
   return s;
 }
 const stamp = it => it.updated_by ? el('div', { className: 'by', textContent: 'Updated by ' + it.updated_by + ' · ' + new Date(it.updated_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) }) : '';
@@ -1215,18 +1215,26 @@ function renderBudget() {
   const wb = $('wRows'); wb.replaceChildren();
   const tot = { c: 0, gs: 0, bs: 0, gp: 0, bp: 0, gd: 0, bd: 0 };
   GROUPS.forEach(([k, label]) => {
-    wb.append(el('tr', { className: 'grp' }, el('td', { colSpan: 9, textContent: label })));
+    wb.append(el('tr', { className: 'grp' }, el('td', { colSpan: 11, textContent: label })));
     items('budget').filter(x => x.data.group === k).forEach(it => {
       const sv = lineSplit(it); Object.keys(tot).forEach(f => tot[f] += sv[f]);
       const pct = cell(it, 'split_groom', { num: true, ph: String(gPct(it)) }); pct.max = 100; pct.style.maxWidth = '70px';
       const due = v => el('td', { className: 'money', style: v > 0 ? 'color:var(--warn)' : v < 0 ? 'color:var(--ok)' : '', textContent: v < 0 ? inr(-v) + ' extra' : inr(v) });
-      wb.append(el('tr', {}, el('td', { textContent: it.data.item, style: 'max-width:280px' }), el('td', { className: 'money', textContent: inr(sv.c) }), el('td', {}, pct),
+      // Edit the cost here: it sets the agreed price (the budget figure shows until a price is agreed)
+      const price = cell(it, 'agreed', { num: true, ph: String(+it.data.budget || 0) }); price.style.minWidth = '115px'; price.style.maxWidth = '130px'; price.title = 'Agreed price. Leave blank to use the budget of ' + inr(it.data.budget);
+      const sec = el('select', { title: 'Move this line to another section' }); GROUPS.forEach(([gk, gl]) => sec.append(el('option', { value: gk, textContent: gl })));
+      sec.value = it.data.group; sec.onchange = async () => { try { await savePlan(it, { group: sec.value, split_groom: null }); renderPlan(); } catch (e) { sec.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; sec.value = it.data.group; } };
+      const rm = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); rm.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
+      wb.append(el('tr', {}, el('td', { style: 'min-width:240px' }, cell(it, 'item', { max: 200 })), el('td', { className: 'money' }, price, it.data.status === 'Not needed' ? el('div', { className: 'by', textContent: 'Not needed: counts as ₹0' }) : ''), el('td', {}, pct), el('td', {}, sec),
         el('td', { className: 'money', textContent: inr(sv.gs) }), el('td', { className: 'money', textContent: inr(sv.bs) }),
-        el('td', { className: 'money', textContent: inr(sv.gp) }), el('td', { className: 'money', textContent: inr(sv.bp) }), due(sv.gd), due(sv.bd)));
+        el('td', { className: 'money', textContent: inr(sv.gp) }), el('td', { className: 'money', textContent: inr(sv.bp) }), due(sv.gd), due(sv.bd), el('td', {}, rm)));
     });
+    const add = el('button', { className: 'btn ghost sm', textContent: '+ Add a line to ' + label });
+    add.onclick = async () => { try { await savePlan(null, { group: k, item: 'New item', budget: 0, agreed: null, status: 'To close', notes: '' }, 'budget'); renderBudget(); } catch (e) {} };
+    wb.append(el('tr', {}, el('td', { colSpan: 11 }, add)));
   });
-  wb.append(el('tr', { className: 'tot' }, el('td', { textContent: 'Total' }), el('td', { className: 'money', textContent: inr(tot.c) }), el('td'),
-    ...['gs', 'bs', 'gp', 'bp', 'gd', 'bd'].map(f => el('td', { className: 'money', textContent: inr(tot[f]) }))));
+  wb.append(el('tr', { className: 'tot' }, el('td', { textContent: 'Total' }), el('td', { className: 'money', textContent: inr(tot.c) }), el('td'), el('td'),
+    ...['gs', 'bs', 'gp', 'bp', 'gd', 'bd'].map(f => el('td', { className: 'money', textContent: inr(tot[f]) })), el('td')));
   // Person by person, within each family
   const pays0 = items('payment');
   $('people').replaceChildren(...["Groom's family", "Bride's family"].map(fam => {
@@ -1253,10 +1261,17 @@ function renderBudget() {
     const up = el('label', { className: 'mini', style: 'cursor:pointer', textContent: rs.length ? '+ add' : '+ Upload' }), f = el('input', { type: 'file', accept: 'image/*', hidden: true });
     f.onchange = async () => { if (f.files[0]) { up.textContent = 'Uploading…'; try { await addReceipt(p.id, f.files[0]); renderBudget(); } catch (e) { up.textContent = 'Failed, retry'; } } };
     up.append(f); rc.append(up);
-    return el('tr', {}, el('td', { className: 'muted', textContent: p.data.date }), el('td', { textContent: b ? b.data.item : '(removed item)' }), el('td', { className: 'money', textContent: inr(p.data.amount) }),
-      el('td', {}, el('div', { textContent: p.data.person || '' }), el('div', { className: 'by', textContent: p.data.by })),
-      el('td', { className: 'muted' }, el('div', { textContent: p.data.how }), p.data.ref ? el('div', { className: 'code', style: 'font-size:12px', textContent: p.data.ref }) : ''),
-      el('td', {}, el('div', { textContent: p.data.note || '' }), stamp(p)), rc, el('td', {}, x));
+    const forSel = el('select', { style: 'width:100%;min-width:180px' });
+    GROUPS.forEach(([k, label]) => { const og = el('optgroup', { label }); items('budget').filter(y => y.data.group === k).forEach(y => og.append(el('option', { value: y.id, textContent: y.data.item }))); forSel.append(og); });
+    if (!b) forSel.prepend(el('option', { value: p.data.item, textContent: '(removed item)' }));
+    forSel.value = p.data.item;
+    forSel.onchange = async () => { try { await savePlan(p, { item: forSel.value }); renderPlan(); } catch (e) { forSel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; forSel.value = p.data.item; } };
+    const amt = cell(p, 'amount', { num: true }); amt.style.minWidth = '110px'; amt.style.maxWidth = '130px';
+    const dt = cell(p, 'date', { date: true }); dt.style.minWidth = '130px';
+    return el('tr', {}, el('td', {}, dt), el('td', {}, forSel), el('td', { className: 'money' }, amt),
+      el('td', { style: 'min-width:160px' }, cell(p, 'person', { max: 60, ph: 'Who paid' }), pick(p, 'by', ["Groom's family", "Bride's family"])),
+      el('td', { style: 'min-width:150px' }, pick(p, 'how', ['UPI', 'Cash', 'Bank transfer', 'Card', 'Cheque']), cell(p, 'ref', { max: 60, ph: 'UTR / ref' })),
+      el('td', { style: 'min-width:180px' }, cell(p, 'note', { max: 300, ph: 'Note' }), stamp(p)), rc, el('td', {}, x));
   }) : [el('tr', {}, el('td', { colSpan: 8, className: 'empty', textContent: 'No payments recorded yet.' }))]));
   $('capIn').value = cap;
   const rec = plan.filter(x => x.updated_by).sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))).slice(0, 8);
