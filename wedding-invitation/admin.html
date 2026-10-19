@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Guest List — Nadeem & Dariya</title>
+<title>Wedding Panel — Nadeem & Dariya</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0c868d; --panel:rgba(6,92,102,.62); --line:rgba(245,184,46,.32); --gold:#f5b82e; --gold2:#fff0b8; --ink:#ffffff; --mute:rgba(255,255,255,.72); --pink:#d81b60; --pink2:#ff4f93; --ok:#3ee08f; --warn:#ffd36b; --bad:#ff6b6b; }
@@ -27,6 +27,14 @@
   ::placeholder { color:rgba(255,255,255,.55); opacity:1; }
   .tabs { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
   .tab { padding:8px 18px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.1); cursor:pointer; color:var(--gold2); }
+  .tg { align-self:center; font:600 11px 'Cinzel',serif; letter-spacing:.14em; color:var(--mute); text-transform:uppercase; min-width:76px; }
+  .money { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  td input.num { text-align:right; max-width:110px; }
+  .grp td { background:rgba(245,184,46,.12); font:600 12px 'Cinzel',serif; letter-spacing:.1em; color:var(--gold2); }
+  .tot td { font-weight:700; border-top:1px solid var(--line); }
+  .by { font-size:11px; color:var(--mute); }
+  .done-row td { opacity:.55; } .done-row .ttl { text-decoration:line-through; }
+  .late { color:var(--bad); font-weight:600; }
   .tab[aria-selected=true] { background:linear-gradient(90deg,var(--pink),var(--pink2)); color:#fff; border-color:transparent; font-weight:600; }
   .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:16px; }
   .stat { background:var(--panel); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--line); border-top:3px solid var(--gold); border-radius:12px; padding:12px 14px; }
@@ -72,7 +80,7 @@
 
   <section id="login" class="panel" hidden>
     <p class="script" style="font-size:44px;margin:0;line-height:1.1">Nadeem &amp; Dariya</p>
-    <h1 class="cin" style="color:var(--gold2);font-size:16px;margin:6px 0 0">Guest List · Admin</h1>
+    <h1 class="cin" style="color:var(--gold2);font-size:16px;margin:6px 0 0">Wedding Panel</h1>
     <form id="loginForm">
       <input id="key" type="password" autocomplete="current-password" placeholder="Admin passphrase" aria-label="Admin passphrase" required>
       <button class="btn" type="submit">Sign in</button>
@@ -82,8 +90,9 @@
 
   <main id="app" hidden>
     <header>
-      <h1><span class="script" style="font-size:30px">Nadeem &amp; Dariya</span> &nbsp;Guest List</h1>
+      <h1><span class="script" style="font-size:30px">Nadeem &amp; Dariya</span> &nbsp;Wedding Panel</h1>
       <div class="row" style="gap:8px">
+        <button class="btn ghost sm" id="whoBtn" title="Change who is editing"></button>
         <button class="btn ghost sm" id="refresh">Refresh</button>
         <button class="btn ghost sm" id="export">Export CSV</button>
         <button class="btn ghost sm" id="logout">Sign out</button>
@@ -92,7 +101,8 @@
     <div id="offline" class="panel" hidden style="margin-top:12px;border-color:var(--warn);color:var(--warn)"></div>
     <div id="nowbar" class="panel" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline"></div>
 
-    <div class="tabs" role="tablist">
+    <div class="tabs" role="tablist" aria-label="Guests">
+      <span class="tg">Guests</span>
       <button class="tab" role="tab" data-tab="guests" aria-selected="true">Guests</button>
       <button class="tab" role="tab" data-tab="invited" aria-selected="false">Invited</button>
       <button class="tab" role="tab" data-tab="names" aria-selected="false">All names</button>
@@ -101,6 +111,12 @@
       <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door</button>
       <button class="tab" role="tab" data-tab="announce" aria-selected="false">Announce</button>
       <button class="tab" role="tab" data-tab="add" aria-selected="false">Add guest</button>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Planning" style="margin-top:-6px">
+      <span class="tg">Planning</span>
+      <button class="tab" role="tab" data-tab="budget" aria-selected="false">Budget &amp; payments</button>
+      <button class="tab" role="tab" data-tab="vendors" aria-selected="false">Vendors</button>
+      <button class="tab" role="tab" data-tab="todo" aria-selected="false">To-do &amp; team</button>
     </div>
 
     <!-- Guests -->
@@ -191,6 +207,93 @@
       <div class="row" style="gap:8px;margin-top:12px"><button class="btn sm" id="fCopy">Copy for WhatsApp</button></div>
       <p class="muted" id="fMsg"></p>
     </section>
+
+    <!-- Budget & payments -->
+    <section id="tab-budget" hidden>
+      <div class="stats" id="bStats"></div>
+      <div class="panel" id="bSettle" style="margin-bottom:14px"></div>
+      <div class="scroll"><table style="min-width:900px">
+        <thead><tr><th>Item</th><th class="money">Budget</th><th class="money">Agreed price</th><th class="money">Paid</th><th class="money">Balance</th><th>Status</th><th>Vendor / notes</th><th></th></tr></thead>
+        <tbody id="bRows"></tbody>
+      </table></div>
+      <p class="muted" style="font-size:12px">Shared costs are split 50/50. The agreed price is what you finally settle on; until it is filled in, the budget is used for totals. Not included: mehr, outfits, jewellery, bridal makeup, gifts and personal travel.</p>
+
+      <div class="panel" style="margin-top:16px">
+        <p class="cin" style="margin:0 0 10px;color:var(--gold2)">Record a payment</p>
+        <div class="row" style="gap:8px;align-items:flex-end">
+          <label class="muted" style="flex:3 1 260px">For<select id="pItem" style="width:100%"></select></label>
+          <label class="muted" style="flex:1 1 110px">Amount (₹)<input id="pAmt" type="number" min="1" style="width:100%"></label>
+          <label class="muted" style="flex:1 1 150px">Paid by<select id="pBy" style="width:100%"><option>Groom's family</option><option>Bride's family</option></select></label>
+          <label class="muted" style="flex:1 1 140px">Date<input id="pDate" type="date" style="width:100%"></label>
+          <label class="muted" style="flex:1 1 120px">How<select id="pHow" style="width:100%"><option>UPI</option><option>Cash</option><option>Bank transfer</option><option>Card</option><option>Cheque</option></select></label>
+          <label class="muted" style="flex:2 1 180px">Note<input id="pNote" maxlength="120" placeholder="e.g. advance, receipt no." style="width:100%"></label>
+          <button class="btn sm" id="pAdd">Add payment</button>
+        </div>
+        <p class="err" id="pMsg" role="status"></p>
+      </div>
+      <div class="scroll" style="margin-top:10px"><table style="min-width:760px">
+        <thead><tr><th>Date</th><th>For</th><th class="money">Amount</th><th>Paid by</th><th>How</th><th>Note</th><th></th></tr></thead>
+        <tbody id="pRows"></tbody>
+      </table></div>
+      <div class="row" style="gap:10px;align-items:center;margin-top:14px">
+        <label class="muted">Budget cap per family (₹) <input id="capIn" type="number" min="0" style="max-width:130px"></label>
+        <button class="btn ghost sm" id="capSave">Save cap</button>
+        <button class="btn ghost sm" id="bCsv">Download budget (CSV)</button>
+      </div>
+      <div class="panel" style="margin-top:14px"><p class="cin" style="margin:0 0 6px;color:var(--gold2)">Recent changes</p><div id="recent"></div></div>
+    </section>
+
+    <!-- Vendors -->
+    <section id="tab-vendors" hidden>
+      <div class="bar">
+        <input type="search" id="vq" placeholder="Search vendors" aria-label="Search vendors">
+        <select id="vStatusF" aria-label="Filter by status"><option value="">All statuses</option></select>
+        <select id="vOwnerF" aria-label="Filter by family"><option value="">Both families</option><option>Both</option><option>Groom's family</option><option>Bride's family</option></select>
+        <button class="btn sm" id="vAdd">+ Add vendor</button>
+      </div>
+      <div id="vCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- To-do and the team on duty -->
+    <section id="tab-todo" hidden>
+      <div class="stats" id="tStats"></div>
+      <div class="bar">
+        <select id="tShow" aria-label="Show"><option value="open">Still to do</option><option value="late">Overdue</option><option value="done">Done</option><option value="">Everything</option></select>
+        <select id="tOwnerF" aria-label="Filter by owner"><option value="">Everyone</option><option>Both</option><option>Groom's family</option><option>Bride's family</option><option>Each family</option><option>Coordinators</option></select>
+        <select id="tAreaF" aria-label="Filter by area"><option value="">All areas</option><option>Planning</option><option>Guests</option><option>Rooms</option><option>Food</option><option>Nikah</option><option>On the day</option></select>
+      </div>
+      <div class="scroll"><table style="min-width:820px">
+        <thead><tr><th></th><th>To do</th><th>Who</th><th>By</th><th>Area</th><th></th></tr></thead>
+        <tbody id="tRows"></tbody>
+      </table></div>
+      <div class="panel row" style="margin-top:10px;gap:8px;align-items:flex-end">
+        <label class="muted" style="flex:3 1 260px">New to-do<input id="ntTitle" maxlength="200" placeholder="What needs doing" style="width:100%"></label>
+        <label class="muted" style="flex:1 1 140px">Who<select id="ntOwner" style="width:100%"><option>Both</option><option>Groom's family</option><option>Bride's family</option><option>Each family</option><option>Coordinators</option></select></label>
+        <label class="muted" style="flex:1 1 140px">By<input id="ntDue" type="date" style="width:100%"></label>
+        <label class="muted" style="flex:1 1 120px">Area<select id="ntArea" style="width:100%"><option>Planning</option><option>Guests</option><option>Rooms</option><option>Food</option><option>Nikah</option><option>On the day</option></select></label>
+        <button class="btn sm" id="ntAdd">Add</button>
+      </div>
+
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px">People on duty</h2>
+      <div class="scroll"><table style="min-width:760px">
+        <thead><tr><th>Role</th><th>What they do</th><th>Day 1 (Wed)</th><th>Day 2 (Thu)</th></tr></thead>
+        <tbody id="dRows"></tbody>
+      </table></div>
+
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px">Emergency details</h2>
+      <div class="panel" id="emBox" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- Who is editing (asked once per device) -->
+    <div id="whoDlg" class="panel" hidden style="position:fixed;inset:auto 16px 16px 16px;max-width:460px;margin:0 auto;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.5)">
+      <p class="cin" style="margin:0 0 6px;color:var(--gold2)">Who is using this page?</p>
+      <p class="muted" style="margin:0 0 10px;font-size:13px">Your name is shown next to every change you make, so both families can see who updated what.</p>
+      <div class="row" style="gap:8px">
+        <input id="whoName" maxlength="30" placeholder="Your name" style="flex:2 1 160px">
+        <select id="whoFam" style="flex:1 1 150px"><option>Groom's family</option><option>Bride's family</option></select>
+        <button class="btn sm" id="whoSave">Save</button>
+      </div>
+    </div>
 
     <!-- Scanner -->
     <section id="tab-scan" hidden>
@@ -678,10 +781,222 @@ $('aNums').onclick = async () => {
 };
 $('aTpl').onchange();
 
+// ---------- who is editing ----------
+let ME = null; try { ME = JSON.parse(localStorage.getItem('nd27-who') || 'null'); } catch (e) {}
+const meLabel = () => ME ? ME.name + ' (' + ME.fam.replace(' family', '') + ')' : '';
+function showWho() { $('whoBtn').textContent = ME ? '👤 ' + meLabel() : '👤 Who are you?'; }
+$('whoBtn').onclick = () => { $('whoName').value = ME ? ME.name : ''; $('whoFam').value = ME ? ME.fam : "Groom's family"; $('whoDlg').hidden = false; $('whoName').focus(); };
+$('whoSave').onclick = () => {
+  const n = $('whoName').value.trim(); if (!n) { $('whoName').focus(); return; }
+  ME = { name: n.slice(0, 30), fam: $('whoFam').value }; try { localStorage.setItem('nd27-who', JSON.stringify(ME)); } catch (e) {}
+  $('whoDlg').hidden = true; showWho();
+};
+showWho();
+
+// ---------- planning data (budget, payments, vendors, to-dos, duties) ----------
+let plan = [], cap = 300000, emergency = {};
+const inr = n => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
+const items = k => plan.filter(x => x.kind === k && !x.removed);
+async function loadPlan() {
+  try {
+    const [rows, st] = await Promise.all([rpc('admin_plan'), rpc('admin_settings')]);
+    plan = rows;
+    const b = st.find(x => x.key === 'budget'); cap = b && b.value && b.value.cap != null ? +b.value.cap : 300000;
+    const em = st.find(x => x.key === 'emergency'); emergency = em ? em.value : {};
+    const r = st.find(x => x.key === 'rooms'); if (r && Array.isArray(r.value)) rooms = r.value;
+    renderPlan();
+  } catch (e) { if (e.message !== 'forbidden') flash('Could not load the planning data.'); }
+}
+function renderPlan() {
+  if (!$('tab-budget').hidden) renderBudget();
+  if (!$('tab-vendors').hidden) renderVendors();
+  if (!$('tab-todo').hidden) renderTodo();
+}
+// Save one item's data; the change is stamped with who made it
+async function savePlan(it, patch, kind) {
+  if (!ME) { $('whoBtn').click(); throw new Error('who'); }
+  const data = Object.assign({}, it ? it.data : {}, patch);
+  const row = await rpc('admin_plan_save', { p_id: it ? it.id : null, p_kind: it ? it.kind : kind, p_data: data, p_by: meLabel() });
+  const i = plan.findIndex(x => x.id === row.id); if (i >= 0) plan[i] = row; else plan.push(row);
+  return row;
+}
+async function removePlan(it) { if (!ME) { $('whoBtn').click(); return; } await rpc('admin_plan_remove', { p_id: it.id, p_removed: true, p_by: meLabel() }); it.removed = true; renderPlan(); }
+// A text or number input that saves itself when it loses focus
+function cell(it, key, opts) {
+  opts = opts || {};
+  const v = it.data[key], inp = el(opts.area ? 'textarea' : 'input', { value: v == null ? '' : v, placeholder: opts.ph || '', maxLength: opts.max || 300 });
+  if (opts.num) { inp.type = 'number'; inp.min = 0; inp.className = 'num'; }
+  if (opts.date) inp.type = 'date';
+  if (opts.area) inp.rows = opts.rows || 2;
+  inp.style.width = '100%';
+  inp.addEventListener('change', async () => {
+    const val = opts.num ? (inp.value === '' ? null : Math.max(0, Math.round(+inp.value))) : inp.value.trim();
+    try { await savePlan(it, { [key]: val }); inp.style.borderColor = 'var(--ok)'; setTimeout(() => { inp.style.borderColor = ''; renderPlan(); }, 600); }
+    catch (e) { inp.style.borderColor = 'var(--bad)'; }
+  });
+  return inp;
+}
+function pick(it, key, options) {
+  const s = el('select', {}); options.forEach(o => s.append(el('option', { value: o, textContent: o })));
+  s.value = it.data[key] || options[0];
+  s.addEventListener('change', async () => { try { await savePlan(it, { [key]: s.value }); renderPlan(); } catch (e) { s.style.borderColor = 'var(--bad)'; } });
+  return s;
+}
+const stamp = it => it.updated_by ? el('div', { className: 'by', textContent: 'Updated by ' + it.updated_by + ' · ' + new Date(it.updated_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) }) : '';
+
+// ---------- budget & payments ----------
+const GROUPS = [['shared', 'Shared 50/50'], ['bride', "Bride's family"], ['groom', "Groom's family"]];
+const B_STATUS = ['To close', 'Quoted', 'Booked', 'Advance paid', 'Paid in full', 'Not needed'];
+const cost = it => it.data.status === 'Not needed' ? 0 : (it.data.agreed != null && it.data.agreed !== '' ? +it.data.agreed : +it.data.budget || 0);
+const paidFor = (id, fam) => items('payment').filter(p => p.data.item === id && (!fam || p.data.by === fam)).reduce((n, p) => n + (+p.data.amount || 0), 0);
+function money() {
+  const bl = items('budget'), sum = (arr, f) => arr.reduce((n, x) => n + f(x), 0);
+  const g = k => bl.filter(x => x.data.group === k);
+  const shared = sum(g('shared'), cost), own = { bride: sum(g('bride'), cost), groom: sum(g('groom'), cost) };
+  const pay = items('payment'), byFam = (fam, grp) => sum(pay.filter(p => p.data.by === fam && (!grp || (bl.find(b => b.id === p.data.item) || { data: {} }).data.group === grp)), p => +p.data.amount || 0);
+  return { shared, own, total: { bride: shared / 2 + own.bride, groom: shared / 2 + own.groom },
+    paid: { bride: byFam("Bride's family"), groom: byFam("Groom's family") },
+    sharedPaid: { bride: byFam("Bride's family", 'shared'), groom: byFam("Groom's family", 'shared') } };
+}
+function renderBudget() {
+  const m = money();
+  $('bStats').replaceChildren(...[
+    [inr(m.total.groom), "Groom's family total"], [inr(cap - m.total.groom), "Groom's buffer left (cap " + inr(cap) + ')'], [inr(m.paid.groom), "Paid by groom's family"],
+    [inr(m.total.bride), "Bride's family total"], [inr(cap - m.total.bride), "Bride's buffer left (cap " + inr(cap) + ')'], [inr(m.paid.bride), "Paid by bride's family"],
+    [inr(m.shared + m.own.bride + m.own.groom), 'Wedding total'], [inr(m.shared + m.own.bride + m.own.groom - m.paid.bride - m.paid.groom), 'Still to pay']]
+    .map(([n, l]) => el('div', { className: 'stat', style: /buffer/.test(l) && /-/.test(n) ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  // Who owes whom on the shared costs paid so far
+  const sp = m.sharedPaid, half = (sp.bride + sp.groom) / 2, diff = Math.round(sp.groom - half);
+  $('bSettle').replaceChildren(el('b', { className: 'cin', textContent: 'Shared costs so far: ' }),
+    el('span', { textContent: 'paid ' + inr(sp.groom + sp.bride) + ' (groom\'s family ' + inr(sp.groom) + ', bride\'s family ' + inr(sp.bride) + '). ' }),
+    el('b', { style: 'color:' + (diff ? 'var(--warn)' : 'var(--ok)'), textContent: diff > 0 ? "Bride's family owes groom's family " + inr(diff) + ' to keep it 50/50.' : diff < 0 ? "Groom's family owes bride's family " + inr(-diff) + ' to keep it 50/50.' : 'Both families are even.' }));
+  const body = $('bRows'); body.replaceChildren();
+  GROUPS.forEach(([k, label]) => {
+    const list = items('budget').filter(x => x.data.group === k);
+    body.append(el('tr', { className: 'grp' }, el('td', { colSpan: 8, textContent: label + (k === 'shared' ? ' (each family pays half)' : '') })));
+    list.forEach(it => {
+      const c = cost(it), paid = paidFor(it.id), over = it.data.agreed != null && it.data.agreed !== '' && +it.data.agreed > +it.data.budget;
+      const x = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); x.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
+      body.append(el('tr', {},
+        el('td', { style: 'min-width:260px' }, cell(it, 'item', { max: 200 }), stamp(it)),
+        el('td', { className: 'money' }, cell(it, 'budget', { num: true })),
+        el('td', { className: 'money' }, cell(it, 'agreed', { num: true, ph: '—' }), over ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(+it.data.agreed - it.data.budget) + ' over' }) : ''),
+        el('td', { className: 'money', textContent: inr(paid) }),
+        el('td', { className: 'money', style: c - paid > 0 ? 'color:var(--warn)' : 'color:var(--ok)', textContent: inr(c - paid) }),
+        el('td', {}, pick(it, 'status', B_STATUS)),
+        el('td', { style: 'min-width:200px' }, cell(it, 'notes', { max: 300, ph: 'Vendor, quote, terms' })),
+        el('td', {}, x)));
+    });
+    const add = el('button', { className: 'btn ghost sm', textContent: '+ Add a line to ' + label });
+    add.onclick = async () => { try { await savePlan(null, { group: k, item: 'New item', budget: 0, agreed: null, status: 'To close', notes: '' }, 'budget'); renderBudget(); } catch (e) {} };
+    const tb = list.reduce((n, x) => n + (+x.data.budget || 0), 0), tc = list.reduce((n, x) => n + cost(x), 0), tp = list.reduce((n, x) => n + paidFor(x.id), 0);
+    body.append(el('tr', { className: 'tot' }, el('td', {}, add), el('td', { className: 'money', textContent: inr(tb) }), el('td', { className: 'money', textContent: inr(tc) }),
+      el('td', { className: 'money', textContent: inr(tp) }), el('td', { className: 'money', textContent: inr(tc - tp) }), el('td', { colSpan: 3 })));
+  });
+  // Payment form and log
+  const sel = $('pItem'), keep = sel.value; sel.replaceChildren();
+  GROUPS.forEach(([k, label]) => { const og = el('optgroup', { label }); items('budget').filter(x => x.data.group === k).forEach(x => og.append(el('option', { value: x.id, textContent: x.data.item }))); sel.append(og); });
+  if (keep) sel.value = keep;
+  if (!$('pDate').value) $('pDate').value = new Date().toISOString().slice(0, 10);
+  if (ME && !$('pBy').dataset.set) { $('pBy').value = ME.fam; $('pBy').dataset.set = 1; }
+  const pays = items('payment').sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)));
+  $('pRows').replaceChildren(...(pays.length ? pays.map(p => {
+    const b = plan.find(x => x.id === p.data.item), x = el('button', { className: 'mini', textContent: '×' });
+    x.onclick = () => { if (confirm('Remove this payment of ' + inr(p.data.amount) + '?')) removePlan(p); };
+    return el('tr', {}, el('td', { className: 'muted', textContent: p.data.date }), el('td', { textContent: b ? b.data.item : '(removed item)' }), el('td', { className: 'money', textContent: inr(p.data.amount) }),
+      el('td', { textContent: p.data.by }), el('td', { className: 'muted', textContent: p.data.how }), el('td', {}, el('div', { textContent: p.data.note || '' }), stamp(p)), el('td', {}, x));
+  }) : [el('tr', {}, el('td', { colSpan: 7, className: 'empty', textContent: 'No payments recorded yet.' }))]));
+  $('capIn').value = cap;
+  const rec = plan.filter(x => x.updated_by).sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))).slice(0, 8);
+  $('recent').replaceChildren(...(rec.length ? rec.map(x => el('div', { style: 'font-size:13px;margin:3px 0' }, el('span', { className: 'muted', textContent: new Date(x.updated_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' · ' }),
+    el('b', { textContent: x.updated_by }), ' ' + (x.removed ? 'removed ' : 'updated ') + ({ budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty' }[x.kind]) + ': ' + (x.kind === 'payment' ? inr(x.data.amount) + ' by ' + x.data.by + ' for ' + ((plan.find(b => b.id === x.data.item) || { data: {} }).data.item || 'an item') : (x.data.item || x.data.title || x.data.area || x.data.role || '')))) :
+    [el('p', { className: 'muted', style: 'margin:0', textContent: 'No changes yet.' })]));
+}
+$('pAdd').onclick = async () => {
+  const amt = Math.round(+$('pAmt').value), msg = $('pMsg');
+  if (!$('pItem').value || !(amt > 0)) { msg.style.color = 'var(--bad)'; msg.textContent = 'Choose what it was for and enter the amount.'; return; }
+  try {
+    await savePlan(null, { item: $('pItem').value, amount: amt, by: $('pBy').value, date: $('pDate').value || new Date().toISOString().slice(0, 10), how: $('pHow').value, note: $('pNote').value.trim() }, 'payment');
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Payment of ' + inr(amt) + ' recorded.'; $('pAmt').value = ''; $('pNote').value = ''; renderBudget();
+  } catch (e) { if (e.message !== 'who') { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not save. Try again.'; } }
+};
+$('capSave').onclick = async () => { const v = Math.max(0, Math.round(+$('capIn').value || 0)); try { await rpc('admin_setting_set', { p_name: 'budget', p_value: { cap: v } }); cap = v; renderBudget(); } catch (e) {} };
+$('bCsv').onclick = () => {
+  const lines = [['Group', 'Item', 'Budget', 'Agreed', 'Paid', 'Balance', 'Status', 'Notes']];
+  GROUPS.forEach(([k, label]) => items('budget').filter(x => x.data.group === k).forEach(x => lines.push([label, x.data.item, x.data.budget, x.data.agreed == null ? '' : x.data.agreed, paidFor(x.id), cost(x) - paidFor(x.id), x.data.status, x.data.notes])));
+  lines.push([], ['Payments'], ['Date', 'For', 'Amount', 'Paid by', 'How', 'Note']);
+  items('payment').forEach(p => { const b = plan.find(x => x.id === p.data.item); lines.push([p.data.date, b ? b.data.item : '', p.data.amount, p.data.by, p.data.how, p.data.note]); });
+  const blob = new Blob(['﻿' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'wedding-budget.csv' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+
+// ---------- vendors ----------
+const V_STATUS = ['Enquiry sent', 'Quotes in', 'To book', 'Booked', 'Advance paid', 'Paid in full', 'Own', 'Family'];
+$('vStatusF').append(...V_STATUS.map(v => el('option', { value: v, textContent: v })));
+function renderVendors() {
+  const q = $('vq').value.trim().toLowerCase(), st = $('vStatusF').value, ow = $('vOwnerF').value;
+  const list = items('vendor').filter(v => (!st || v.data.status === st) && (!ow || v.data.owner === ow) && (!q || JSON.stringify(v.data).toLowerCase().includes(q)));
+  $('vCards').replaceChildren(...(list.length ? list.map(v => {
+    const ph = waNum(v.data.phone), x = el('button', { className: 'mini', textContent: 'Remove' });
+    x.onclick = () => { if (confirm('Remove ' + (v.data.area || 'this vendor') + '?')) removePlan(v); };
+    const lab = (t, node) => el('label', { className: 'muted', style: 'display:block;font-size:12px;margin-top:6px' }, t, node);
+    return el('div', { className: 'panel', style: 'padding:12px' },
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, cell(v, 'area', { max: 60, ph: 'Area, e.g. Decor' }), pick(v, 'status', V_STATUS)),
+      el('div', { className: 'row', style: 'gap:6px;margin-top:6px' }, lab('Vendor / business', cell(v, 'name', { max: 80 })), lab('Contact person', cell(v, 'contact', { max: 60 }))),
+      el('div', { className: 'row', style: 'gap:6px;align-items:flex-end' }, lab('Phone', cell(v, 'phone', { max: 30 })),
+        ph ? el('a', { className: 'mini', href: 'tel:+' + ph, textContent: 'Call' }) : '', ph ? el('a', { className: 'mini', href: 'https://wa.me/' + ph, target: '_blank', rel: 'noopener', textContent: 'WhatsApp' }) : ''),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Quote / amount', cell(v, 'quote', { max: 80 })), lab('Handled by', pick(v, 'owner', ['Both', "Groom's family", "Bride's family"]))),
+      lab('What they cover', cell(v, 'scope', { area: true, rows: 3, max: 600 })),
+      lab('Notes (terms, advance, dates)', cell(v, 'notes', { area: true, rows: 2, max: 600 })),
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-top:8px' }, stamp(v), x));
+  }) : [el('p', { className: 'muted', textContent: 'No vendors match.' })]));
+}
+['vq', 'vStatusF', 'vOwnerF'].forEach(id => $(id).addEventListener('input', renderVendors));
+$('vAdd').onclick = async () => { try { await savePlan(null, { area: 'New vendor', name: '', contact: '', phone: '', scope: '', status: 'Enquiry sent', owner: 'Both', quote: '', notes: '' }, 'vendor'); $('vq').value = ''; $('vStatusF').value = ''; $('vOwnerF').value = ''; renderVendors(); } catch (e) {} };
+
+// ---------- to-do, duties and emergency details ----------
+const today = () => new Date().toISOString().slice(0, 10);
+function renderTodo() {
+  const all = items('task'), open = all.filter(t => !t.data.done), late = open.filter(t => t.data.due && t.data.due < today());
+  const soon = open.filter(t => t.data.due && t.data.due >= today() && t.data.due <= new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10));
+  $('tStats').replaceChildren(...[[open.length, 'Still to do'], [late.length, 'Overdue'], [soon.length, 'Due in the next 2 weeks'], [all.length - open.length, 'Done']]
+    .map(([n, l]) => el('div', { className: 'stat', style: l === 'Overdue' && n ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  const show = $('tShow').value, ow = $('tOwnerF').value, ar = $('tAreaF').value;
+  const list = all.filter(t => (show === 'open' ? !t.data.done : show === 'done' ? t.data.done : show === 'late' ? !t.data.done && t.data.due && t.data.due < today() : true)
+    && (!ow || t.data.owner === ow) && (!ar || t.data.area === ar)).sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9')));
+  $('tRows').replaceChildren(...(list.length ? list.map(t => {
+    const cb = el('input', { type: 'checkbox', checked: !!t.data.done }); cb.style.width = '18px'; cb.style.height = '18px';
+    cb.onchange = async () => { try { await savePlan(t, { done: cb.checked, done_by: cb.checked ? meLabel() : '', done_at: cb.checked ? new Date().toISOString() : null }); renderTodo(); } catch (e) { cb.checked = !cb.checked; } };
+    const isLate = !t.data.done && t.data.due && t.data.due < today(), x = el('button', { className: 'mini', textContent: '×' });
+    x.onclick = () => { if (confirm('Remove this to-do?')) removePlan(t); };
+    return el('tr', { className: t.data.done ? 'done-row' : '' }, el('td', {}, cb),
+      el('td', { style: 'min-width:300px' }, el('div', { className: 'ttl' }, cell(t, 'title', { max: 200 })), t.data.done ? el('div', { className: 'by', textContent: 'Done by ' + (t.data.done_by || '?') + (t.data.done_at ? ' · ' + new Date(t.data.done_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '') }) : stamp(t)),
+      el('td', {}, pick(t, 'owner', ['Both', "Groom's family", "Bride's family", 'Each family', 'Coordinators'])),
+      el('td', { className: isLate ? 'late' : '' }, cell(t, 'due', { date: true }), isLate ? el('div', { className: 'by late', textContent: 'Overdue' }) : ''),
+      el('td', {}, pick(t, 'area', ['Planning', 'Guests', 'Rooms', 'Food', 'Nikah', 'On the day'])), el('td', {}, x));
+  }) : [el('tr', {}, el('td', { colSpan: 6, className: 'empty', textContent: show === 'late' ? 'Nothing overdue. 👏' : 'Nothing here.' }))]));
+  $('dRows').replaceChildren(...items('duty').map(d => el('tr', {}, el('td', { style: 'font-weight:600' }, cell(d, 'role', { max: 60 })), el('td', { className: 'muted', style: 'min-width:240px' }, cell(d, 'what', { max: 200 })),
+    el('td', {}, cell(d, 'day1', { max: 80, ph: 'Name' })), el('td', {}, cell(d, 'day2', { max: 80, ph: 'Name' })))));
+  const EM = [['hospital', 'Nearest hospital'], ['hospital_phone', 'Hospital phone'], ['distance', 'Distance / time from the resort'], ['doctor', 'Doctor on call (name & phone)'], ['manager', 'Resort duty manager (name & phone)'], ['firstaid', 'First aid kit has']];
+  $('emBox').replaceChildren(...EM.map(([k, l]) => {
+    const inp = el('input', { value: emergency[k] || '', maxLength: 120, style: 'width:100%' });
+    inp.addEventListener('change', async () => { emergency = Object.assign({}, emergency, { [k]: inp.value.trim() }); try { await rpc('admin_setting_set', { p_name: 'emergency', p_value: emergency }); inp.style.borderColor = 'var(--ok)'; } catch (e) { inp.style.borderColor = 'var(--bad)'; } });
+    return el('label', { className: 'muted', style: 'font-size:12px' }, l, inp);
+  }));
+}
+['tShow', 'tOwnerF', 'tAreaF'].forEach(id => $(id).addEventListener('input', renderTodo));
+$('ntAdd').onclick = async () => {
+  const t = $('ntTitle').value.trim(); if (!t) { $('ntTitle').focus(); return; }
+  try { await savePlan(null, { title: t, owner: $('ntOwner').value, due: $('ntDue').value, area: $('ntArea').value, done: false, done_by: '', done_at: null }, 'task'); $('ntTitle').value = ''; renderTodo(); } catch (e) {}
+};
+// Keep both families' screens current while a planning tab is open (skip while someone is typing)
+setInterval(() => { const on = ['budget', 'vendors', 'todo'].some(n => !$('tab-' + n).hidden); if (on && KEY && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) loadPlan(); }, 60000);
+
 // ---------- tabs ----------
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
+  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'budget', 'vendors', 'todo'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (['budget', 'vendors', 'todo'].includes(t.dataset.tab)) { if (!ME) $('whoBtn').click(); loadPlan(); }
   if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') renderAnnounce();
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
