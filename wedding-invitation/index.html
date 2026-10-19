@@ -539,14 +539,9 @@
                     </div>
                 </fieldset>
 
-                <label class="block"><span id="party-q" class="block font-cinzel text-xs text-gold-300 mb-1">HOW MANY PEOPLE ARE COMING IN TOTAL, INCLUDING YOU? *</span>
-                    <select class="gold-input" name="party" id="party" required onchange="setParty(+this.value)">
-                        <option value="" disabled selected>Choose a number</option>
-                        <option value="1">Just me</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
-                    </select></label>
-                <fieldset id="members-box" class="hidden">
-                    <legend id="members-title" class="font-cinzel text-xs text-gold-300 mb-1">NAMES OF EVERYONE COMING WITH YOU *</legend>
-                    <p id="members-help" class="text-[11px] text-ivory-200/55 mb-2">Please write each person's full name, so everyone is on the guest list and gets in at the entrance. Phone numbers are optional; leave them blank for children.</p>
+                <fieldset>
+                    <legend id="members-title" class="font-cinzel text-xs text-gold-300 mb-1">FAMILY MEMBERS COMING WITH YOU</legend>
+                    <p id="members-help" class="text-[11px] text-ivory-200/55 mb-2">Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.</p>
                     <div id="members" class="space-y-2"></div>
                     <div class="flex items-center justify-between gap-3 mt-2">
                         <button type="button" id="add-member" onclick="addMember()" class="glass px-4 py-2 rounded-full text-gold-300 font-cinzel text-[11px] tracking-widest hover:border-gold-500/60">+ ADD <span id="member-word">FAMILY MEMBER</span></button>
@@ -935,24 +930,13 @@
         function updateParty() {
             const n = memberRows().length;
             document.getElementById('party-total').textContent = 'Total guests: ' + (n + 1);
-            form.party.value = String(n + 1);
-            document.getElementById('members-box').classList.toggle('hidden', n === 0);
             const veg = form.veg, keep = Math.min(+veg.value || 0, n + 1);
             veg.replaceChildren(...Array.from({ length: n + 2 }, (_, i) => { const o = el('option', '', i ? String(i) : 'None'); o.value = i; return o; }));
             veg.value = keep;
             document.getElementById('add-member').classList.toggle('hidden', n >= MAX_MEMBERS);
             memberRows().forEach((row, i) => row.querySelector('.m-num').textContent = (i + 2) + '.');
         }
-        // The total chosen above sets how many name rows there are; every name is required
-        function setParty(total) {
-            const want = Math.max(0, Math.min(MAX_MEMBERS, (total || 1) - 1));
-            let first = null;
-            while (memberRows().length < want) { addMember(false); first = first || memberRows()[memberRows().length - 1]; }
-            while (memberRows().length > want) memberRows().pop().remove();
-            updateParty();
-            if (first) first.querySelector('.m-name').focus();
-        }
-        function addMember(focus) {
+        function addMember() {
             if (memberRows().length >= MAX_MEMBERS) return;
             const row = el('div', 'flex items-start gap-2');
             const name = el('input', 'gold-input m-name'); name.type = 'text'; name.required = true; name.maxLength = 100; name.placeholder = 'Full name'; name.setAttribute('aria-label', 'Family member name');
@@ -961,7 +945,7 @@
             const rm = el('button', 'glass w-9 h-9 shrink-0 rounded-full text-gold-300 hover:text-red-300', '×'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove this person');
             rm.onclick = () => { row.remove(); updateParty(); };
             row.append(el('span', 'm-num font-cinzel text-xs text-gold-400 w-5 pt-3 shrink-0'), fields, rm);
-            membersEl.append(row); updateParty(); if (focus !== false) name.focus();
+            membersEl.append(row); updateParty(); name.focus();
         }
         // Vendors and service teams RSVP too, so every crew member is on the door list
         const isVendor = () => form.side.value === 'Vendor';
@@ -970,12 +954,11 @@
             document.getElementById('vendor-fields').classList.toggle('hidden', !v);
             form.company.required = v;
             document.getElementById('rooms-note').classList.toggle('hidden', v);
-            document.getElementById('members-title').textContent = v ? 'NAMES OF YOUR CREW MEMBERS *' : 'NAMES OF EVERYONE COMING WITH YOU *';
-            document.getElementById('party-q').textContent = v ? 'HOW MANY PEOPLE IN YOUR TEAM, INCLUDING YOU? *' : 'HOW MANY PEOPLE ARE COMING IN TOTAL, INCLUDING YOU? *';
+            document.getElementById('members-title').textContent = v ? 'CREW MEMBERS COMING WITH YOU' : 'FAMILY MEMBERS COMING WITH YOU';
             document.getElementById('member-word').textContent = v ? 'CREW MEMBER' : 'FAMILY MEMBER';
             document.getElementById('members-help').textContent = v
                 ? 'Add everyone in your team who will be on site, with a phone number, so they can be let in at the entrance.'
-                : 'Please write each person\'s full name, so everyone is on the guest list and gets in at the entrance. Phone numbers are optional; leave them blank for children.';
+                : 'Replying for your family? Add each person by name, so everyone is on the guest list. A phone number helps us reach them on the day; leave it blank for children.';
         }
         function readMembers() {
             return memberRows().map(row => ({ name: row.querySelector('.m-name').value.trim(), phone: row.querySelector('.m-phone').value.trim() })).filter(m => m.name);
@@ -995,7 +978,7 @@
             if (!idx.length) { err.textContent = 'Please select at least one event you will attend.'; return; }
             err.textContent = '';
             const members = readMembers();
-            if (members.length !== memberRows().length) { err.textContent = 'Please write the name of everyone coming with you.'; return; }
+            if (members.length !== memberRows().length) { err.textContent = 'Please write a name for each family member you added, or remove the empty row.'; return; }
             const vendor = isVendor(), company = vendor ? f.company.value.trim() : '';
             const side = vendor ? 'Vendor · ' + f.vtype.value : f.side.value;
             const noteText = (company ? 'Company: ' + company + (f.note.value.trim() ? ' | ' : '') : '') + f.note.value.trim();
