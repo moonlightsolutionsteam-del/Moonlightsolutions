@@ -553,6 +553,7 @@
 
                 <fieldset class="space-y-3">
                     <legend id="who-title" class="q"><span class="qn">4</span> Who is coming? *</legend>
+                    <p id="who-note" class="flex gap-2.5 items-start rounded-xl px-3.5 py-3 text-sm leading-snug text-ivory-50 bg-[rgba(245,184,46,.14)] border border-gold-500/40"><i class="fas fa-gift text-gold-400 mt-0.5"></i><span>Please add the name of everyone coming with you. It helps us plan the <b class="text-gold-300">games</b>, <b class="text-gold-300">rooms</b> and a <b class="text-gold-300">return gift</b> for each person.</span></p>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="choice"><input type="radio" name="who" value="solo" required onchange="setWho()"><i class="fas fa-user"></i><span id="who-solo">Just me</span></label>
                         <label class="choice"><input type="radio" name="who" value="group" onchange="setWho()"><i class="fas fa-users"></i><span id="who-group">Me + family</span></label>
@@ -1004,6 +1005,7 @@
             document.getElementById('rooms-note').classList.toggle('hidden', v);
             document.getElementById('members-title').textContent = v ? 'Names of your crew members *' : 'Names of your family members *';
             document.getElementById('who-group').textContent = v ? 'Me + my team' : 'Me + family';
+            document.getElementById('who-note').classList.toggle('hidden', v);
             document.getElementById('member-word').textContent = 'another person';
             document.getElementById('members-help').textContent = v
                 ? 'Write the name of everyone in your team. Phone is optional.'
