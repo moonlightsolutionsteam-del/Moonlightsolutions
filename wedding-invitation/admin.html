@@ -5,35 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Guest List — Nadeem & Dariya</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#021810; --panel:#07261a; --line:rgba(212,175,55,.28); --gold:#d4af37; --gold2:#f3e5ab; --ink:#faf9f6; --mute:#a9b8ae; --ok:#2fbf71; --warn:#e6b422; --bad:#e5534b; }
+  :root { --bg:#0c868d; --panel:rgba(6,92,102,.62); --line:rgba(245,184,46,.32); --gold:#f5b82e; --gold2:#fff0b8; --ink:#ffffff; --mute:rgba(255,255,255,.72); --pink:#d81b60; --pink2:#ff4f93; --ok:#3ee08f; --warn:#ffd36b; --bad:#ff6b6b; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 'Plus Jakarta Sans',system-ui,sans-serif; padding:0 16px 48px; }
+  body { margin:0; min-height:100vh; background:#0c8790 radial-gradient(ellipse at 50% 0%,#15a8a3 0%,#0c868d 45%,#08707b 100%) fixed; color:var(--ink); font:14px/1.5 'Plus Jakarta Sans',system-ui,sans-serif; padding:0 16px 48px; }
   h1,h2,.cin { font-family:'Cinzel',serif; letter-spacing:.08em; }
   button,input,select { font:inherit; color:inherit; }
   .wrap { max-width:1200px; margin:0 auto; }
   header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid var(--line); }
   header h1 { margin:0; font-size:18px; color:var(--gold2); }
-  .btn { background:linear-gradient(90deg,#aa8823,#d4af37,#aa8823); color:#021810; border:0; border-radius:999px; padding:8px 18px; font-weight:600; cursor:pointer; }
-  .btn.ghost { background:transparent; color:var(--gold2); border:1px solid var(--line); }
+  .script { font-family:'Great Vibes',cursive; letter-spacing:0; font-weight:400; color:#ffd36b; }
+  ::selection { background:var(--gold); color:#086670; }
+  .btn { background:linear-gradient(90deg,var(--pink),var(--pink2),var(--pink)); color:#fff; border:0; box-shadow:0 0 18px rgba(255,79,147,.3); border-radius:999px; padding:8px 18px; font-weight:600; cursor:pointer; }
+  .btn.ghost { background:rgba(255,255,255,.1); color:var(--gold2); border:1px solid var(--line); box-shadow:none; }
+  .btn:hover { filter:brightness(1.1); }
   .btn.sm { padding:4px 12px; font-size:12px; }
   .btn:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--gold2); outline-offset:2px; }
-  input, select { background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:8px; padding:7px 10px; min-width:0; }
-  select option { background:#07261a; }
+  input, select { background:rgba(255,255,255,.14); border:1px solid var(--line); border-radius:8px; padding:7px 10px; min-width:0; }
+  select option { background:#0b7d86; }
+  ::placeholder { color:rgba(255,255,255,.55); opacity:1; }
   .tabs { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
-  .tab { padding:8px 18px; border-radius:999px; border:1px solid var(--line); background:transparent; cursor:pointer; color:var(--gold2); }
-  .tab[aria-selected=true] { background:var(--gold); color:#021810; font-weight:600; }
+  .tab { padding:8px 18px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.1); cursor:pointer; color:var(--gold2); }
+  .tab[aria-selected=true] { background:linear-gradient(90deg,var(--pink),var(--pink2)); color:#fff; border-color:transparent; font-weight:600; }
   .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:16px; }
-  .stat { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .stat { background:var(--panel); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--line); border-top:3px solid var(--gold); border-radius:12px; padding:12px 14px; }
   .stat b { display:block; font:700 24px 'Cinzel',serif; color:var(--gold2); font-variant-numeric:tabular-nums; }
   .stat span { color:var(--mute); font-size:12px; }
   .bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; }
   .bar input[type=search] { flex:1 1 200px; }
-  .scroll { overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  .scroll { overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:rgba(6,92,102,.45); }
   table { border-collapse:collapse; width:100%; min-width:960px; }
-  th,td { padding:8px 10px; text-align:left; border-bottom:1px solid rgba(212,175,55,.12); vertical-align:middle; }
-  th { font:600 11px 'Cinzel',serif; letter-spacing:.12em; color:var(--gold); background:var(--panel); position:sticky; top:0; white-space:nowrap; }
+  th,td { padding:8px 10px; text-align:left; border-bottom:1px solid rgba(245,184,46,.18); vertical-align:middle; }
+  th { font:600 11px 'Cinzel',serif; letter-spacing:.12em; color:var(--gold2); background:#086670; position:sticky; top:0; white-space:nowrap; }
   td input { width:100%; min-width:70px; }
   tr.out td { opacity:.45; }
   tr.in td:first-child { box-shadow:inset 3px 0 0 var(--ok); }
@@ -41,7 +45,7 @@
   .code { font-family:ui-monospace,monospace; letter-spacing:.1em; color:var(--gold2); }
   .muted { color:var(--mute); }
   .empty { padding:36px 16px; text-align:center; color:var(--mute); }
-  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .panel { background:var(--panel); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 0 40px rgba(245,184,46,.12); border:1px solid var(--line); border-radius:14px; padding:16px; }
   #login { max-width:380px; margin:12vh auto; text-align:center; }
   #login input { width:100%; margin:14px 0; text-align:center; }
   .err { color:var(--bad); min-height:1.4em; margin:6px 0 0; }
@@ -62,8 +66,8 @@
 <div class="wrap">
 
   <section id="login" class="panel" hidden>
-    <h1 class="cin" style="color:var(--gold2);font-size:20px;margin:0">Guest List</h1>
-    <p class="muted">Nadeem &amp; Dariya · Admin</p>
+    <p class="script" style="font-size:44px;margin:0;line-height:1.1">Nadeem &amp; Dariya</p>
+    <h1 class="cin" style="color:var(--gold2);font-size:16px;margin:6px 0 0">Guest List · Admin</h1>
     <form id="loginForm">
       <input id="key" type="password" autocomplete="current-password" placeholder="Admin passphrase" aria-label="Admin passphrase" required>
       <button class="btn" type="submit">Sign in</button>
@@ -73,7 +77,7 @@
 
   <main id="app" hidden>
     <header>
-      <h1>Guest List · Nadeem &amp; Dariya</h1>
+      <h1><span class="script" style="font-size:30px">Nadeem &amp; Dariya</span> &nbsp;Guest List</h1>
       <div class="row" style="gap:8px">
         <button class="btn ghost sm" id="refresh">Refresh</button>
         <button class="btn ghost sm" id="export">Export CSV</button>
