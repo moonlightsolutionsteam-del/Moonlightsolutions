@@ -569,18 +569,33 @@
 
     <!-- Announcements on WhatsApp to everyone at a function -->
     <section id="tab-announce" hidden>
-      <div class="panel">
+      <div class="panel" style="margin-bottom:14px">
+        <div class="row" style="justify-content:space-between;align-items:baseline;gap:8px">
+          <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:0"><i class="fas fa-calendar-check"></i> Message plan</h2>
+          <span class="muted" id="mpSum" style="font-size:13px"></span>
+        </div>
+        <p class="muted" style="margin:6px 0 10px;font-size:13px">Every message from now until after the wedding, in order. Tap <b>Open</b> to load it below, send it, then tap <b>Mark sent</b> for your side so nobody sends it twice.</p>
+        <div id="mpList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div class="panel" id="aComposer">
         <label class="muted" style="display:block;margin-bottom:10px">Message
           <select id="aTpl" style="width:100%;margin-top:4px"></select></label>
-        <label class="muted" style="display:block;margin-bottom:10px">Send to
-          <select id="aWho" style="width:100%;margin-top:4px">
-            <option value="1">Everyone coming on Day 1 (Wed)</option><option value="1s">Guests staying Wednesday night</option>
-            <option value="2">Everyone coming to the Nikah</option><option value="3">Everyone coming to the Reception</option><option value="all">Everyone who RSVPed</option>
-          </select></label>
+        <div class="row" style="gap:8px">
+          <label class="muted" style="display:block;margin-bottom:10px;flex:2 1 220px">Send to
+            <select id="aWho" style="width:100%;margin-top:4px">
+              <option value="invited">Everyone on the Invited list</option><option value="wait">Invited, not replied yet</option><option value="all">Everyone who RSVPed</option>
+              <option value="1">Everyone coming on Day 1 (Wed)</option><option value="1s">Guests staying Wednesday night</option>
+              <option value="2">Everyone coming to the Nikah</option><option value="3">Everyone coming to the Reception</option><option value="vendors">Vendors (from the Vendors tab)</option><option value="none">No list (status / story only)</option>
+            </select></label>
+          <label class="muted" style="display:block;margin-bottom:10px;flex:1 1 140px">Side
+            <select id="aSideF" style="width:100%;margin-top:4px"><option value="">Both sides</option><option value="groom">Groom's side</option><option value="bride">Bride's side</option></select></label>
+        </div>
         <label class="muted" style="display:block">Text (you can edit it)
-          <textarea id="aText" rows="5" style="width:100%;margin-top:4px"></textarea></label>
+          <textarea id="aText" rows="8" style="width:100%;margin-top:4px"></textarea></label>
+        <div id="aFiles" class="row" style="gap:6px;margin-top:8px;align-items:center"></div>
         <div class="row" style="gap:8px;margin-top:10px">
           <button class="btn sm" id="aCopy">Copy message</button>
+          <button class="btn ghost sm" id="aShare" hidden>Share with pictures</button>
           <button class="btn ghost sm" id="aNums">Copy phone numbers</button>
         </div>
         <p class="muted" id="aMsg" style="margin-bottom:0">Tip: paste the numbers into a WhatsApp broadcast list once, then paste the message there. Or tap each name below to send it one by one.</p>
@@ -1094,7 +1109,25 @@ $('fCopy').onclick = async () => {
 };
 
 // ---------- announcements ----------
-const TPL = [
+// ---------- message plan: every message from now to after the wedding, in order ----------
+// {name} {code} {people} {room} are filled in for each person; a broadcast copy drops {name}
+const CONTACTS = "Groom's side: Nadeem 95352 86680 · Simran 74111 97567 | Bride's side: Allah Bakash 98862 63952 · Fatima 88920 04045";
+const PLAN = [
+  { id: 'save', date: '2026-10-25', title: 'Save the date', who: 'invited', files: ['save-the-date.png'], text: 'Assalamu Alaikum {name} 🌙\n\nIn shaa Allah, *Nadeem Khan & Dariya* are getting married on *20 & 21 January 2027* at Greenwood Resort, Bengaluru.\n\nPlease save the date. The full invitation will follow soon. 🤍' },
+  { id: 'invite', date: '2026-11-08', title: 'The invitation', who: 'invited', files: ['invitation-video.mp4', 'poster.png'], text: '*Bismillahir Rahmanir Raheem*\n\nAssalamu Alaikum wa Rahmatullahi wa Barakatuh {name} 🌙\n\nWith the blessings of Allah and the duas of our elders, our families joyfully invite you and your family to the wedding of\n\n✨ *Nadeem Khan & Dariya* ✨\n\n📅 *Wednesday 20 & Thursday 21 January 2027*\n📍 *Greenwood Resort, Kanakapura Road, Bengaluru*\nhttps://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9\n\n🌼 *Wed 20 Jan*: Arrival from 12 PM, Haldi & Mehendi, Shukrana and DJ Night\n🕌 *Thu 21 Jan, 10:00 AM*: Nikah (please be seated by 9:50 AM)\n🌟 *Thu 21 Jan, 6:30 PM*: Reception / Walima\n\nThe full itinerary, menu, dress codes and your entry pass are here:\n👉 ' + SITE + '\n\n🎟️ *RSVP is a must.* Please reply on the link by *15 December 2026* and add the names of everyone coming with you. You will get an entry pass with a QR code to show at the entrance.\n\nQuestions? ' + CONTACTS + '\n\nYour presence and duas mean the world to us.\nJazakAllah Khair 🤍' },
+  { id: 'status', date: '2026-11-08', title: 'WhatsApp status / story', who: 'none', files: ['status.png', 'invitation-video.mp4'], note: 'Post on the same day as the invitation, from both families\' phones.', text: 'In shaa Allah 🤍 Nadeem & Dariya · 20–21 January 2027 · Greenwood Resort, Bengaluru\nRSVP by 15 December: ' + SITE },
+  { id: 'pass', date: '2026-11-08', until: '2026-12-16', title: 'Entry pass + guest guide (as RSVPs come in)', who: 'all', personal: true, files: ['guest-guide.pdf'], note: 'Send to each family when they RSVP. Mark sent once everyone so far has theirs.', text: 'Assalamu Alaikum {name} 🌙\n\nJazakAllah Khair for your RSVP to Nadeem & Dariya\'s wedding! 🤍\n\n🎟️ Your entry pass code is *{code}* for {people}. Please show it at the entrance. You can reopen your pass with its QR code anytime here:\n' + SITE + '\n\n📖 Attached is our little guest guide: the itinerary, dress codes, the resort, prayer times and who to call.\n\nSee you at Greenwood Resort, In shaa Allah!' },
+  { id: 'dress', date: '2026-11-22', title: 'What to wear', who: 'all', files: ['dress-code.png'], text: 'Assalamu Alaikum {name} 🌙\n\nPlanning your outfits for Nadeem & Dariya\'s wedding? Here are the dress codes 👗🤵\n\n🌼 *Haldi & Mehendi* (Wed 4:45 PM): yellow, mustard, green or floral ethnic (turmeric-friendly!)\n🤍 *Shukrana* (Wed 6:45 PM): modest whites or pastels\n✨ *DJ Night* (Wed 8 PM): royal maroon, velvet or festive ethnic\n🕌 *Nikah* (Thu 10 AM): traditional festive ethnic or pastel formals\n🌟 *Reception / Walima* (Thu 6:30 PM): royal black, emerald or formal bespoke wear\n\nSwimwear is optional for Wednesday\'s pool session, and January evenings get cool, so pack a shawl 🧣\nThe colours are in the picture attached and on the invitation:\n' + SITE },
+  { id: 'remind', date: '2026-12-05', title: 'RSVP reminder', who: 'wait', text: 'Assalamu Alaikum {name} 🌙\n\nA gentle reminder to RSVP for *Nadeem & Dariya\'s wedding* by *15 December*, so we can confirm numbers with the resort and caterers.\n\nIt takes a minute: open the link, tick the parts you will attend (Day 1, Nikah and/or Reception) and add everyone coming with you.\n👉 ' + SITE + '\n\nAlready done? JazakAllah Khair, please ignore this message. 🤍' },
+  { id: 'lastday', date: '2026-12-14', title: 'Last day to RSVP', who: 'wait', text: 'Assalamu Alaikum {name} 🌙\nTomorrow, *15 December*, is the last day to RSVP for Nadeem & Dariya\'s wedding. Entry is by RSVP pass only, so please don\'t miss it.\n👉 ' + SITE },
+  { id: 'room', date: '2027-01-03', title: 'Your room for Wednesday night', who: '1s', personal: true, note: 'Give out rooms on the Rooms tab first (to-do due 31 December).', text: 'Assalamu Alaikum {name} 🌙\n\nYour stay for Wednesday night (20 Jan) at Greenwood Resort is arranged: 🛏️ *{room}*\n\nCheck-in is from 12 PM on Wednesday. Please carry a photo ID for everyone staying, and return your room keys at the front desk by 10 PM on Thursday. Rooms are shared family-style with extra mattresses, so a small bag is best 🙂\n\nQuestions? ' + CONTACTS },
+  { id: 'vendors', date: '2027-01-04', title: 'Vendor entry passes', who: 'vendors', text: 'Assalamu Alaikum / Hello,\n\nFor Nadeem & Dariya\'s wedding at Greenwood Resort on 20–21 January 2027, entry is by pass only. Please open the link below, choose *"Vendor / Service Team"*, select your service and add every crew member who will be on site. One pass covers your whole team.\n👉 ' + SITE + '\n\nThank you!' },
+  { id: 'week', date: '2027-01-13', title: 'One week to go', who: 'all', files: ['schedule.png', 'dress-code.png'], text: 'Assalamu Alaikum {name} 🌙\n\n*One week to go* until Nadeem & Dariya\'s wedding, In shaa Allah! 🎉\n\nA few things to keep in mind:\n🎟️ Keep your *entry pass* saved on your phone. You can reopen it from the invitation link anytime.\n👗 Dress codes for each function are in the picture attached.\n🕌 Prayer times and the prayer space are on the invitation.\n🧣 January evenings get cool, so carry a shawl or light jacket.\n🪪 Staying overnight? Please carry a photo ID for check-in.\n🚗 Please arrange your own travel and carpool where you can. Parking is available at the resort.\n\nFull itinerary: ' + SITE + '\nQuestions? ' + CONTACTS },
+  { id: 'tomorrow', date: '2027-01-19', title: 'See you tomorrow', who: 'all', text: 'Assalamu Alaikum {name} 🌙\n\n*See you tomorrow, In shaa Allah!* 🤍\n\n📍 Greenwood Resort, Kanakapura Road\nhttps://maps.app.goo.gl/ZxoY8WpBwpoQzmeT9\n\n⏰ *Wed 20 Jan*: arrivals from 12 PM · Haldi & Mehendi at 4:45 PM · DJ Night at 8 PM\n⏰ *Thu 21 Jan*: Nikah at 10 AM (seated by 9:50) · Reception at 6:30 PM (please reach by 6:15)\n\nPlease keep your entry pass ready at the entrance.\nFor anything on the day: ' + CONTACTS },
+  { id: 'dayof', date: '2027-01-20', until: '2027-01-21', title: 'On the day: live announcements', who: '1', dayof: true, note: 'Pick each one from the Message list below as the day goes on.' },
+  { id: 'thanks', date: '2027-01-22', title: 'Thank you', who: 'all', text: 'Assalamu Alaikum {name} 🌙\n\nAlhamdulillah! Thank you for being part of Nadeem & Dariya\'s wedding and for all your love, gifts and duas. 🤍\n\nMay Allah bless you and your families. Please keep the couple in your duas.\n\n*Barakallahu lakuma wa baraka alaikuma wa jama\'a bainakuma fi khair.*' },
+  { id: 'photos', date: '2027-02-14', title: 'Photos are ready', who: 'all', note: 'Paste the album link where it says so before sending.', text: 'Assalamu Alaikum {name} 🌙\n\nThe photos from Nadeem & Dariya\'s wedding are ready! 📸\n👉 [paste the album link here]\n\nJazakAllah Khair once again for celebrating with us. 🤍' }];
+const DAYOF = [
   ['Haldi starting', '1', 'Assalamu Alaikum 🌼 The Haldi & Mehendi is starting at 4:45 PM on the lawn. Yellow, mustard or green outfits, and clothes you don\'t mind getting turmeric on!'],
   ['Shukrana', '1', 'Assalamu Alaikum 🤍 Shukrana (prayer of gratitude and family duas) starts at 6:45 PM in the covered area. Whites or pastels, please.'],
   ['DJ Night & dinner', '1', 'Assalamu Alaikum ✨ DJ Night and dinner start at 8:00 PM at the covered shed and lawn. Come dancing!'],
@@ -1102,30 +1135,93 @@ const TPL = [
   ['Nikah: please be seated', '2', 'Assalamu Alaikum 🌙 The Nikah starts at 10:00 AM on the lawn. Please be seated by 9:50 AM and keep your phone switched off during the ceremony.'],
   ['Nikah lunch served', '2', 'Lunch is now being served at the covered shed. JazakAllah Khair for joining the Nikah 🤍'],
   ['Reception starting', '3', 'Assalamu Alaikum ✨ The Reception begins at 6:30 PM on the lawn and the couple enters at 7:15 PM. Please keep your entry pass ready at the gate.'],
-  ['Checkout reminder', '1s', 'A gentle reminder for guests who stayed overnight: please return your room keys at the front desk by 10:00 PM tonight. JazakAllah Khair!'],
-  ['Write my own', 'all', '']];
-$('aTpl').replaceChildren(...TPL.map((t, i) => el('option', { value: i, textContent: t[0] })));
+  ['Checkout reminder', '1s', 'A gentle reminder for guests who stayed overnight: please return your room keys at the front desk by 10:00 PM tonight. JazakAllah Khair!']];
+// One list for the Message picker: the plan first, then the day-of announcements, then a blank one
+const MSGS = PLAN.filter(m => !m.dayof).map(m => Object.assign({ group: 'plan' }, m)).concat(DAYOF.map(([title, who, text]) => ({ group: 'day', title, who, text })), [{ group: 'own', title: 'Write my own', who: 'all', text: '' }]);
+let curMsg = MSGS[0], sent = [];
+const fileUrl = f => 'share-kit/' + f;
+const FILEN = { 'save-the-date.png': 'Save-the-date card', 'invitation-video.mp4': 'Invitation video', 'poster.png': 'Invitation poster', 'status.png': 'Status picture', 'guest-guide.pdf': 'Guest guide (PDF)', 'dress-code.png': 'Dress code card', 'schedule.png': 'Schedule card' };
+const fillMsg = (text, x) => String(text || '').replace(/ ?\{name\}/g, x && x.name ? ' ' + first(x.name) : '').replace(/\{code\}/g, x && x.code || '______')
+  .replace(/\{people\}/g, x && x.people ? x.people + (x.people > 1 ? ' people' : ' person') : 'your family').replace(/\{room\}/g, x && x.room || 'your room (we will confirm it)');
+const daysTo = d => { const n = new Date(); return Math.round((new Date(d + 'T00:00:00') - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 864e5); };
+const fmtDay = d => new Date(d + 'T00:00:00').toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
+const sentBy = (id, side) => sent.find(x => x.step === id && x.side === side);
+async function loadMsgs() { try { sent = await rpc('admin_msgs'); } catch (e) { sent = []; } renderPlanList(); if (!$('tab-overview').hidden) renderOverview(); }
+function stepState(m) {
+  const sides = ME && !ME.owner ? [mySide()] : ['groom', 'bride'], done = sides.every(sd => sentBy(m.id, sd)), dt = daysTo(m.date), end = m.until ? daysTo(m.until) : dt;
+  return done ? 'sent' : dt <= 0 && end >= -3 ? 'due' : end < -3 ? 'late' : 'soon';
+}
+function renderPlanList() {
+  if (!$('mpList')) return;
+  const sides = ME && !ME.owner ? [mySide()] : ['groom', 'bride'];
+  const st = PLAN.map(stepState), nDue = st.filter(x => x === 'due' || x === 'late').length, next = PLAN.find((m, i) => st[i] === 'soon');
+  $('mpSum').textContent = (nDue ? nDue + ' to send now · ' : '') + (next ? 'next: ' + next.title + ' on ' + fmtDay(next.date) : 'all done');
+  $('mpList').replaceChildren(...PLAN.map((m, i) => {
+    const s = st[i], dt = daysTo(m.date), col = { sent: 'var(--ok)', due: 'var(--warn)', late: 'var(--bad)', soon: 'var(--gold2)' }[s];
+    const when = s === 'sent' ? '✓ Sent' : s === 'due' ? (dt === 0 ? 'Send today' : m.until ? 'Ongoing until ' + fmtDay(m.until) : 'Due ' + (-dt) + (-dt > 1 ? ' days' : ' day') + ' ago') : s === 'late' ? 'Overdue' : dt === 1 ? 'Tomorrow' : 'In ' + dt + ' days';
+    const open = el('button', { className: 'mini', type: 'button', textContent: 'Open' });
+    open.onclick = () => { pickMsg(m.dayof ? MSGS.find(x => x.group === 'day') : MSGS.find(x => x.id === m.id)); $('aComposer').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    const marks = sides.map(sd => {
+      const d = sentBy(m.id, sd), b = el('button', { className: 'mini', type: 'button', textContent: (sides.length > 1 ? (sd === 'groom' ? "Groom's" : "Bride's") + ': ' : '') + (d ? '✓ sent ' + new Date(d.at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : 'Mark sent'), title: d ? 'Marked by ' + d.by + '. Tap to undo.' : 'Tap once this has gone to ' + (sd === 'groom' ? "the groom's" : "the bride's") + ' side' });
+      if (d) b.style.cssText = 'border-color:var(--ok);color:var(--ok)';
+      b.onclick = async () => { b.disabled = true; try { await rpc('admin_msg_mark', { p_step: m.id, p_side: sd, p_sent: !d }); await loadMsgs(); } catch (e) { b.disabled = false; toast('Could not save. Try again.'); } };
+      return b;
+    });
+    const other = ME && !ME.owner ? sentBy(m.id, mySide() === 'groom' ? 'bride' : 'groom') : null;
+    return el('div', { className: 'row', style: 'gap:10px;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-left:3px solid ' + col + ';border-radius:10px;' + (s === 'sent' ? 'opacity:.7' : '') },
+      el('div', { style: 'min-width:0;flex:1 1 220px' },
+        el('div', { className: 'by', style: 'color:' + col }, fmtDay(m.date) + (m.until ? ' → ' + fmtDay(m.until) : '') + ' · ' + when),
+        el('b', { textContent: m.title }),
+        el('div', { className: 'muted', style: 'font-size:12px' }, ({ invited: 'Invited list', wait: 'Invited, not replied', all: 'Everyone who RSVPed', 1: 'Day 1 guests', '1s': 'Guests staying Wednesday', 2: 'Nikah guests', 3: 'Reception guests', vendors: 'Vendors', none: 'Your status / story' })[m.who] + ((m.files || []).length ? ' · 📎 ' + m.files.map(f => FILEN[f] || f).join(', ') : '') + (m.note ? ' · ' + m.note : '') + (other ? ' · other side sent ✓' : ''))),
+      el('div', { className: 'row', style: 'gap:6px;align-items:center' }, open, ...marks));
+  }));
+}
+$('aTpl').replaceChildren(...[['plan', 'Message plan (in order)'], ['day', 'On the wedding day'], ['own', 'Other']].map(([g, label]) => {
+  const og = el('optgroup', { label }); MSGS.forEach((m, i) => { if (m.group === g) og.append(el('option', { value: i, textContent: (m.date ? fmtDay(m.date) + ' · ' : '') + m.title })); }); return og;
+}));
+function pickMsg(m) {
+  curMsg = m; $('aTpl').value = MSGS.indexOf(m); $('aText').value = m.text || ''; $('aWho').value = m.who;
+  $('aFiles').replaceChildren(...((m.files || []).length ? [el('span', { className: 'muted', style: 'font-size:12px' }, '📎 Attach:'), ...m.files.map(f => el('a', { className: 'mini', href: fileUrl(f), target: '_blank', rel: 'noopener', download: f, textContent: FILEN[f] || f }))] : []));
+  $('aShare').hidden = !((m.files || []).length && navigator.canShare);
+  renderAnnounce();
+}
+// The people a message goes to, each with what it needs filled in
 function audience() {
-  const w = $('aWho').value, a = active().filter(g => !/^vendor/i.test(g.side));
-  if (w === 'all') return a;
-  if (w === '1s') { const d1 = a.filter(g => g.days.includes(1)); return d1.some(hasRoom) ? d1.filter(hasRoom) : d1; }  // once rooms are given out, only those with a room
-  return a.filter(g => g.days.includes(+w));
+  const w = $('aWho').value, sd = $('aSideF').value, sideOk = x => !sd || new RegExp('^' + sd, 'i').test(x || '');
+  if (w === 'none') return [];
+  if (w === 'invited' || w === 'wait') return invites.filter(i => !i.removed && sideOk(i.side) && (w === 'invited' || !replyOf(i))).map(i => ({ name: i.name, phone: i.phone }));
+  if (w === 'vendors') return items('vendor').filter(v => v.data.phone).map(v => ({ name: v.data.contact || v.data.name || v.data.area, phone: v.data.phone, tag: v.data.area }));
+  let a = active().filter(g => !/^vendor/i.test(g.side) && sideOk(g.side));
+  if (w === '1s') { const d1 = a.filter(g => g.days.includes(1)); a = d1.some(hasRoom) ? d1.filter(hasRoom) : d1; }  // once rooms are given out, only those with a room
+  else if (w !== 'all') a = a.filter(g => g.days.includes(+w));
+  return a.map(g => ({ name: g.name, phone: g.phone, code: g.pass_code, people: g.guests, room: roomsText(g), tag: g.side.replace(' Guest', '') }));
 }
 function renderAnnounce() {
-  const list = audience(), text = $('aText').value;
-  $('aRows').replaceChildren(...(list.length ? list.map(g => el('div', { className: 'panel row', style: 'padding:8px 12px;gap:10px;align-items:center;justify-content:space-between' },
-    el('span', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + (g.phone || 'no phone') })),
-    waNum(g.phone) ? el('a', { className: 'btn sm', href: waLink(g.phone, text), target: '_blank', rel: 'noopener', textContent: 'Send' }) : el('span', { className: 'muted', textContent: '—' }))) :
-    [el('p', { className: 'muted', textContent: 'No one in this group yet.' })]));
+  const list = audience(), text = $('aText').value, w = $('aWho').value, personal = /\{(code|room|people)\}/.test(text);
+  $('aCopy').textContent = personal ? 'Copy (general version)' : 'Copy message';
+  $('aRows').replaceChildren(...(w === 'none' ? [el('p', { className: 'muted', textContent: 'Copy the text and post it with the picture or video on your WhatsApp status.' })] : list.length ? list.map(x => el('div', { className: 'panel row', style: 'padding:8px 12px;gap:10px;align-items:center;justify-content:space-between' },
+    el('span', {}, el('b', { textContent: x.name }), el('span', { className: 'muted', textContent: ' · ' + (x.tag ? x.tag + ' · ' : '') + (x.phone || 'no phone') + (x.room && /\{room\}/.test(text) ? ' · ' + x.room : '') })),
+    waNum(x.phone) ? el('a', { className: 'btn sm', href: waLink(x.phone, fillMsg(text, x)), target: '_blank', rel: 'noopener', textContent: 'Send' }) : el('span', { className: 'muted', textContent: '—' }))) :
+    [el('p', { className: 'muted', textContent: (w === 'invited' || w === 'wait') && !invites.filter(i => !i.removed).length ? 'Your Invited list is empty. Add names on the Invited tab, or copy the message into a WhatsApp broadcast list.' : 'No one in this group yet.' })]));
+  if (personal) $('aMsg').textContent = 'This message has each person\'s own details. Tap Send next to each name below.';
 }
-$('aTpl').onchange = () => { const t = TPL[+$('aTpl').value]; $('aText').value = t[2]; $('aWho').value = t[1]; renderAnnounce(); };
-['aWho', 'aText'].forEach(id => $(id).addEventListener('input', renderAnnounce));
-$('aCopy').onclick = async () => { try { await navigator.clipboard.writeText($('aText').value); $('aMsg').textContent = 'Message copied.'; } catch (e) { $('aMsg').textContent = 'Select the text above and copy it.'; } };
+$('aTpl').onchange = () => pickMsg(MSGS[+$('aTpl').value]);
+['aWho', 'aText', 'aSideF'].forEach(id => $(id).addEventListener('input', renderAnnounce));
+$('aCopy').onclick = async () => { try { await navigator.clipboard.writeText(fillMsg($('aText').value, null)); $('aMsg').textContent = 'Message copied.'; } catch (e) { $('aMsg').textContent = 'Select the text above and copy it.'; } };
+// On phones: hand the pictures and text straight to WhatsApp (or any app) in one go
+$('aShare').onclick = async () => {
+  try {
+    const files = await Promise.all((curMsg.files || []).map(async f => { const b = await (await fetch(fileUrl(f))).blob(); return new File([b], f, { type: b.type }); }));
+    const data = { files, text: fillMsg($('aText').value, null) };
+    if (navigator.canShare && navigator.canShare(data)) await navigator.share(data); else $('aMsg').textContent = 'This phone cannot share files from here. Use the attachment links above, then paste the message.';
+  } catch (e) { if (e.name !== 'AbortError') $('aMsg').textContent = 'Could not share. Use the attachment links above, then paste the message.'; }
+};
 $('aNums').onclick = async () => {
-  const nums = [...new Set(audience().map(g => waNum(g.phone)).filter(Boolean))].map(n => '+' + n);
+  const nums = [...new Set(audience().map(x => waNum(x.phone)).filter(Boolean))].map(n => '+' + n);
   try { await navigator.clipboard.writeText(nums.join('\n')); $('aMsg').textContent = 'Copied ' + nums.length + ' numbers.'; } catch (e) { $('aMsg').textContent = nums.join(', '); }
 };
-$('aTpl').onchange();
+// Start on the next message that needs sending
+pickMsg(MSGS.find(m => m.group === 'plan' && daysTo(m.until || m.date) >= 0) || MSGS[0]);
 
 // ---------- who is signed in (each person has their own passphrase) ----------
 let ME = null; try { ME = JSON.parse(localStorage.getItem('nd27-me') || 'null'); } catch (e) {}
@@ -1135,10 +1231,11 @@ function setMe(me) {
   ME = me; try { localStorage.setItem('nd27-me', JSON.stringify(me)); } catch (e) {}
   showWho(); $('accessTab').hidden = !me.owner;
   ['aSide', 'iSide'].forEach(id => { const sel = $(id); [...sel.options].forEach(o => { o.disabled = otherFam(o.value); }); if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = [...sel.options].find(o => !o.disabled).value; });
+  $('aSideF').value = me.owner ? '' : (me.fam[0] === 'G' ? 'groom' : 'bride');
   $('famNote').hidden = me.owner;
   $('famNote').textContent = 'Signed in as ' + me.name + '. On Menu, Vendors and Budget your edits are saved as your family\'s view (dashed amber boxes), next to the other family\'s view, and Nadeem picks the final one. Guest changes, new items and removals are sent to Nadeem for approval; you can only change your own side\'s guests. Door check-ins work straight away.';
   $('apprIntro').textContent = me.owner ? 'Requests from the family logins. Nothing they send changes the panel until you approve it.' : 'Everything you have sent for approval, and what was decided.';
-  loadPending();
+  loadPending(); loadMsgs();
   if (me.must_change) openAccount();
 }
 function openAccount() {
@@ -1536,6 +1633,8 @@ function renderOverview() {
     card('Vendors', 'vendors', [vs.filter(v => /Booked|Paid|Advance/.test(v.data.status)).length + ' booked · ' + notBooked.length + ' still to close', ...notBooked.slice(0, 5).map(v => '• ' + v.data.area + ' (' + v.data.status + ')')]),
     card('Menu', 'menu', [ms.filter(it => it.data.status === 'Final').length + ' of ' + ms.length + ' meals final', ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' approved by both families', ...ms.filter(it => !(it.data.ok_groom && it.data.ok_bride)).slice(0, 3).map(it => '• ' + it.data.meal + ': waiting for ' + [it.data.ok_groom ? '' : "groom's", it.data.ok_bride ? '' : "bride's"].filter(Boolean).join(' and ') + ' approval')]),
     ...(() => { const w = plan.filter(x => !x.removed && VIEW_KINDS[x.kind] && openViews(x).length); return w.length ? [card('Views to settle', w[0].kind === 'budget' ? 'budget' : w[0].kind === 'vendor' ? 'vendors' : 'menu', [w.length + (w.length > 1 ? ' items have' : ' item has') + " a family's view waiting", ...w.slice(0, 4).map(x => '• ' + itemTitle(x) + ' (' + openViews(x).map(o => SIDEN[o.side].replace(' family', '')).join(' + ') + ')')])] : []; })(),
+    (() => { const due = PLAN.filter(m => ['due', 'late'].includes(stepState(m))), nx = PLAN.find(m => stepState(m) === 'soon');
+      return card('Messages', 'announce', [...due.map(m => warn('Send now: ' + m.title)), nx ? 'Next: ' + nx.title + ' · ' + fmtDay(nx.date) + ' (in ' + daysTo(nx.date) + ' days)' : 'All planned messages sent']); })(),
     card('Rooms (Wednesday night)', 'rooms', [roomed + ' of ' + stayN + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
 }
 
@@ -1635,6 +1734,7 @@ function actArea(a) {
   if (a.tbl === 'plan_items') { const k = (a.label || '').split(':')[0]; return k === 'budget' || k === 'payment' ? 'money' : 'plan'; }
   if (a.tbl === 'settings') return a.row_id === 'budget' ? 'money' : 'plan';
   if (a.tbl === 'opinions') return / budget /.test(a.label || '') ? 'money' : 'plan';
+  if (a.tbl === 'msg_sent') return 'guests';
   return 'access';
 }
 // Turn one log row into a plain sentence plus the field-by-field details
@@ -1655,6 +1755,7 @@ function describe(a) {
   else if (a.tbl === 'invites') text = a.action === 'insert' ? 'added ' + nm + ' to the invited list' : verb + ' the invite for ' + nm;
   else if (a.tbl === 'settings') { text = 'updated ' + (SETN[a.row_id] || a.row_id); details = a.row_id === 'budget' && c.value ? ['cap: ' + inr((c.value[0] || {}).cap) + ' → ' + inr((c.value[1] || {}).cap)] : []; }
   else if (a.tbl === 'receipts') { const pay = plan.find(x => x.id === c.payment_id); text = (a.action === 'insert' ? 'attached a receipt' : verb + ' a receipt') + (pay ? ' to the ' + planName(pay.id, 'payment') : ''); }
+  else if (a.tbl === 'msg_sent') { const [st, sd] = nm.split(' · '), m = PLAN.find(x => x.id === st); text = (a.action === 'delete' ? 'unmarked ' : 'marked as sent: ') + (m ? m.title : st) + (sd ? ' (' + sd + ')' : ''); details = []; }
   else if (a.tbl === 'opinions') {
     const st = c.status && c.status[1];
     text = a.action === 'insert' ? 'gave the ' + nm : a.action === 'delete' ? 'cleared the ' + nm : st === 'chosen' ? 'finalised the ' + nm : st === 'set aside' ? 'set aside the ' + nm : 'updated the ' + nm;
@@ -1784,7 +1885,7 @@ document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListene
   ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
   if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
   if (['overview', 'budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
-  if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') renderAnnounce();
+  if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') { renderAnnounce(); loadMsgs(); loadInvites().then(renderAnnounce); if (!plan.length) loadPlan().then(renderAnnounce); }
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
 }));
