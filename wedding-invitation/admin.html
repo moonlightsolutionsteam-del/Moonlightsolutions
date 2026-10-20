@@ -1362,7 +1362,7 @@ async function savePlan(it, patch, kind, extra) {
 async function removePlan(it) { await rpc('admin_plan_remove', { p_id: it.id, p_removed: true, p_by: meLabel() }); it.removed = true; renderPlan(); }
 // ---------- two views: each family keeps its own version of a menu, vendor or budget item; Nadeem picks the final ----------
 const VIEW_KINDS = {
-  menu: [['dishes', 'Dishes'], ['veg', 'Vegetarian option'], ['rate', '₹ per plate'], ['plates', 'Plates'], ['payer', 'Paid by'], ['status', 'Status'], ['notes', 'Notes for the caterer']],
+  menu: [['dishes', 'Dishes'], ['veg', 'Vegetarian option'], ['total', 'Total for the meal'], ['rate', '₹ per plate'], ['plates', 'Plates'], ['payer', 'Paid by'], ['status', 'Status'], ['notes', 'Notes for the caterer']],
   vendor: [['area', 'Area'], ['name', 'Vendor / business'], ['contact', 'Contact person'], ['phone', 'Phone'], ['quote', 'Quote / amount'], ['status', 'Status'], ['owner', 'Handled by'], ['scope', 'What they cover'], ['upi', 'UPI ID'], ['bank', 'Bank account'], ['ifsc', 'IFSC'], ['adv_due', 'Advance due by'], ['bal_due', 'Balance due by'], ['notes', 'Notes']],
   budget: [['item', 'Item'], ['budget', 'Budget'], ['agreed', 'Agreed price'], ['split_groom', "Groom's family %"], ['group', 'Section'], ['status', 'Status'], ['notes', 'Notes'], ['menu', 'Menu meals']]
 };
@@ -1382,7 +1382,7 @@ async function saveView(it, side, patch, note) {
   if (mySide()) toast("Saved as your family's view ✓ Nadeem will pick the final.");
   return it;
 }
-const fmtField = (k, v) => Array.isArray(v) ? (v.map(id => { const x = plan.find(y => y.id === id); return x ? x.data.meal || x.data.item : '?'; }).join(', ') || '—') : v == null || v === '' ? '—' : k === 'payer' || k === 'group' ? (PAYER[v] || v) : typeof v === 'number' && /rate|budget|agreed/.test(k) ? inr(v) : String(v);
+const fmtField = (k, v) => Array.isArray(v) ? (v.map(id => { const x = plan.find(y => y.id === id); return x ? x.data.meal || x.data.item : '?'; }).join(', ') || '—') : v == null || v === '' ? '—' : k === 'payer' || k === 'group' ? (PAYER[v] || v) : typeof v === 'number' && /rate|budget|agreed|total/.test(k) ? inr(v) : String(v);
 function viewsBtn(it) {
   if (!VIEW_KINDS[it.kind]) return '';
   const n = openViews(it).length, sd = mySide();
@@ -1465,10 +1465,14 @@ const GROUPS = [['shared', 'Shared 50/50'], ['bride', "Bride's family"], ['groom
 const B_STATUS = ['To close', 'Quoted', 'Booked', 'Advance paid', 'Paid in full', 'Not needed'];
 // Menu meals linked to a budget line set its cost (price per plate × plates) once every linked meal has a price
 const linkedMeals = it => (it.data.menu || []).map(id => plan.find(x => x.id === id && !x.removed)).filter(Boolean);
-const mealCost = m => (+m.data.rate || 0) * platesFor(m).plates;
+// A meal's cost: the whole-meal total if one is entered, otherwise price per plate × plates
+const mealTotal = m => m.data.total != null && m.data.total !== '' && +m.data.total > 0 ? +m.data.total : null;
+const hasPrice = m => mealTotal(m) != null || +m.data.rate > 0;
+const perPlate = m => { const t = mealTotal(m), n = platesFor(m).plates; return t != null ? (n ? Math.round(t / n) : 0) : +m.data.rate || 0; };
+const mealCost = m => mealTotal(m) != null ? mealTotal(m) : (+m.data.rate || 0) * platesFor(m).plates;
 function menuCostOf(it) {
   const ms = linkedMeals(it); if (!ms.length) return null;
-  return { ms, total: ms.reduce((n, m) => n + mealCost(m), 0), missing: ms.filter(m => !(+m.data.rate > 0)) };
+  return { ms, total: ms.reduce((n, m) => n + mealCost(m), 0), missing: ms.filter(m => !hasPrice(m)) };
 }
 const lineOfMeal = m => items('budget').find(b => (b.data.menu || []).includes(m.id));
 // Who pays for one meal. The budget follows: a line holding only this meal changes section;
@@ -1503,10 +1507,10 @@ const mealLabel = m => m.data.meal + (m.data.when ? ' (' + m.data.when.replace(/
 // Under a budget line: which meals and vendors feed it
 function lineLinks(it) {
   const mc = menuCostOf(it), vs = vendorsOf(it), out = el('div', { style: 'font-size:12px;margin-top:3px' });
-  if (mc) out.append(el('div', { style: 'color:' + (mc.missing.length ? 'var(--warn)' : 'var(--gold2)') }, '🍽 From the menu: ' + mc.ms.map(m => m.data.meal + ' ' + (+m.data.rate > 0 ? inr(mealCost(m)) : '(no price)')).join(' + ') + (mc.missing.length ? ' · using the budget figure until every meal has a price' : ' = ' + inr(mc.total))));
+  if (mc) out.append(el('div', { style: 'color:' + (mc.missing.length ? 'var(--warn)' : 'var(--gold2)') }, '🍽 From the menu: ' + mc.ms.map(m => m.data.meal + ' ' + (hasPrice(m) ? inr(mealCost(m)) : '(no price)')).join(' + ') + (mc.missing.length ? ' · using the budget figure until every meal has a price' : ' = ' + inr(mc.total))));
   if (vs.length) out.append(el('div', { className: 'muted' }, '🤝 Vendor: ' + vs.map(v => v.data.name || v.data.area).join(', ')));
   const b = el('button', { className: 'mini', type: 'button', textContent: mc ? 'Change meals' : 'Link menu meals', title: 'Take this line\'s cost from the menu (price per plate × plates)' });
-  b.onclick = () => linkPicker(b, 'Meals that make up this cost', items('menu').map(m => { const o = lineOfMeal(m); return { id: m.id, label: mealLabel(m), hint: o && o.id !== it.id ? 'now in "' + o.data.item.slice(0, 30) + '"' : (+m.data.rate > 0 ? inr(mealCost(m)) : 'no price yet') }; }), it.data.menu || [],
+  b.onclick = () => linkPicker(b, 'Meals that make up this cost', items('menu').map(m => { const o = lineOfMeal(m); return { id: m.id, label: mealLabel(m), hint: o && o.id !== it.id ? 'now in "' + o.data.item.slice(0, 30) + '"' : (hasPrice(m) ? inr(mealCost(m)) : 'no price yet') }; }), it.data.menu || [],
     async ids => { for (const o of items('budget')) if (o.id !== it.id && (o.data.menu || []).some(x => ids.includes(x))) await savePlan(o, { menu: o.data.menu.filter(x => !ids.includes(x)) }); await savePlan(it, { menu: ids }); });
   out.append(el('div', { style: 'margin-top:3px' }, b));
   return out;
@@ -1617,7 +1621,7 @@ function renderBudget() {
     el('div', { className: 'muted', style: 'font-size:13px;margin:2px 0 6px', textContent: 'Not counted in any total yet. Add each one, or open a food line and use "Link menu meals".' }),
     ...loose.map(mm => { const a = el('button', { className: 'mini', type: 'button', textContent: '+ Add to budget' });
       a.onclick = async () => { try { await savePlan(null, { group: mm.data.payer || 'shared', item: mm.data.meal + ' (' + (mm.data.when || '').replace(/ ·.*/, '') + ')', budget: mealCost(mm), agreed: null, status: 'To close', notes: '', menu: [mm.id] }, 'budget'); renderPlan(); } catch (e) {} };
-      return el('div', { className: 'row', style: 'gap:8px;align-items:center;justify-content:space-between;font-size:14px;margin:3px 0' }, el('span', {}, el('b', { textContent: mealLabel(mm) }), el('span', { className: 'muted', textContent: ' · ' + (+mm.data.rate > 0 ? inr(mealCost(mm)) + ' (' + inr(mm.data.rate) + ' × ' + platesFor(mm).plates + ')' : 'no price yet') + ' · ' + (PAYER[mm.data.payer] || 'Shared 50/50') })), a); }));
+      return el('div', { className: 'row', style: 'gap:8px;align-items:center;justify-content:space-between;font-size:14px;margin:3px 0' }, el('span', {}, el('b', { textContent: mealLabel(mm) }), el('span', { className: 'muted', textContent: ' · ' + (hasPrice(mm) ? inr(mealCost(mm)) + ' (' + inr(perPlate(mm)) + ' × ' + platesFor(mm).plates + ')' : 'no price yet') + ' · ' + (PAYER[mm.data.payer] || 'Shared 50/50') })), a); }));
   // Split costs
   const sh = bl.filter(x => x.data.group === 'shared');
   $('bSplit').replaceChildren(colHead(), ...sh.map(lineRow), sectionTotal(sh, 'Split total'), el('div', { style: 'margin-top:6px' }, addLineBtn('shared', '+ Add a split cost')));
@@ -1715,12 +1719,28 @@ function approve(it, fam) {
   b.onclick = async () => { if (!mineFam) return; try { await savePlan(it, { [k]: done ? '' : ME.name + ' · ' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) }); renderMenu(); } catch (e) {} };
   return el('div', {}, b, done ? el('div', { className: 'by', textContent: done }) : '');
 }
+// Two linked price boxes: type the whole amount or the per-plate price; the other is worked out from the plates
+function mealPriceIn(it, which) {
+  const n = platesFor(it).plates, vt = viewVal(it, 'total'), vr = viewVal(it, 'rate'), hasT = vt != null && vt !== '' && +vt > 0;
+  const val = which === 'total' ? (hasT ? +vt : (+vr > 0 ? (+vr) * n : '')) : (hasT ? (n ? Math.round(+vt / n) : '') : (vr == null ? '' : vr));
+  const inp = el('input', { type: 'number', min: 0, className: 'num', value: val === '' ? '' : val, placeholder: which === 'total' ? 'e.g. 50000' : '—' });
+  inp.style.width = '100%';
+  inp.title = which === 'total' ? 'The whole amount for this meal. The price per plate is worked out from ' + n + ' plates.' : 'Price per plate. The total is this × ' + n + ' plates.';
+  if (hasT === (which === 'total') && (isMine(it, 'total') || isMine(it, 'rate'))) inp.classList.add('vw-mine');
+  inp.addEventListener('change', async () => {
+    const v = inp.value === '' ? null : Math.max(0, Math.round(+inp.value));
+    const patch = which === 'total' ? { total: v, rate: v != null && n ? Math.round(v / n) : it.data.rate } : { rate: v, total: null };
+    try { await savePlan(it, patch); inp.style.borderColor = 'var(--ok)'; setTimeout(() => renderPlan(), 500); }
+    catch (e) { inp.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; }
+  });
+  return inp;
+}
 function renderMenu() {
   const ms = items('menu'), sum = f => ms.reduce((a, it) => a + f(it), 0);
   const est = k => ms.filter(it => payerOf(it) === k).reduce((a, it) => a + mealCost(it), 0);
   $('mStats').replaceChildren(...[[ms.filter(it => it.data.status === 'Final').length + ' / ' + ms.length, 'Meals final'],
     [ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' / ' + ms.length, 'Approved by both families'],
-    [inr(sum(it => (+it.data.rate || 0) * platesFor(it).plates)), 'Food estimate (plates × rate)'],
+    [inr(sum(mealCost)), 'Food estimate (all meals)'],
     [inr(est('shared')) + ' / ' + inr(est('bride')) + ' / ' + inr(est('groom')), 'Shared / bride\'s / groom\'s']]
     .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n, style: 'font-size:' + (String(n).length > 14 ? '16px' : '') }), el('span', { textContent: l }))));
   $('mCards').replaceChildren(...ms.map(it => {
@@ -1730,12 +1750,12 @@ function renderMenu() {
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('div', {}, el('div', { className: 'by', textContent: it.data.when }), el('b', { className: 'cin', textContent: it.data.meal })), pick(it, 'status', M_STATUS)),
       lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
       lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
-      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t })));
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Total for the meal (₹)', mealPriceIn(it, 'total')), lab('₹ per plate', mealPriceIn(it, 'rate')), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t })));
         s.value = mySide() ? viewVal(it, 'payer') || payerOf(it) : payerOf(it); if (isMine(it, 'payer')) s.classList.add('vw-mine');
         s.onchange = async () => { const was = payerOf(it); try { await setMealPayer(it, s.value); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; if (!queued(e)) s.value = was; } };
         return s; })())),
       el('div', { className: 'by', style: 'margin-top:4px', textContent: 'From RSVPs: ' + pl.n + ' guests (' + pl.veg + ' veg) + 5% spare = ' + pl.auto + ' plates' + (pl.crew ? ' · plus ' + pl.crew + ' vendor crew' : '') + ' · estimate ' + inr(mealCost(it)) }),
-      (() => { const bl = lineOfMeal(it); return el('div', { className: 'by', style: 'margin-top:2px;color:' + (bl ? 'var(--gold2)' : 'var(--warn)') }, bl ? '💰 Counted in the budget line "' + bl.data.item + '"' + (+it.data.rate > 0 ? '' : ' · add a price per plate so the budget uses it') : '⚠ Not in the budget yet. Add it from Budget & payments.'); })(),
+      (() => { const bl = lineOfMeal(it); return el('div', { className: 'by', style: 'margin-top:2px;color:' + (bl ? 'var(--gold2)' : 'var(--warn)') }, bl ? '💰 Counted in the budget line "' + bl.data.item + '"' + (hasPrice(it) ? '' : ' · add a price so the budget uses it') : '⚠ Not in the budget yet. Add it from Budget & payments.'); })(),
       lab('Notes for the caterer', cell(it, 'notes', { area: true, rows: 2, max: 400 })),
       el('div', { className: 'row', style: 'gap:8px;margin-top:8px' }, approve(it, 'groom'), approve(it, 'bride')),
       el('div', { className: 'row', style: 'margin-top:6px;justify-content:space-between;align-items:center' }, stamp(it), viewsBtn(it)));
@@ -1744,7 +1764,7 @@ function renderMenu() {
 $('mCopy').onclick = async () => {
   const text = 'Nadeem & Dariya wedding: menu and plates (' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) + ')\n\n' + items('menu').map(it => {
     const pl = platesFor(it);
-    return '*' + it.data.when + ' · ' + it.data.meal + '* (' + it.data.status + ')\n' + it.data.dishes + '\nVeg: ' + (it.data.veg || '-') + '\nPlates: ' + pl.plates + ' (' + pl.veg + ' veg)' + (pl.crew ? ' + ' + pl.crew + ' crew' : '') + ' · ₹' + (it.data.rate || 0) + ' a plate' + (it.data.notes ? '\nNote: ' + it.data.notes : '');
+    return '*' + it.data.when + ' · ' + it.data.meal + '* (' + it.data.status + ')\n' + it.data.dishes + '\nVeg: ' + (it.data.veg || '-') + '\nPlates: ' + pl.plates + ' (' + pl.veg + ' veg)' + (pl.crew ? ' + ' + pl.crew + ' crew' : '') + ' · ₹' + perPlate(it) + ' a plate' + (mealTotal(it) != null ? ' (₹' + mealTotal(it).toLocaleString('en-IN') + ' in total)' : '') + (it.data.notes ? '\nNote: ' + it.data.notes : '');
   }).join('\n\n');
   try { await navigator.clipboard.writeText(text); $('mMsg').textContent = 'Copied. Paste it into WhatsApp.'; } catch (e) { $('mMsg').textContent = text; }
 };
@@ -1853,7 +1873,7 @@ setInterval(() => { const on = ['overview', 'budget', 'menu', 'vendors', 'todo']
 let acts = [];
 const atTime = t => new Date(t).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const SETN = { rooms: 'the room plan', budget: 'the budget cap', emergency: 'the emergency details' };
-const MONEYK = ['amount', 'agreed', 'budget', 'cost', 'advance', 'paid'];
+const MONEYK = ['amount', 'agreed', 'budget', 'cost', 'advance', 'paid', 'total', 'rate'];
 function fmtV(k, v) {
   if (v == null || v === '') return '—';
   if (typeof v === 'boolean') return v ? 'yes' : 'no';
