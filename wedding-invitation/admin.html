@@ -249,7 +249,7 @@
   .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
   .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
   .tab[data-tab=access]::before { content:'\f084'; } #toSite::before { content:'\f004'; }
-  .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; }
+  .tab[data-tab=dash]::before { content:'\f625'; } .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; }
   #refresh::before { content:'\f2f1'; } #export::before { content:'\f56d'; } #logout::before { content:'\f2f5'; }
   .tab[aria-selected=true]::before { animation:icWiggle .5s var(--spring); }
   @keyframes icWiggle { 0% { transform:scale(.6) rotate(-20deg); } 100% { transform:none; } }
@@ -264,6 +264,33 @@
     *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
     #sparkle { display:none; }
   }
+</style>
+<style id="dash-ui">
+  .db-head { display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; justify-content:space-between; }
+  .db-ring { --p:0; width:84px; height:84px; border-radius:50%; flex:none; display:grid; place-items:center; background:conic-gradient(var(--gold) calc(var(--p)*1%), rgba(255,255,255,.12) 0); }
+  .db-ring b { width:66px; height:66px; border-radius:50%; display:grid; place-items:center; background:#0a6f79; font:700 18px 'Cinzel',serif; color:var(--gold2); }
+  .db-kpis { display:flex; flex-wrap:wrap; gap:8px 22px; }
+  .db-kpis div b { display:block; font:700 22px 'Cinzel',serif; color:var(--gold2); font-variant-numeric:tabular-nums; }
+  .db-kpis div span { font-size:12px; color:var(--mute); }
+  .db-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px; margin-top:10px; }
+  .db-card h3 { margin:0; font:700 15px 'Cinzel',serif; color:var(--gold2); }
+  .db-card .row.hd { justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .db-line { display:flex; justify-content:space-between; gap:10px; font-size:13.5px; padding:3px 0; }
+  .db-line span:last-child { font-variant-numeric:tabular-nums; text-align:right; }
+  .db-bar { height:7px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; margin:2px 0 6px; }
+  .db-bar i { display:block; height:100%; border-radius:99px; background:var(--gold); }
+  .db-bar i.ok { background:var(--ok); } .db-bar i.warn { background:var(--warn); } .db-bar i.bad { background:var(--bad); }
+  .db-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+  .db-chip { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--line); }
+  .db-attn { display:flex; align-items:center; gap:10px; padding:7px 0; border-top:1px solid var(--line); font-size:14px; }
+  .db-attn:first-of-type { border-top:0; }
+  .db-attn .dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .db-attn .t { flex:1; }
+  .db-checks { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px; margin-top:10px; }
+  .db-check { font-size:12.5px; padding:6px 9px; border-radius:9px; border:1px solid var(--line); cursor:pointer; background:rgba(255,255,255,.04); }
+  .db-check:hover { border-color:var(--gold); }
+  .db-check.ok { border-color:rgba(120,220,150,.5); } .db-check.warn { border-color:rgba(255,200,90,.55); } .db-check.bad { border-color:rgba(255,120,120,.6); }
+  .db-muted { color:var(--mute); font-size:12.5px; }
 </style>
 </head>
 <body>
@@ -317,6 +344,7 @@
     </div>
     <div class="tabs" role="tablist" aria-label="Planning" style="margin-top:-6px">
       <span class="tg">Planning</span>
+      <button class="tab" role="tab" data-tab="dash" aria-selected="false" id="dashTab" hidden>Dashboard</button>
       <button class="tab" role="tab" data-tab="overview" aria-selected="false">Overview</button>
       <button class="tab" role="tab" data-tab="budget" aria-selected="false">Budget &amp; payments</button>
       <button class="tab" role="tab" data-tab="menu" aria-selected="false">Menu</button>
@@ -452,6 +480,13 @@
     </section>
 
     <!-- Overview: the whole wedding at a glance -->
+    <!-- Master dashboard for the super admin: every area on one screen -->
+    <section id="tab-dash" hidden>
+      <div class="panel db-head" id="dbHead"></div>
+      <div class="panel" id="dbAttn" style="margin-top:10px"></div>
+      <div class="db-grid" id="dbGrid"></div>
+    </section>
+
     <section id="tab-overview" hidden>
       <div class="stats" id="oStats"></div>
       <div id="oCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"></div>
@@ -820,7 +855,8 @@ $('logout').onclick = signOut;
 $('moreBtn').onclick = e => { e.stopPropagation(); const o = $('hdrMore').classList.toggle('open'); $('moreBtn').setAttribute('aria-expanded', o); };
 document.addEventListener('click', e => { if (!e.target.closest('#moreBtn')) { $('hdrMore').classList.remove('open'); $('moreBtn').setAttribute('aria-expanded', 'false'); } });
 function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue();
-  const hashTab = /^#\w+$/.test(location.hash) && document.querySelector('.tabs .tab[data-tab="' + location.hash.slice(1) + '"]'); if (hashTab && !hashTab.hidden) hashTab.click(); }
+  const hashTab = /^#\w+$/.test(location.hash) && document.querySelector('.tabs .tab[data-tab="' + location.hash.slice(1) + '"]');
+  if (hashTab && !hashTab.hidden) hashTab.click(); else if (ME && ME.owner && !$('dashTab').hidden) $('dashTab').click(); }
 async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); if (!$('tab-seating').hidden) renderSeating(); if (!$('tab-travel').hidden) renderTravel(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
@@ -1360,7 +1396,7 @@ const meLabel = () => !ME ? '' : ME.owner ? ME.name + ' (Super admin)' : /family
 function showWho() { $('whoBtn').textContent = '👤 ' + (ME ? meLabel() : ''); }
 function setMe(me) {
   ME = me; try { localStorage.setItem('nd27-me', JSON.stringify(me)); } catch (e) {}
-  showWho(); $('accessTab').hidden = !me.owner;
+  showWho(); $('accessTab').hidden = !me.owner; $('dashTab').hidden = !me.owner;
   ['aSide', 'iSide'].forEach(id => { const sel = $(id); [...sel.options].forEach(o => { o.disabled = otherFam(o.value); }); if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = [...sel.options].find(o => !o.disabled).value; });
   $('aSideF').value = me.owner ? '' : (me.fam[0] === 'G' ? 'groom' : 'bride');
   $('famNote').hidden = me.owner;
@@ -2356,11 +2392,158 @@ $('dCards').onclick = () => {
       '<div class="what">' + esc(d.data.what || '') + '</div>' + qr(SITE + 'team.html?d=' + d.id) + '<div class="scan">Scan for your run sheet: timings, the team and who to call</div></div>').join(''));
 };
 
+// ---------- master dashboard (super admin) ----------
+let dbActs = [], dbAt = 0;
+const goTab = t => { const b = document.querySelector('.tab[data-tab="' + t + '"]'); if (b) { b.click(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
+async function loadDash() {
+  renderDash();
+  await Promise.all([load(), loadPlan(), loadInvites(), loadPending(), loadMsgs(), rpc('admin_activity', { p_limit: 80 }).then(r => { dbActs = r || []; }).catch(() => {})]);
+  dbAt = Date.now(); renderDash();
+}
+function renderDash() {
+  if (!$('tab-dash') || $('tab-dash').hidden) return;
+  const pl = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+  const pct = (a, b) => b ? Math.max(0, Math.min(100, Math.round(a / b * 100))) : 0;
+  const bar = (a, b, cls) => el('div', { className: 'db-bar' }, el('i', { className: cls || '', style: 'width:' + pct(a, b) + '%' }));
+  const line = (l, r, style) => el('div', { className: 'db-line', style: style || '' }, el('span', { textContent: l }), el('span', { textContent: r }));
+  const card = (title, tab, ...kids) => {
+    const go = el('button', { className: 'mini', type: 'button', textContent: 'Open →' }); go.onclick = () => goTab(tab);
+    return el('div', { className: 'panel db-card' }, el('div', { className: 'row hd' }, el('h3', { textContent: title }), go), ...kids);
+  };
+  const ppl = a => a.reduce((n, g) => n + g.guests, 0);
+  const all = active(), gst = all.filter(g => !/^vendor/i.test(g.side)), crew = all.filter(g => /^vendor/i.test(g.side));
+  const side = k => gst.filter(g => (k === 'groom' ? /^groom/i : /^bride/i).test(g.side));
+  const days = Math.max(0, daysTo('2027-01-20'));
+  const m = money(), vs = items('vendor'), ms = items('menu'), tasks = items('task'), duties = items('duty'), gifts = items('gift');
+  const openT = tasks.filter(t => !t.data.done), lateT = openT.filter(t => t.data.due && t.data.due < today()), soonT = openT.filter(t => t.data.due && t.data.due >= today() && daysTo(t.data.due) <= 7);
+  const dues = vendorDues(), overdue = dues.filter(x => x.days < 0), dueSoon = dues.filter(x => x.days >= 0 && x.days <= 14);
+  const booked = v => /Booked|Paid|Advance|Own|Family/.test(v.data.status || '');
+  const pendN = (typeof pend !== 'undefined' ? pend : []).filter(x => x.status === 'pending');
+  const viewsOpen = plan.filter(x => !x.removed && VIEW_KINDS[x.kind] && openViews(x).length);
+  const msgDue = PLAN.filter(x => ['due', 'late'].includes(stepState(x))), msgNext = PLAN.find(x => stepState(x) === 'soon');
+  const staying = overnight(), noRoom = staying.filter(g => roomless(g)), bedsTotal = (rooms || []).reduce((n, r) => n + (+r.beds || 0), 0), bedsUsed = (rooms || []).reduce((n, r) => n + usedBeds(r.name), 0);
+  const EMK = ['hospital', 'hospital_phone', 'distance', 'doctor', 'manager', 'firstaid'], emFilled = EMK.filter(k => (emergency || {})[k]).length;
+  const dutyFilled = duties.filter(d => d.data.day1 && d.data.day2).length;
+  const menuOk = ms.filter(x => x.data.status === 'Final' && x.data.ok_groom && x.data.ok_bride).length;
+  const repl = invites.filter(i => replyOf(i)).length;
+  const fams = [['groom', "Groom's family"], ['bride', "Bride's family"]];
+
+  // Readiness checklist: one tile per area, green / amber / red
+  const checks = [
+    ['Menu final & approved', menuOk === ms.length && ms.length ? 'ok' : menuOk ? 'warn' : 'bad', menuOk + '/' + ms.length, 'menu'],
+    ['Vendors booked', vs.length && vs.every(booked) ? 'ok' : 'warn', vs.filter(booked).length + '/' + vs.length, 'vendors'],
+    ['Within budget cap', fams.every(([k]) => m.total[k] <= cap) ? 'ok' : 'bad', inr(cap) + ' each', 'budget'],
+    ['Vendor payments', overdue.length ? 'bad' : dueSoon.length ? 'warn' : 'ok', overdue.length ? overdue.length + ' overdue' : dueSoon.length ? dueSoon.length + ' due soon' : 'on track', 'vendors'],
+    ['To-dos', lateT.length ? 'bad' : openT.length ? 'warn' : 'ok', lateT.length ? lateT.length + ' overdue' : openT.length + ' open', 'todo'],
+    ['Rooms allocated', staying.length && !noRoom.length ? 'ok' : noRoom.length ? 'warn' : 'warn', noRoom.length ? pl(noRoom.length, 'party', 'parties') + ' to place' : staying.length ? 'all placed' : 'no one yet', 'rooms'],
+    ['Seating plan', seatTables('3').length ? (seatGuests('3').every(g => seatOf(g, '3')) ? 'ok' : 'warn') : 'warn', seatTables('3').length ? seatGuests('3').filter(g => seatOf(g, '3')).length + '/' + seatGuests('3').length + ' seated' : 'not started', 'seating'],
+    ['Team roster', duties.length && dutyFilled === duties.length ? 'ok' : dutyFilled ? 'warn' : 'bad', dutyFilled + '/' + pl(duties.length, 'duty', 'duties'), 'todo'],
+    ['Emergency details', emFilled === EMK.length ? 'ok' : emFilled ? 'warn' : 'bad', emFilled + '/' + EMK.length, 'todo'],
+    ['Messages sent', msgDue.length ? 'bad' : 'ok', msgDue.length ? msgDue.length + ' to send now' : 'up to date', 'announce'],
+    ['Approvals', pendN.length ? 'warn' : 'ok', pendN.length ? pendN.length + ' waiting' : 'none waiting', 'approvals'],
+    ['Family views', viewsOpen.length ? 'warn' : 'ok', viewsOpen.length ? viewsOpen.length + ' to settle' : 'all settled', viewsOpen.length && viewsOpen[0].kind === 'budget' ? 'budget' : viewsOpen.length && viewsOpen[0].kind === 'vendor' ? 'vendors' : 'menu'],
+    ['Photo album link', album ? 'ok' : days <= 14 ? 'bad' : 'warn', album ? 'set' : 'not set yet', 'announce']
+  ];
+  const score = Math.round(checks.reduce((n, c) => n + (c[1] === 'ok' ? 1 : c[1] === 'warn' ? .5 : 0), 0) / checks.length * 100);
+
+  const ring = el('div', { className: 'db-ring', style: '--p:' + score, title: 'Overall readiness' }, el('b', { textContent: score + '%' }));
+  const refresh = el('button', { className: 'btn ghost sm', type: 'button', textContent: '↻ Refresh dashboard' }); refresh.onclick = () => { refresh.disabled = true; loadDash().finally(() => { refresh.disabled = false; }); };
+  $('dbHead').replaceChildren(
+    el('div', { className: 'row', style: 'gap:16px;align-items:center' }, ring, el('div', {},
+      el('div', { className: 'cin', style: 'font-size:18px;color:var(--gold2)', textContent: 'Assalamu alaikum' + (ME && ME.name ? ', ' + first(ME.name) : '') }),
+      el('div', { className: 'db-muted', textContent: (days ? days + ' days to the wedding · ' : 'Wedding days · ') + 'readiness ' + score + '% across ' + checks.length + ' areas' + (dbAt ? ' · updated ' + new Date(dbAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '') }))),
+    el('div', { className: 'db-kpis' }, ...[[days, 'Days to go'], [ppl(gst), 'Guests RSVPed'], [inr(m.paid.groom + m.paid.bride), 'Paid so far'], [inr(m.total.groom + m.total.bride), 'Total planned'], [lateT.length + overdue.length + msgDue.length, 'Overdue items']]
+      .map(([n, l]) => el('div', {}, el('b', { textContent: n }), el('span', { textContent: l })))),
+    refresh);
+
+  // Needs attention, most urgent first
+  const attn = [];
+  const add = (sev, text, tab) => attn.push({ sev, text, tab });
+  overdue.forEach(x => add(0, (x.v.data.name || x.v.data.area) + ': ' + x.what + ' payment overdue since ' + fmtDay(x.dt) + (x.left != null ? ' · ' + inr(x.left) + ' left' : ''), 'vendors'));
+  lateT.slice(0, 5).forEach(t => add(0, 'Overdue to-do: ' + t.data.title + ' (due ' + fmtDay(t.data.due) + ')', 'todo'));
+  if (lateT.length > 5) add(0, pl(lateT.length - 5, 'more overdue to-do', 'more overdue to-dos'), 'todo');
+  msgDue.forEach(x => add(0, 'Message to send now: ' + x.title, 'announce'));
+  fams.forEach(([k, n]) => { if (m.total[k] > cap) add(0, n + ' is ' + inr(m.total[k] - cap) + ' over the ' + inr(cap) + ' cap', 'budget'); });
+  if (pendN.length) add(1, pendN.length + (pendN.length > 1 ? ' family requests are' : ' family request is') + ' waiting for your approval', 'approvals');
+  if (viewsOpen.length) add(1, viewsOpen.length + (viewsOpen.length > 1 ? ' items have' : ' item has') + ' a family view to settle', checks[11][3]);
+  dueSoon.forEach(x => add(1, (x.v.data.name || x.v.data.area) + ': ' + x.what + ' due ' + fmtDay(x.dt) + (x.left != null ? ' · ' + inr(x.left) + ' left' : ''), 'vendors'));
+  soonT.slice(0, 3).forEach(t => add(1, 'Due this week: ' + t.data.title + ' (' + fmtDay(t.data.due) + ')', 'todo'));
+  if (noRoom.length) add(1, noRoom.length + ' staying ' + (noRoom.length > 1 ? 'parties have' : 'party has') + ' people without a room', 'rooms');
+  if (dutyFilled < duties.length) add(1, pl(duties.length - dutyFilled, 'duty still needs', 'duties still need') + ' names for both days', 'todo');
+  if (emFilled < EMK.length) add(1, 'Emergency details: ' + (EMK.length - emFilled) + ' of ' + EMK.length + ' still blank', 'todo');
+  if (ms.length - menuOk) add(2, pl(ms.length - menuOk, 'meal is', 'meals are') + ' not yet final and approved by both families', 'menu');
+  if (vs.length - vs.filter(booked).length) add(2, pl(vs.length - vs.filter(booked).length, 'vendor', 'vendors') + ' still to book', 'vendors');
+  const unthanked = gifts.filter(x => !x.data.thanked).length; if (unthanked) add(2, pl(unthanked, 'gift', 'gifts') + ' still to thank', 'gifts');
+  if (msgNext) add(2, 'Next message: ' + msgNext.title + ' · ' + fmtDay(msgNext.date), 'announce');
+  const COL = ['var(--bad)', 'var(--warn)', 'var(--gold)'];
+  $('dbAttn').replaceChildren(el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-bottom:4px' },
+      el('h3', { className: 'cin', style: 'margin:0;font-size:15px;color:var(--gold2)', textContent: attn.length ? 'Needs your attention (' + attn.length + ')' : 'Nothing needs your attention 🎉' })),
+    ...attn.sort((a, b) => a.sev - b.sev).slice(0, 14).map(a => { const go = el('button', { className: 'mini', type: 'button', textContent: 'Go →' }); go.onclick = () => goTab(a.tab);
+      return el('div', { className: 'db-attn' }, el('span', { className: 'dot', style: 'background:' + COL[a.sev] }), el('span', { className: 't', textContent: a.text }), go); }),
+    el('div', { className: 'db-checks' }, ...checks.map(([l, st, v, tab]) => { const c = el('div', { className: 'db-check ' + st, title: 'Open ' + tab, role: 'button', tabIndex: 0 },
+      el('div', { style: 'font-weight:600' }, (st === 'ok' ? '✓ ' : st === 'warn' ? '• ' : '! ') + l), el('div', { className: 'db-muted', textContent: v })); c.onclick = () => goTab(tab); c.onkeydown = e => { if (e.key === 'Enter') goTab(tab); }; return c; })));
+
+  // Area cards
+  const evs = [[1, 'Day 1 (Wed 20)', 100], [2, 'Nikah (Thu 21)', 200], [3, 'Reception (Thu 21)', 200]];
+  const newWeek = gst.filter(g => g.created_at && Date.now() - new Date(g.created_at).getTime() < 7 * 864e5);
+  const cards = [
+    card('Guests & RSVPs', 'guests',
+      line('RSVPs', pl(gst.length, 'party', 'parties') + ' · ' + ppl(gst) + ' people'), line("Groom's side · Bride's side", ppl(side('groom')) + ' · ' + ppl(side('bride'))),
+      ...evs.flatMap(([e, n, plan]) => { const c = ppl(gst.filter(g => g.days.includes(e))); return [line(n, c + ' of ' + plan), bar(c, plan, c > plan ? 'bad' : '')]; }),
+      line('Vegetarians', String(gst.reduce((n, g) => n + Math.min(g.veg || 0, g.guests), 0))), line('New this week', pl(newWeek.length, 'party', 'parties') + ' · ' + ppl(newWeek) + ' people'),
+      line('Invited who replied', repl + ' of ' + invites.length), bar(repl, invites.length, 'ok'), crew.length ? line('Vendor crew passes', ppl(crew) + ' people') : ''),
+    card('Money', 'budget',
+      ...fams.flatMap(([k, n]) => [line(n, inr(m.paid[k]) + ' paid of ' + inr(m.total[k])), bar(m.total[k], cap, m.total[k] > cap ? 'bad' : ''), el('div', { className: 'db-muted', style: 'margin:-3px 0 6px', textContent: 'Cap ' + inr(cap) + (m.total[k] <= cap ? ' · ' + inr(cap - m.total[k]) + ' headroom' : ' · over by ' + inr(m.total[k] - cap)) })]),
+      line('Split 50/50 lines', inr(m.shared)), line('Paid overall', inr(m.paid.groom + m.paid.bride) + ' of ' + inr(m.total.groom + m.total.bride)), bar(m.paid.groom + m.paid.bride, m.total.groom + m.total.bride, 'ok'),
+      line('Settling up', m.settle ? (m.settle > 0 ? "Bride's family owes " : "Groom's family owes ") + inr(Math.abs(m.settle)) : 'Families are even', m.settle ? 'color:var(--warn)' : '')),
+    card('Vendors', 'vendors',
+      el('div', { className: 'db-chips' }, ...Object.entries(vs.reduce((o, v) => (o[v.data.status || '—'] = (o[v.data.status || '—'] || 0) + 1, o), {})).map(([st, n]) => el('span', { className: 'db-chip', style: 'border-color:' + statusCol(st), textContent: st + ' · ' + n }))),
+      el('div', { className: 'db-muted', style: 'margin-top:8px', textContent: dues.length ? 'Payments coming up' : 'No payment dates set yet' }),
+      ...dues.slice(0, 5).map(x => line((x.v.data.name || x.v.data.area) + ' · ' + x.what, fmtDay(x.dt) + (x.left != null ? ' · ' + inr(x.left) : ''), x.days < 0 ? 'color:var(--bad)' : x.days <= 14 ? 'color:var(--warn)' : ''))),
+    card('Food', 'menu',
+      ...ms.map(x => { const pl = platesFor(x); return line((x.data.ok_groom && x.data.ok_bride ? '✓✓ ' : x.data.ok_groom || x.data.ok_bride ? '✓ ' : '· ') + x.data.meal, pl.plates + ' plates · ' + inr(mealCost(x))); }),
+      line('Food estimate', inr(ms.reduce((n, x) => n + mealCost(x), 0)), 'font-weight:700;margin-top:4px'),
+      el('div', { className: 'db-muted', textContent: '✓✓ approved by both families · ✓ by one' })),
+    card('Rooms & stay', 'rooms',
+      line('Staying Wednesday night', pl(staying.length, 'party', 'parties') + ' · ' + staying.reduce((n, g) => n + sleepers(g).length, 0) + ' people'),
+      line('Beds used', bedsUsed + ' of ' + bedsTotal + ' (' + (rooms || []).length + ' rooms)'), bar(bedsUsed, bedsTotal, bedsUsed > bedsTotal ? 'bad' : 'ok'),
+      line('Without a room', noRoom.reduce((n, g) => n + roomless(g), 0) + ' people', noRoom.length ? 'color:var(--warn)' : '')),
+    card('Seating', 'seating', ...[['1', 'Day 1'], ['2', 'Nikah'], ['3', 'Reception']].flatMap(([e, n]) => { const t = seatTables(e), gs = seatGuests(e), sat = gs.filter(g => seatOf(g, e)).length;
+      return t.length ? [line(n + ' · ' + pl(t.length, 'table', 'tables'), sat + ' of ' + pl(gs.length, 'party', 'parties') + ' seated'), bar(sat, gs.length, sat === gs.length ? 'ok' : '')] : [line(n, 'tables not set up yet', 'color:var(--mute)')]; })),
+    card('Travel & diet', 'travel',
+      el('div', { className: 'db-chips' }, ...T_MODES.filter(Boolean).map(md => [md, gst.filter(g => travelMode(g) === md).length]).filter(([, n]) => n).map(([md, n]) => el('span', { className: 'db-chip', style: md === 'Needs a pickup' ? 'border-color:var(--warn)' : '', textContent: md + ' · ' + n }))),
+      line('Travel not filled in', pl(gst.filter(g => !travelMode(g)).length, 'party', 'parties')), line('Dietary notes', pl(gst.filter(g => g.diet).length, 'party', 'parties'))),
+    card('Team & safety', 'todo',
+      line('Duties with both days covered', dutyFilled + ' of ' + duties.length), bar(dutyFilled, duties.length, 'ok'),
+      line('Emergency details filled', emFilled + ' of ' + EMK.length), bar(emFilled, EMK.length, emFilled === EMK.length ? 'ok' : 'warn'),
+      line('To-dos done', tasks.length - openT.length + ' of ' + tasks.length), bar(tasks.length - openT.length, tasks.length, 'ok')),
+    card('Messages', 'announce',
+      ...fams.map(([k, n]) => { const c = PLAN.filter(x => sentBy(x.id, k)).length; return el('div', {}, line(n + ' sent', c + ' of ' + PLAN.length), bar(c, PLAN.length, 'ok')); }),
+      msgDue.length ? line('Send now', msgDue.map(x => x.title).join(', '), 'color:var(--bad)') : '', msgNext ? line('Next', msgNext.title + ' · ' + fmtDay(msgNext.date)) : ''),
+    card('Gifts', 'gifts',
+      line('Gifts recorded', String(gifts.length)), ...fams.map(([k, n]) => line('Cash to ' + n.toLowerCase(), inr(gifts.filter(x => x.data.side === k).reduce((a, x) => a + (+x.data.amount || 0), 0)))),
+      line('Thanked', gifts.filter(x => x.data.thanked).length + ' of ' + gifts.length), bar(gifts.filter(x => x.data.thanked).length, gifts.length, 'ok')),
+    card('Website', 'announce',
+      line('Live note', liveNote && liveNote.text ? '“' + liveNote.text.slice(0, 40) + (liveNote.text.length > 40 ? '…' : '') + '”' : 'none posted'),
+      line('Photo album', album ? 'linked' : 'not set', album ? '' : 'color:var(--warn)'), line('Meals shown on the menu', String(ms.filter(x => x.data.hide !== 'yes').length)),
+      line('RSVPs close', '15 Dec (' + Math.max(0, daysTo('2026-12-15')) + ' days)'),
+      el('div', { className: 'row', style: 'gap:6px;margin-top:6px' }, el('a', { className: 'mini', href: './', target: '_blank', rel: 'noopener', textContent: 'Open invitation ↗' }), el('a', { className: 'mini', href: './#menu', target: '_blank', rel: 'noopener', textContent: 'Menu ↗' })))
+  ];
+  if (days <= 0 || gst.some(g => g.checkins && Object.keys(g.checkins).length))
+    cards.unshift(card('At the door', 'scan', ...evs.flatMap(([e, n]) => { const on = gst.filter(g => g.days.includes(e)), inn = on.filter(g => arrived(g, e)); return [line(n, ppl(inn) + ' of ' + ppl(on) + ' arrived'), bar(ppl(inn), ppl(on), 'ok')]; })));
+  const mine = ME ? ME.name : '';
+  const recent = dbActs.filter(a => a.actor && !a.actor.startsWith(mine)).slice(0, 8);
+  cards.push(card('Recent changes by others', 'activity', ...(recent.length ? recent.map(a => { const d = describe(a); return el('div', { style: 'font-size:13px;padding:4px 0;border-top:1px solid var(--line)' },
+    el('b', { textContent: a.actor.split(' (')[0] }), ' ' + d.text, el('div', { className: 'db-muted', textContent: new Date(a.at || a.created_at).toLocaleString([], { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) })); }) : [el('div', { className: 'db-muted', textContent: 'No changes by others yet.' })])));
+  $('dbGrid').replaceChildren(...cards);
+}
+
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
   if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan();
+  if (t.dataset.tab === 'dash') loadDash();
   if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
   if (['overview', 'budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
   if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') { renderSiteBox(); renderAnnounce(); loadMsgs(); loadInvites().then(renderAnnounce); if (!plan.length) loadPlan().then(renderAnnounce); }
