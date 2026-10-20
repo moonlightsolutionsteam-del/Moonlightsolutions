@@ -16,6 +16,12 @@
   .wrap { max-width:1200px; margin:0 auto; }
   header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid var(--line); }
   header h1 { margin:0; font-size:18px; color:var(--gold2); }
+  #moreBtn { display:none; font-size:18px; line-height:1; padding:4px 12px; } #hdrMore { display:contents; }
+  @media (max-width:640px) {
+    header { position:relative; } #moreBtn { display:inline-block; }
+    #hdrMore { display:none; position:absolute; right:16px; top:calc(100% - 6px); z-index:50; flex-direction:column; align-items:stretch; gap:6px; padding:8px; min-width:200px; border:1px solid var(--line); border-radius:12px; background:#0a6f79; box-shadow:0 12px 30px rgba(0,0,0,.35); }
+    #hdrMore.open { display:flex; } #hdrMore .btn { text-align:left; }
+  }
   .script { font-family:'Great Vibes',cursive; letter-spacing:0; font-weight:400; color:#ffd36b; }
   ::selection { background:var(--gold); color:#086670; }
   .btn { background:linear-gradient(90deg,var(--pink),var(--pink2),var(--pink)); color:#fff; border:0; box-shadow:0 0 18px rgba(255,79,147,.3); border-radius:999px; padding:8px 18px; font-weight:600; cursor:pointer; }
@@ -160,7 +166,7 @@
     .tabs { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; margin:8px -16px; padding:2px 16px; -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 24px),transparent); mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 24px),transparent); }
     .tabs::-webkit-scrollbar { display:none; }
     .tab { flex:0 0 auto; white-space:nowrap; }
-    header { position:static; background:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+    header { position:relative; background:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
     .tg { flex:0 0 auto; }
     .tg { min-width:auto; padding-right:4px; }
     header h1 { font-size:15px; } header h1 .script { font-size:26px !important; }
@@ -282,10 +288,13 @@
       <h1><span class="script" style="font-size:30px">Nadeem &amp; Dariya</span> &nbsp;Wedding Panel</h1>
       <div class="row" style="gap:8px">
         <button class="btn sm" id="apprPill" hidden></button>
-        <button class="btn ghost sm" id="whoBtn" title="My account and passphrase"></button>
         <a class="btn ghost sm" id="toSite" href="./" style="text-decoration:none">Wedding website</a>
-        <button class="btn ghost sm" id="refresh">Refresh</button>
-        <button class="btn ghost sm" id="export">Export CSV</button>
+        <button class="btn ghost sm" id="moreBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="More">⋯</button>
+        <div id="hdrMore">
+          <button class="btn ghost sm" id="whoBtn" title="My account and passphrase"></button>
+          <button class="btn ghost sm" id="refresh">Refresh</button>
+          <button class="btn ghost sm" id="export">Export CSV</button>
+        </div>
         <button class="btn ghost sm" id="logout">Sign out</button>
       </div>
     </header>
@@ -548,7 +557,7 @@
         <button class="btn sm" id="ntAdd">Add</button>
       </div>
 
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px"><i class="fas fa-user-shield"></i>People on duty</h2>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px"><i class="fas fa-user-shield"></i>People on duty <button class="btn ghost sm" id="dCards" type="button" style="margin-left:8px;vertical-align:middle">🖨 Print run-sheet cards (A6)</button></h2>
       <div class="scroll"><table style="min-width:760px">
         <thead><tr><th>Role</th><th>What they do</th><th>Day 1 (Wed)</th><th>Day 2 (Thu)</th><th>Run sheet</th></tr></thead>
         <tbody id="dRows"></tbody>
@@ -808,6 +817,8 @@ $('loginForm').addEventListener('submit', async e => {
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
 $('logout').onclick = signOut;
+$('moreBtn').onclick = e => { e.stopPropagation(); const o = $('hdrMore').classList.toggle('open'); $('moreBtn').setAttribute('aria-expanded', o); };
+document.addEventListener('click', e => { if (!e.target.closest('#moreBtn')) { $('hdrMore').classList.remove('open'); $('moreBtn').setAttribute('aria-expanded', 'false'); } });
 function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue();
   const hashTab = /^#\w+$/.test(location.hash) && document.querySelector('.tabs .tab[data-tab="' + location.hash.slice(1) + '"]'); if (hashTab && !hashTab.hidden) hashTab.click(); }
 async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); if (!$('tab-seating').hidden) renderSeating(); if (!$('tab-travel').hidden) renderTravel(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
@@ -1847,6 +1858,7 @@ function renderMenu() {
       lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
       lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
       lab('On the website (what guests see)', cell(it, 'site', { area: true, rows: 2, max: 400, ph: it.data.dishes ? 'Leave blank to show the Dishes above' : 'Leave blank to show "Menu to be announced"' })),
+      lab('Veg option on the website', cell(it, 'site_veg', { max: 120, ph: it.data.veg ? 'Blank shows "' + it.data.veg + '" · type - to hide it' : 'Blank: no veg tag' })),
       el('div', { className: 'row', style: 'gap:6px' }, lab('Total for the meal (₹)', mealPriceIn(it, 'total')), lab('₹ per plate', mealPriceIn(it, 'rate')), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t })));
         s.value = mySide() ? viewVal(it, 'payer') || payerOf(it) : payerOf(it); if (isMine(it, 'payer')) s.classList.add('vw-mine');
         s.onchange = async () => { const was = payerOf(it); try { await setMealPayer(it, s.value); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; if (!queued(e)) s.value = was; } };
@@ -2334,6 +2346,16 @@ function runSheetBtns(d) {
   return el('span', { className: 'row', style: 'gap:4px' }, op, cp, wa);
 }
 
+// One A6 card per duty, with a QR code to that person's run sheet
+$('dCards').onclick = () => {
+  const ds = items('duty'); if (!ds.length) { toast('Add the duties first.'); return; }
+  const qr = u => { if (!window.qrcode) return ''; const q = qrcode(0, 'M'); q.addData(u); q.make(); return q.createSvgTag({ cellSize: 4, margin: 1 }); };
+  printPage('Run-sheet cards', '<style>@page{size:A6;margin:8mm}body{margin:0}.card{page-break-after:always;text-align:center;padding-top:4mm}.card:last-child{page-break-after:auto}.card h1{font-size:19px;margin:0 0 2px}.card .names{font-size:13px;margin:6px 0}.card .what{font-size:11px;color:#444;margin:0 4mm 8px}.card svg{width:42mm;height:42mm}.card .tag{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7a5a00}.card .scan{font-size:11px;margin-top:4px}</style>' +
+    ds.map(d => '<div class="card"><div class="tag">Nadeem &amp; Dariya · 20–21 Jan 2027</div><h1>' + esc(d.data.role || 'Duty') + '</h1>' +
+      '<div class="names">Day 1: <b>' + esc(d.data.day1 || '________') + '</b> &nbsp; Day 2: <b>' + esc(d.data.day2 || '________') + '</b></div>' +
+      '<div class="what">' + esc(d.data.what || '') + '</div>' + qr(SITE + 'team.html?d=' + d.id) + '<div class="scan">Scan for your run sheet: timings, the team and who to call</div></div>').join(''));
+};
+
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
@@ -2367,7 +2389,7 @@ const T = (d, hm) => new Date('2027-01-' + d + 'T' + hm + ':00+05:30').getTime()
 const SCHEDULE = [
   [T(20, '12:00'), T(20, '12:30'), 'Arrival & welcome drinks', 'Lawn'], [T(20, '12:30'), T(20, '13:00'), 'Welcome address', 'Lawn'],
   [T(20, '13:30'), T(20, '14:30'), 'Arrival lunch', 'Covered shed'], [T(20, '14:30'), T(20, '15:15'), 'Family Face-Off', 'Lawn'],
-  [T(20, '15:15'), T(20, '16:15'), 'Pool session', 'Pool'], [T(20, '16:00'), T(20, '16:30'), 'Rooms handed over', 'Rooms'],
+  [T(20, '15:15'), T(20, '16:15'), 'Pool session', 'Pool'], [T(20, '16:15'), T(20, '16:45'), 'Rooms handed over', 'Rooms'],
   [T(20, '16:45'), T(20, '18:15'), 'Haldi & Mehendi', 'Lawn'], [T(20, '18:45'), T(20, '19:30'), 'Shukrana', 'Covered area'],
   [T(20, '20:00'), T(20, '23:00'), 'DJ Night & dinner', 'Covered shed & lawn'],
   [T(21, '07:30'), T(21, '09:00'), 'Breakfast', 'Covered shed'], [T(21, '10:00'), T(21, '11:30'), 'Nikah (seated by 9:50)', 'Lawn'],
