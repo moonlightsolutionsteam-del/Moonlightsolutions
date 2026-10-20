@@ -449,7 +449,7 @@
     <!-- Catering menu: dishes, plates and both families' approval -->
     <section id="tab-menu" hidden>
       <div class="stats" id="mStats"></div>
-      <div class="row" style="gap:8px;margin-bottom:12px"><button class="btn sm" id="mCopy">Copy menu for the caterer</button><span class="muted" id="mMsg" style="align-self:center"></span></div>
+      <div class="row" style="gap:8px;margin-bottom:12px"><button class="btn sm" id="mCopy">Copy menu for the caterer</button><button class="btn sm ghost" id="mSite" type="button">View menu on the website ↗</button><span class="muted" id="mMsg" style="align-self:center"></span></div>
       <div id="mCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px"></div>
     </section>
 
@@ -806,7 +806,8 @@ $('loginForm').addEventListener('submit', async e => {
   catch (err) { KEY = ''; $('loginErr').textContent = err.message === 'forbidden' ? 'That passphrase is not correct.' : 'Could not reach the server. Check your connection.'; }
 });
 $('logout').onclick = signOut;
-function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue(); }
+function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue();
+  const hashTab = /^#\w+$/.test(location.hash) && document.querySelector('.tabs .tab[data-tab="' + location.hash.slice(1) + '"]'); if (hashTab && !hashTab.hidden) hashTab.click(); }
 async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); if (!$('tab-seating').hidden) renderSeating(); if (!$('tab-travel').hidden) renderTravel(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
@@ -1843,6 +1844,7 @@ function renderMenu() {
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('div', {}, el('div', { className: 'by', textContent: it.data.when }), el('b', { className: 'cin', textContent: it.data.meal })), pick(it, 'status', M_STATUS)),
       lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
       lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
+      lab('On the website (what guests see)', cell(it, 'site', { area: true, rows: 2, max: 400, ph: it.data.dishes ? 'Leave blank to show the Dishes above' : 'Leave blank to show "Menu to be announced"' })),
       el('div', { className: 'row', style: 'gap:6px' }, lab('Total for the meal (₹)', mealPriceIn(it, 'total')), lab('₹ per plate', mealPriceIn(it, 'rate')), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t })));
         s.value = mySide() ? viewVal(it, 'payer') || payerOf(it) : payerOf(it); if (isMine(it, 'payer')) s.classList.add('vw-mine');
         s.onchange = async () => { const was = payerOf(it); try { await setMealPayer(it, s.value); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; if (!queued(e)) s.value = was; } };
@@ -1854,6 +1856,7 @@ function renderMenu() {
       el('div', { className: 'row', style: 'margin-top:6px;justify-content:space-between;align-items:center' }, stamp(it), viewsBtn(it)));
   }));
 }
+$('mSite').onclick = () => window.open(SITE + '#menu', '_blank', 'noopener');
 $('mCopy').onclick = async () => {
   const text = 'Nadeem & Dariya wedding: menu and plates (' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) + ')\n\n' + items('menu').map(it => {
     const pl = platesFor(it);
