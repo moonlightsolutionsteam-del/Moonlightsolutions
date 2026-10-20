@@ -249,7 +249,7 @@
   .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
   .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
   .tab[data-tab=access]::before { content:'\f084'; } #toSite::before { content:'\f004'; }
-  .tab[data-tab=dash]::before { content:'\f625'; } .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; }
+  .tab[data-tab=dash]::before { content:'\f625'; } .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; } .tab[data-tab=games]::before { content:'\f091'; }
   #refresh::before { content:'\f2f1'; } #export::before { content:'\f56d'; } #logout::before { content:'\f2f5'; }
   .tab[aria-selected=true]::before { animation:icWiggle .5s var(--spring); }
   @keyframes icWiggle { 0% { transform:scale(.6) rotate(-20deg); } 100% { transform:none; } }
@@ -350,6 +350,7 @@
       <button class="tab" role="tab" data-tab="vendors" aria-selected="false">Vendors</button>
       <button class="tab" role="tab" data-tab="todo" aria-selected="false">To-do &amp; team</button>
       <button class="tab" role="tab" data-tab="gifts" aria-selected="false">Gifts</button>
+      <button class="tab" role="tab" data-tab="games" aria-selected="false">Games</button>
     </div>
     <div class="tabs" role="tablist" aria-label="Panel" style="margin-top:-6px">
       <span class="tg">Panel</span>
@@ -597,6 +598,20 @@
     </section>
 
     <!-- Gifts & envelopes, and thank-yous -->
+    <!-- Games & prizes: schedule, Face-Off score, prizes and supplies -->
+    <section id="tab-games" hidden>
+      <div class="stats" id="gmStats"></div>
+      <div class="panel" id="gmScore" style="margin-bottom:12px"></div>
+      <div class="bar">
+        <select id="gmDay" aria-label="Day"><option value="">Both days</option><option value="1">Day 1 · Wed 20</option><option value="2">Day 2 · Thu 21</option></select>
+        <select id="gmShow" aria-label="Show"><option value="">All games</option><option value="prize">Prizes still to buy or wrap</option><option value="supplies">Supplies not ready</option><option value="open">Not played yet</option></select>
+        <button class="btn sm" id="gmAdd" type="button">+ Add a game</button>
+        <button class="btn ghost sm" id="gmPrint" type="button">🖨 Game sheet for coordinators</button>
+        <button class="btn ghost sm" id="gmPrizes" type="button">🖨 Prize checklist</button>
+      </div>
+      <div id="gmCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px"></div>
+    </section>
+
     <section id="tab-gifts" hidden>
       <div class="stats" id="gStats"></div>
       <div class="panel" style="margin-bottom:12px">
@@ -1465,6 +1480,7 @@ function renderPlan() {
   if (!$('tab-vendors').hidden) renderVendors();
   if (!$('tab-todo').hidden) renderTodo();
   if (!$('tab-gifts').hidden) renderGifts();
+  if (!$('tab-games').hidden) renderGames();
   if (!$('tab-seating').hidden) renderSeating();
   if (!$('tab-announce').hidden) renderSiteBox();
   if (!$('viewDlg').hidden) renderViewDlg();
@@ -2002,7 +2018,7 @@ function planName(id, kind, data) {
   if (kind === 'payment' && d) return 'payment of ' + inr(d.amount) + ' by ' + (d.person ? d.person + ', ' : '') + (d.by || '') + ' for ' + (d.item ? (plan.find(b => b.id === d.item) || { data: {} }).data.item || 'an item' : (d.label || 'something else') + ' (one-off)');
   return (KINDN[kind] || kind) + (d ? ' "' + (d.item || d.name || d.title || d.area || d.role || d.meal || '') + '"' : '');
 }
-const KINDN = { gift: 'gift', budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' };
+const KINDN = { game: 'game', gift: 'gift', budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' };
 function actArea(a) {
   if (a.tbl === 'rsvps') return a.changes && (a.changes.checkins || a.changes.checked_in) && a.action === 'update' ? 'door' : 'guests';
   if (a.tbl === 'invites') return 'guests';
@@ -2357,6 +2373,82 @@ $('dCards').onclick = () => {
       '<div class="what">' + esc(d.data.what || '') + '</div>' + qr(SITE + 'team.html?d=' + d.id) + '<div class="scan">Scan for your run sheet: timings, the team and who to call</div></div>').join(''));
 };
 
+// ---------- games & prizes ----------
+const G_STATUS = ['Planned', 'Ready', 'Done', 'Cancelled'], PRIZE_ST = ['To buy', 'Bought', 'Wrapped', 'Given', 'Not needed'];
+const gmMins = t => { const m = String(t || '').match(/(\d+):(\d+)\s*(AM|PM)/i); return m ? (+m[1] % 12) * 60 + +m[2] + (/pm/i.test(m[3]) ? 720 : 0) : 9999; };
+const gmSort = (a, b) => (+a.data.day || 1) - (+b.data.day || 1) || gmMins(a.data.time) - gmMins(b.data.time);
+const gmCost = x => (x.data.status === 'Cancelled' ? 0 : (+x.data.prize_cost || 0) + (+x.data.supplies_cost || 0));
+const gmLine = () => items('budget').find(b => b.data.games);
+function faceOff() {
+  const fo = items('game').filter(x => x.data.faceoff && x.data.status !== 'Cancelled'), pts = { groom: 0, bride: 0 };
+  fo.forEach(x => { const p = +x.data.points || 1; if (x.data.win_side === 'groom' || x.data.win_side === 'bride') pts[x.data.win_side] += p; else if (x.data.win_side === 'tie') { pts.groom += p / 2; pts.bride += p / 2; } });
+  const left = fo.filter(x => !x.data.win_side).reduce((n, x) => n + (+x.data.points || 1), 0);
+  const lead = pts.groom === pts.bride ? '' : pts.groom > pts.bride ? 'groom' : 'bride';
+  return { fo, pts, left, total: fo.reduce((n, x) => n + (+x.data.points || 1), 0), lead, decided: lead && Math.abs(pts.groom - pts.bride) > left };
+}
+const SIDE_N = { groom: "Groom's side", bride: "Bride's side", tie: 'Tie' };
+function renderGames() {
+  if (!$('gmCards')) return;
+  const gs = items('game').sort(gmSort), live = gs.filter(x => x.data.status !== 'Cancelled');
+  const prizeOpen = live.filter(x => ['To buy', 'Bought'].includes(x.data.prize_status || 'To buy') && x.data.prize_status !== 'Not needed');
+  const supOpen = live.filter(x => x.data.supplies && !x.data.supplies_ready);
+  const total = live.reduce((n, x) => n + gmCost(x), 0), bl = gmLine(), f = faceOff();
+  $('gmStats').replaceChildren(...[[live.filter(x => x.data.status === 'Done' && !x.data.trophy).length + ' / ' + live.filter(x => !x.data.trophy).length, 'Games played'], [prizeOpen.length, 'Prizes to buy or wrap'], [supOpen.length, 'Supplies not ready'],
+    [inr(total), 'Prizes & supplies' + (bl ? ' · budget ' + inr(cost(bl)) : '')], [f.pts.groom + ' – ' + f.pts.bride, "Face-Off · groom's – bride's"]]
+    .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  // Face-Off scoreboard: one tap records who won each game
+  const sync = ME && ME.owner && bl && cost(bl) !== total ? (() => { const b = el('button', { className: 'mini', type: 'button', textContent: 'Set the budget line to ' + inr(total) }); b.onclick = async () => { try { await savePlan(bl, { budget: total, agreed: null }); toast('Budget line updated ✓'); renderGames(); } catch (e) {} }; return b; })() : '';
+  const share = el('button', { className: 'mini', type: 'button', textContent: 'Share the score on WhatsApp' });
+  share.onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent('🏆 Family Face-Off · Nadeem & Dariya\n\n' + f.fo.map(x => '• ' + x.data.name + ': ' + (x.data.win_side ? SIDE_N[x.data.win_side] : 'still to play')).join('\n') +
+    '\n\nScore: Groom\'s side ' + f.pts.groom + ' – ' + f.pts.bride + ' Bride\'s side' + (f.decided ? '\n\n' + SIDE_N[f.lead] + ' take the trophy! 🎉' : '')), '_blank', 'noopener');
+  $('gmScore').replaceChildren(
+    el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:10px' },
+      el('div', {}, el('b', { className: 'cin', style: 'color:var(--gold2);font-size:16px' }, '🏆 Family Face-Off'),
+        el('div', { className: 'muted', style: 'font-size:13px', textContent: f.decided ? SIDE_N[f.lead] + ' have won the trophy' : f.lead ? SIDE_N[f.lead] + ' lead · ' + f.left + ' points still to play' : f.left === f.total ? f.total + ' points to play for' : 'Level · ' + f.left + ' points still to play' })),
+      el('div', { className: 'cin', style: 'font-size:28px;color:var(--gold2)', textContent: f.pts.groom + ' – ' + f.pts.bride }), el('div', { className: 'row', style: 'gap:6px' }, share, sync)),
+    ...f.fo.map(x => el('div', { className: 'row', style: 'gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap' },
+      el('span', { style: 'flex:1 1 160px;font-size:14px' }, x.data.name + ' · ' + (+x.data.points || 1) + ' pts'),
+      ...['groom', 'bride', 'tie', ''].map(sd => { const on = (x.data.win_side || '') === sd, b = el('button', { className: on ? 'btn sm' : 'btn ghost sm', type: 'button', textContent: sd ? (sd === 'tie' ? 'Tie' : SIDE_N[sd] + ' won') : 'Not played' });
+        b.onclick = async () => { try { await savePlan(x, { win_side: sd, status: sd ? 'Done' : 'Planned', winner: sd ? SIDE_N[sd] : '' }); renderGames(); } catch (e) { b.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } }; return b; }))));
+  // Game cards
+  const day = $('gmDay').value, show = $('gmShow').value;
+  const list = gs.filter(x => (!day || String(x.data.day || 1) === day) && (!show || (show === 'prize' ? prizeOpen.includes(x) : show === 'supplies' ? supOpen.includes(x) : !['Done', 'Cancelled'].includes(x.data.status))));
+  const lab = (t, node, st) => el('label', { className: 'muted', style: 'display:block;font-size:12px;margin-top:6px;' + (st || '') }, t, node);
+  $('gmCards').replaceChildren(...(list.length ? list.map(x => {
+    const d = x.data, daySel = el('select', {}); [['1', 'Day 1 · Wed 20'], ['2', 'Day 2 · Thu 21']].forEach(([v, t]) => daySel.append(el('option', { value: v, textContent: t }))); daySel.value = String(d.day || 1);
+    daySel.onchange = async () => { try { await savePlan(x, { day: +daySel.value }); renderGames(); } catch (e) {} };
+    const ready = el('input', { type: 'checkbox', checked: !!d.supplies_ready }); ready.onchange = async () => { try { await savePlan(x, { supplies_ready: ready.checked }); renderGames(); } catch (e) { ready.checked = !ready.checked; } };
+    const rm = el('button', { className: 'mini', type: 'button', textContent: 'Remove' }); rm.onclick = () => { if (confirm('Remove ' + (d.name || 'this game') + '?')) removePlan(x); };
+    const done = d.status === 'Done', col = done ? 'var(--ok)' : d.status === 'Cancelled' ? 'var(--mute)' : d.status === 'Ready' ? 'var(--gold)' : 'var(--line)';
+    const result = d.faceoff ? el('div', { style: 'margin-top:6px;font-size:13px' }, 'Face-Off · ' + (+d.points || 1) + ' points · ', el('b', { textContent: d.win_side ? (d.win_side === 'tie' ? 'Tie' : SIDE_N[d.win_side] + ' won') : 'not played yet' }))
+      : d.trophy ? el('div', { style: 'margin-top:6px;font-size:13px' }, 'Goes to: ', el('b', { textContent: f.decided ? SIDE_N[f.lead] : f.lead ? SIDE_N[f.lead] + ' (leading)' : 'not decided yet' }))
+      : lab('Winner(s)', cell(x, 'winner', { max: 120, ph: 'Name of the winner or team' }));
+    return el('div', { className: 'panel', style: 'padding:12px;border-color:' + col + (d.status === 'Cancelled' ? ';opacity:.6' : '') },
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, cell(x, 'name', { max: 60, ph: 'Game name' }), pick(x, 'status', G_STATUS)),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Day', daySel, 'flex:1'), lab('Time', cell(x, 'time', { max: 12, ph: '2:30 PM' }), 'flex:1'), lab('Where', cell(x, 'place', { max: 40 }), 'flex:1')),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Who plays', cell(x, 'players', { max: 80 }), 'flex:1'), lab('Coordinator', cell(x, 'coord', { max: 60, ph: 'Name' }), 'flex:1')),
+      lab('How it works', cell(x, 'how', { area: true, rows: 2, max: 400 })),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('Prize', cell(x, 'prize', { max: 100 }), 'flex:2'), lab('How many', cell(x, 'prize_qty', { num: true }), 'flex:1'), lab('Prize cost (₹)', cell(x, 'prize_cost', { num: true }), 'flex:1')),
+      el('div', { className: 'row', style: 'gap:6px;align-items:flex-end' }, lab('Prize status', pick(x, 'prize_status', PRIZE_ST), 'flex:1'), lab('Supplies cost (₹)', cell(x, 'supplies_cost', { num: true }), 'flex:1')),
+      lab('Supplies needed', cell(x, 'supplies', { area: true, rows: 2, max: 300 })),
+      el('label', { style: 'display:flex;gap:6px;align-items:center;font-size:13px;margin-top:6px' }, ready, 'Supplies ready'),
+      result,
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-top:8px' }, stamp(x), rm));
+  }) : [el('p', { className: 'muted', textContent: gs.length ? 'Nothing matches.' : 'No games yet. Use "+ Add a game".' })]));
+}
+['gmDay', 'gmShow'].forEach(id => $(id).addEventListener('input', renderGames));
+$('gmAdd').onclick = async () => { try { await savePlan(null, { name: 'New game', day: 1, time: '', place: '', players: '', how: '', prize: '', prize_qty: 1, prize_cost: 0, prize_status: 'To buy', supplies: '', supplies_cost: 0, supplies_ready: false, status: 'Planned', coord: '', winner: '', win_side: '' }, 'game'); $('gmDay').value = ''; $('gmShow').value = ''; renderGames(); } catch (e) { toast(queued(e) ? 'Sent to Nadeem for approval.' : 'Could not add it. Try again.'); } };
+$('gmPrint').onclick = () => {
+  const gs = items('game').filter(x => x.data.status !== 'Cancelled').sort(gmSort);
+  printPage('Game sheet', '<h1>Nadeem & Dariya · games</h1><p><small>For the games coordinators. Printed ' + new Date().toLocaleString() + '.</small></p><table><thead><tr><th>When</th><th>Game</th><th>Who plays · how</th><th>Supplies</th><th>Prize</th><th>Winner</th></tr></thead><tbody>' +
+    gs.map(x => { const d = x.data; return '<tr><td>' + (d.day == 2 ? 'Thu 21' : 'Wed 20') + '<br>' + esc(d.time) + '<br><small>' + esc(d.place) + '</small></td><td><b>' + esc(d.name) + '</b>' + (d.faceoff ? '<br><small>Face-Off · ' + (+d.points || 1) + ' pts</small>' : '') + (d.coord ? '<br><small>Run by ' + esc(d.coord) + '</small>' : '') + '</td><td>' + esc(d.players) + '<br><small>' + esc(d.how) + '</small></td><td><small>' + esc(d.supplies) + '</small></td><td><small>' + esc(d.prize) + (+d.prize_qty > 1 ? ' × ' + d.prize_qty : '') + '</small></td><td style="min-width:90px">' + (d.faceoff ? '<span class="box"></span> Groom\'s<br><span class="box"></span> Bride\'s' : '&nbsp;') + '</td></tr>'; }).join('') + '</tbody></table>');
+};
+$('gmPrizes').onclick = () => {
+  const gs = items('game').filter(x => x.data.status !== 'Cancelled' && x.data.prize && x.data.prize_status !== 'Not needed').sort(gmSort);
+  printPage('Prize checklist', '<h1>Nadeem & Dariya · prize checklist</h1><p><small>' + gs.length + ' prizes · ' + inr(gs.reduce((n, x) => n + (+x.data.prize_cost || 0), 0)) + '. Printed ' + new Date().toLocaleString() + '.</small></p><table><thead><tr><th>Game</th><th>Prize</th><th>Qty</th><th>Cost</th><th>Bought</th><th>Wrapped</th><th>Given</th></tr></thead><tbody>' +
+    gs.map(x => { const d = x.data, st = PRIZE_ST.indexOf(d.prize_status || 'To buy'), bx = i => '<td>' + (st >= i ? '✓' : '<span class="box"></span>') + '</td>'; return '<tr><td>' + esc(d.name) + '</td><td>' + esc(d.prize) + '</td><td>' + (+d.prize_qty || 1) + '</td><td>' + inr(d.prize_cost) + '</td>' + bx(1) + bx(2) + bx(3) + '</tr>'; }).join('') + '</tbody></table>');
+};
+
 // ---------- dashboard: the whole wedding on one screen ----------
 let dbActs = [], dbAt = 0;
 const goTab = t => { const b = document.querySelector('.tab[data-tab="' + t + '"]'); if (b) { b.click(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
@@ -2486,6 +2578,10 @@ function renderDash() {
     card('To-do', 'todo',
       line('Still to do', pl(openT.length, 'task', 'tasks') + (lateT.length ? ' · ' + lateT.length + ' overdue' : ''), lateT.length ? 'color:var(--bad)' : ''),
       ...openT.slice().sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9'))).slice(0, 5).map(t => line(t.data.title || 'Untitled', t.data.due ? fmtDay(t.data.due) : 'no date', t.data.due && t.data.due < today() ? 'color:var(--bad)' : ''))),
+    (() => { const gl = items('game').filter(x => x.data.status !== 'Cancelled'), f = faceOff(), nx = gl.filter(x => x.data.status !== 'Done' && !x.data.trophy).sort(gmSort)[0], pg = gl.filter(x => !x.data.trophy);
+      const po = gl.filter(x => x.data.prize && !['Wrapped', 'Given', 'Not needed'].includes(x.data.prize_status || 'To buy')).length;
+      return card('Games & prizes', 'games', line('Games played', pg.filter(x => x.data.status === 'Done').length + ' of ' + pg.length), line('Face-Off score', "Groom's " + f.pts.groom + ' – ' + f.pts.bride + " Bride's"),
+        line('Prizes not yet wrapped', String(po), po && days <= 10 ? 'color:var(--warn)' : ''), line('Prizes & supplies', inr(gl.reduce((n, x) => n + gmCost(x), 0))), nx ? line('Next', nx.data.name + ' · ' + (nx.data.day == 2 ? 'Thu' : 'Wed') + ' ' + (nx.data.time || '')) : ''); })(),
     card('Messages', 'announce',
       ...fams.map(([k, n]) => { const c = PLAN.filter(x => sentBy(x.id, k)).length; return el('div', {}, line(n + ' sent', c + ' of ' + PLAN.length), bar(c, PLAN.length, 'ok')); }),
       msgDue.length ? line('Send now', msgDue.map(x => x.title).join(', '), 'color:var(--bad)') : '', msgNext ? line('Next', msgNext.title + ' · ' + fmtDay(msgNext.date)) : ''),
@@ -2510,8 +2606,8 @@ function renderDash() {
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
-  if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan();
+  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'games', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan(); if (t.dataset.tab === 'games') loadPlan();
   if (t.dataset.tab === 'dash') loadDash();
   if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
   if (['budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
@@ -2546,7 +2642,7 @@ const SCHEDULE = [
   [T(20, '20:00'), T(20, '23:00'), 'DJ Night & dinner', 'Covered shed & lawn'],
   [T(21, '07:30'), T(21, '09:00'), 'Breakfast', 'Covered shed'], [T(21, '10:00'), T(21, '11:30'), 'Nikah (seated by 9:50)', 'Lawn'],
   [T(21, '11:30'), T(21, '12:15'), 'Refreshments & family photos', 'Lawn'], [T(21, '13:00'), T(21, '14:30'), 'Nikah lunch', 'Covered shed'],
-  [T(21, '15:00'), T(21, '16:00'), 'Julwa', 'Covered area'], [T(21, '17:30'), T(21, '18:30'), 'Sundowner tea', 'Lawn'],
+  [T(21, '15:00'), T(21, '16:00'), 'Julwa', 'Covered area'], [T(21, '16:15'), T(21, '17:15'), 'Treasure hunt', 'Around the resort'], [T(21, '17:30'), T(21, '18:30'), 'Sundowner tea', 'Lawn'],
   [T(21, '18:30'), T(21, '21:30'), 'Reception / Walima (couple enters 7:15)', 'Lawn'], [T(21, '21:30'), T(21, '22:00'), 'Rukhsati & farewell', 'Lawn']];
 const hm = t => new Date(t).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 function inWords(ms) {
