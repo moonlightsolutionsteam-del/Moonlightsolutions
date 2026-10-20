@@ -1,25 +1,33 @@
-# Invitation messages: Nadeem & Dariya
+# Message plan: Nadeem & Dariya
 
-Copy, paste and send. The website link and family contacts are already filled in.
+Every message from now until after the wedding, in order. The same plan is in the Wedding Panel (Announce tab), where each family marks what it has sent and can send each message person by person on WhatsApp with names, pass codes and rooms filled in.
 
-Suggested schedule:
+In the texts, *{name}* is the person's first name, *{code}* their entry pass code, *{people}* how many are coming and *{room}* their room. When you paste into a broadcast list, just leave out {name}.
 
-| When | Send | Attach |
-|---|---|---|
-| Now (optional) | 0. Save the date | `save-the-date.png` |
-| Invitation day | 1. Invitation | `invitation-video.mp4` or `poster.png` |
-| Same day | Status / story | `status.png` or `invitation-video.mp4` |
-| 5 December 2026 | 3. RSVP reminder | none |
-| 14 December 2026 | 4. Last day to RSVP | none |
-| 13 January 2027 | 5. One week to go | `schedule.png`, `dress-code.png` |
-| 19 January 2027 | 6. See you tomorrow | location pin |
-| After the wedding | 8. Thank you | none |
+| # | When | Message | To | Attach |
+|---|---|---|---|---|
+| 1 | Sun, 25 October 2026 | Save the date | Everyone you invite | `save-the-date.png` |
+| 2 | Sun, 8 November 2026 | The invitation | Everyone you invite | `invitation-video.mp4`, `poster.png` |
+| 3 | Sun, 8 November 2026 | WhatsApp status / story | Your WhatsApp status / story | `status.png`, `invitation-video.mp4` |
+| 4 | Sun, 8 November 2026 → Wed, 16 December 2026 | Entry pass + guest guide (as RSVPs come in) | Everyone who RSVPed | `guest-guide.pdf` |
+| 5 | Sun, 22 November 2026 | What to wear | Everyone who RSVPed | `dress-code.png` |
+| 6 | Sat, 5 December 2026 | RSVP reminder | Invited, not replied yet | — |
+| 7 | Mon, 14 December 2026 | Last day to RSVP | Invited, not replied yet | — |
+| 8 | Sun, 3 January 2027 | Your room for Wednesday night | Guests staying Wednesday night | — |
+| 9 | Mon, 4 January 2027 | Vendor entry passes | Vendors | — |
+| 10 | Wed, 13 January 2027 | One week to go | Everyone who RSVPed | `schedule.png`, `dress-code.png` |
+| 11 | Tue, 19 January 2027 | See you tomorrow | Everyone who RSVPed | — |
+| 12 | Wed, 20 January 2027 → Thu, 21 January 2027 | On the day: live announcements | Day 1 guests | — |
+| 13 | Fri, 22 January 2027 | Thank you | Everyone who RSVPed | — |
+| 14 | Sun, 14 February 2027 | Photos are ready | Everyone who RSVPed | — |
 
 ---
 
-## 0. Save the date
+## 1. Save the date
 
-Assalamu Alaikum 🌙
+*Sun, 25 October 2026 · Everyone you invite · attach `save-the-date.png`*
+
+Assalamu Alaikum {name} 🌙
 
 In shaa Allah, *Nadeem Khan & Dariya* are getting married on *20 & 21 January 2027* at Greenwood Resort, Bengaluru.
 
@@ -27,11 +35,13 @@ Please save the date. The full invitation will follow soon. 🤍
 
 ---
 
-## 1. Invitation (main message)
+## 2. The invitation
+
+*Sun, 8 November 2026 · Everyone you invite · attach `invitation-video.mp4` + `poster.png`*
 
 *Bismillahir Rahmanir Raheem*
 
-Assalamu Alaikum wa Rahmatullahi wa Barakatuh 🌙
+Assalamu Alaikum wa Rahmatullahi wa Barakatuh {name} 🌙
 
 With the blessings of Allah and the duas of our elders, our families joyfully invite you and your family to the wedding of
 
@@ -57,18 +67,61 @@ JazakAllah Khair 🤍
 
 ---
 
-## 2. Short version (for forwarding or groups)
+## 3. WhatsApp status / story
 
-Assalamu Alaikum 🌙
-You are invited to the wedding of *Nadeem Khan & Dariya*: *20 & 21 January 2027*, Greenwood Resort, Bengaluru.
-Nikah on Thu 21 Jan at 10 AM · Reception at 6:30 PM.
-Please RSVP by *15 December* for your entry pass: https://moonlightsolutions-wedding-invitati.vercel.app/
+*Sun, 8 November 2026 · Your WhatsApp status / story · attach `status.png` + `invitation-video.mp4`*
+
+> Post on the same day as the invitation, from both families' phones.
+
+In shaa Allah 🤍 Nadeem & Dariya · 20–21 January 2027 · Greenwood Resort, Bengaluru
+RSVP by 15 December: https://moonlightsolutions-wedding-invitati.vercel.app/
 
 ---
 
-## 3. RSVP reminder (5 December)
+## 4. Entry pass + guest guide (as RSVPs come in)
 
-Assalamu Alaikum 🌙
+*Sun, 8 November 2026 → Wed, 16 December 2026 · Everyone who RSVPed · attach `guest-guide.pdf`*
+
+> Send to each family when they RSVP. Mark sent once everyone so far has theirs.
+
+Assalamu Alaikum {name} 🌙
+
+JazakAllah Khair for your RSVP to Nadeem & Dariya's wedding! 🤍
+
+🎟️ Your entry pass code is *{code}* for {people}. Please show it at the entrance. You can reopen your pass with its QR code anytime here:
+https://moonlightsolutions-wedding-invitati.vercel.app/
+
+📖 Attached is our little guest guide: the itinerary, dress codes, the resort, prayer times and who to call.
+
+See you at Greenwood Resort, In shaa Allah!
+
+---
+
+## 5. What to wear
+
+*Sun, 22 November 2026 · Everyone who RSVPed · attach `dress-code.png`*
+
+Assalamu Alaikum {name} 🌙
+
+Planning your outfits for Nadeem & Dariya's wedding? Here are the dress codes 👗🤵
+
+🌼 *Haldi & Mehendi* (Wed 4:45 PM): yellow, mustard, green or floral ethnic (turmeric-friendly!)
+🤍 *Shukrana* (Wed 6:45 PM): modest whites or pastels
+✨ *DJ Night* (Wed 8 PM): royal maroon, velvet or festive ethnic
+🕌 *Nikah* (Thu 10 AM): traditional festive ethnic or pastel formals
+🌟 *Reception / Walima* (Thu 6:30 PM): royal black, emerald or formal bespoke wear
+
+Swimwear is optional for Wednesday's pool session, and January evenings get cool, so pack a shawl 🧣
+The colours are in the picture attached and on the invitation:
+https://moonlightsolutions-wedding-invitati.vercel.app/
+
+---
+
+## 6. RSVP reminder
+
+*Sat, 5 December 2026 · Invited, not replied yet*
+
+Assalamu Alaikum {name} 🌙
 
 A gentle reminder to RSVP for *Nadeem & Dariya's wedding* by *15 December*, so we can confirm numbers with the resort and caterers.
 
@@ -79,25 +132,59 @@ Already done? JazakAllah Khair, please ignore this message. 🤍
 
 ---
 
-## 4. Last day to RSVP (14 December)
+## 7. Last day to RSVP
 
-Assalamu Alaikum 🌙
+*Mon, 14 December 2026 · Invited, not replied yet*
+
+Assalamu Alaikum {name} 🌙
 Tomorrow, *15 December*, is the last day to RSVP for Nadeem & Dariya's wedding. Entry is by RSVP pass only, so please don't miss it.
 👉 https://moonlightsolutions-wedding-invitati.vercel.app/
 
 ---
 
-## 5. One week to go (13 January)
+## 8. Your room for Wednesday night
 
-Assalamu Alaikum 🌙
+*Sun, 3 January 2027 · Guests staying Wednesday night*
+
+> Give out rooms on the Rooms tab first (to-do due 31 December).
+
+Assalamu Alaikum {name} 🌙
+
+Your stay for Wednesday night (20 Jan) at Greenwood Resort is arranged: 🛏️ *{room}*
+
+Check-in is from 12 PM on Wednesday. Please carry a photo ID for everyone staying, and return your room keys at the front desk by 10 PM on Thursday. Rooms are shared family-style with extra mattresses, so a small bag is best 🙂
+
+Questions? Groom's side: Nadeem 95352 86680 · Simran 74111 97567 | Bride's side: Allah Bakash 98862 63952 · Fatima 88920 04045
+
+---
+
+## 9. Vendor entry passes
+
+*Mon, 4 January 2027 · Vendors*
+
+Assalamu Alaikum / Hello,
+
+For Nadeem & Dariya's wedding at Greenwood Resort on 20–21 January 2027, entry is by pass only. Please open the link below, choose *"Vendor / Service Team"*, select your service and add every crew member who will be on site. One pass covers your whole team.
+👉 https://moonlightsolutions-wedding-invitati.vercel.app/
+
+Thank you!
+
+---
+
+## 10. One week to go
+
+*Wed, 13 January 2027 · Everyone who RSVPed · attach `schedule.png` + `dress-code.png`*
+
+Assalamu Alaikum {name} 🌙
 
 *One week to go* until Nadeem & Dariya's wedding, In shaa Allah! 🎉
 
 A few things to keep in mind:
 🎟️ Keep your *entry pass* saved on your phone. You can reopen it from the invitation link anytime.
 👗 Dress codes for each function are in the picture attached.
+🕌 Prayer times and the prayer space are on the invitation.
 🧣 January evenings get cool, so carry a shawl or light jacket.
-🪪 Staying overnight? Please carry a photo ID for check-in. Rooms are assigned by the family.
+🪪 Staying overnight? Please carry a photo ID for check-in.
 🚗 Please arrange your own travel and carpool where you can. Parking is available at the resort.
 
 Full itinerary: https://moonlightsolutions-wedding-invitati.vercel.app/
@@ -105,9 +192,11 @@ Questions? Groom's side: Nadeem 95352 86680 · Simran 74111 97567 | Bride's side
 
 ---
 
-## 6. See you tomorrow (19 January)
+## 11. See you tomorrow
 
-Assalamu Alaikum 🌙
+*Tue, 19 January 2027 · Everyone who RSVPed*
+
+Assalamu Alaikum {name} 🌙
 
 *See you tomorrow, In shaa Allah!* 🤍
 
@@ -122,23 +211,69 @@ For anything on the day: Groom's side: Nadeem 95352 86680 · Simran 74111 97567 
 
 ---
 
-## 7. For vendors and service teams
+## 12. On the day: live announcements
 
-Assalamu Alaikum / Hello,
+*Wed, 20 January 2027 → Thu, 21 January 2027 · Day 1 guests*
 
-For Nadeem & Dariya's wedding at Greenwood Resort on 20–21 January 2027, entry is by pass only. Please open the link below, choose *"Vendor / Service Team"*, select your service and add every crew member who will be on site. One pass covers your whole team.
-👉 https://moonlightsolutions-wedding-invitati.vercel.app/
+> Pick each one from the Message list below as the day goes on.
 
-Thank you!
+**Haldi starting** (Day 1 guests)
+
+Assalamu Alaikum 🌼 The Haldi & Mehendi is starting at 4:45 PM on the lawn. Yellow, mustard or green outfits, and clothes you don't mind getting turmeric on!
+
+**Shukrana** (Day 1 guests)
+
+Assalamu Alaikum 🤍 Shukrana (prayer of gratitude and family duas) starts at 6:45 PM in the covered area. Whites or pastels, please.
+
+**DJ Night & dinner** (Day 1 guests)
+
+Assalamu Alaikum ✨ DJ Night and dinner start at 8:00 PM at the covered shed and lawn. Come dancing!
+
+**Breakfast is open** (Guests staying Wednesday night)
+
+Good morning! Breakfast is served at the covered shed until 9:00 AM. The Nikah starts at 10:00 AM; please be seated by 9:50.
+
+**Nikah: please be seated** (Nikah guests)
+
+Assalamu Alaikum 🌙 The Nikah starts at 10:00 AM on the lawn. Please be seated by 9:50 AM and keep your phone switched off during the ceremony.
+
+**Nikah lunch served** (Nikah guests)
+
+Lunch is now being served at the covered shed. JazakAllah Khair for joining the Nikah 🤍
+
+**Reception starting** (Reception guests)
+
+Assalamu Alaikum ✨ The Reception begins at 6:30 PM on the lawn and the couple enters at 7:15 PM. Please keep your entry pass ready at the gate.
+
+**Checkout reminder** (Guests staying Wednesday night)
+
+A gentle reminder for guests who stayed overnight: please return your room keys at the front desk by 10:00 PM tonight. JazakAllah Khair!
 
 ---
 
-## 8. Thank you (after the wedding)
+## 13. Thank you
 
-Assalamu Alaikum 🌙
+*Fri, 22 January 2027 · Everyone who RSVPed*
+
+Assalamu Alaikum {name} 🌙
 
 Alhamdulillah! Thank you for being part of Nadeem & Dariya's wedding and for all your love, gifts and duas. 🤍
 
 May Allah bless you and your families. Please keep the couple in your duas.
 
 *Barakallahu lakuma wa baraka alaikuma wa jama'a bainakuma fi khair.*
+
+---
+
+## 14. Photos are ready
+
+*Sun, 14 February 2027 · Everyone who RSVPed*
+
+> Paste the album link where it says so before sending.
+
+Assalamu Alaikum {name} 🌙
+
+The photos from Nadeem & Dariya's wedding are ready! 📸
+👉 [paste the album link here]
+
+JazakAllah Khair once again for celebrating with us. 🤍
