@@ -370,7 +370,7 @@
         <label class="muted"><input type="checkbox" id="fRemoved"> Show removed entries <span id="rmCount"></span></label>
       </div>
       <div class="scroll"><table>
-        <thead><tr><th>Name</th><th>Phone</th><th>Side</th><th>Days</th><th>Guests</th><th>Table</th><th>Meal</th><th>Accommodation</th><th>Note</th><th>Code</th><th>Check-in</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Phone</th><th>Side</th><th>Days</th><th>People</th><th>Table</th><th>Meal</th><th>Accommodation</th><th>Note</th><th>Code</th><th>Check-in</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
       <p class="muted" id="count"></p>
@@ -868,11 +868,11 @@ function stats() {
   // Guest counts leave out vendors; their crew is counted on its own
   const a = all.filter(g => !/^vendor/i.test(g.side)), v = all.filter(g => /^vendor/i.test(g.side));
   const items = [
-    [a.length, 'RSVPs'], [sum(a), 'Total guests'],
+    [a.length, 'RSVPs (groups)'], [sum(a), 'Total people'],
     [sum(a.filter(g => g.days.includes(1))), 'Day 1 · Wed 20'], [sum(a.filter(g => g.days.includes(2))), 'Nikah · Thu AM'],
     [sum(a.filter(g => g.days.includes(3))), 'Reception · Thu PM'],
     [veg(all.filter(g => g.days.includes(1))) + ' / ' + veg(all.filter(g => g.days.includes(2))) + ' / ' + veg(all.filter(g => g.days.includes(3))), 'Veg · Day 1 / Nikah / Reception'],
-    [sum(a.filter(g => /groom/i.test(g.side))), "Groom's side"], [sum(a.filter(g => /bride/i.test(g.side))), "Bride's side"],
+    ...[['groom', "Groom's side"], ['bride', "Bride's side"]].map(([k, l]) => { const gs = a.filter(g => new RegExp(k, 'i').test(g.side)); return [sum(gs), l + ' · ' + gs.length + (gs.length === 1 ? ' group' : ' groups')]; }),
     [sum(v) + ' (' + v.length + ')', 'Vendor crew (teams)'],
     [[1, 2, 3].map(e => sum(all.filter(g => arrived(g, e)))).join(' / '), 'Arrived · Day 1 / Nikah / Recep']
   ];
@@ -943,7 +943,8 @@ function render() {
       noteTd, el('td', { className: 'code', textContent: g.pass_code }), el('td', {}, ci), el('td', {}, theirs ? el('span', { className: 'muted', style: 'font-size:12px', title: LOCK_T, textContent: '🔒 Their family' }) : rm));
     return tr;
   }));
-  $('count').textContent = 'Showing ' + list.length + ' of ' + guests.length + ' records';
+  const shownPpl = list.filter(g => !g.removed).reduce((n, g) => n + g.guests, 0), shownCrew = list.filter(g => !g.removed && /^vendor/i.test(g.side)).reduce((n, g) => n + g.guests, 0);
+  $('count').textContent = 'Showing ' + list.length + ' of ' + guests.length + (guests.length === 1 ? ' group' : ' groups') + ' · ' + shownPpl + (shownPpl === 1 ? ' person' : ' people') + (shownCrew ? ' (incl. ' + shownCrew + ' vendor crew)' : '');
   const nRm = guests.filter(g => g.removed).length; $('rmCount').textContent = nRm ? '(' + nRm + ')' : '';
 }
 ['q', 'fDay', 'fSide', 'fIn', 'fRemoved'].forEach(id => $(id).addEventListener('input', render));
