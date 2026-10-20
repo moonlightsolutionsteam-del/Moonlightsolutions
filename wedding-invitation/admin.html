@@ -1923,7 +1923,7 @@ function renderOverview() {
   const open = items('task').filter(t => !t.data.done), late = open.filter(t => t.data.due && t.data.due < today());
   const ms = items('menu'), vs = items('vendor'), notBooked = vs.filter(v => /Enquiry|Quotes|To book/.test(v.data.status));
   const staying = gst.filter(g => g.days.includes(1)), placed = staying.filter(g => !roomless(g)), roomed = staying.reduce((n, g) => n + sleepers(g).length - roomless(g), 0), stayN = staying.reduce((n, g) => n + sleepers(g).length, 0);
-  $('oStats').replaceChildren(...[[days, 'Days to go'], [sum(gst), 'Guests RSVPed'], [inr(m.paid.groom + m.paid.bride) + ' / ' + inr(m.total.groom + m.total.bride), 'Paid of the total'], [late.length, 'Overdue to-dos']]
+  $('oStats').replaceChildren(...[[days, 'Days to go'], [sum(gst), 'People RSVPed'], [inr(m.paid.groom + m.paid.bride) + ' / ' + inr(m.total.groom + m.total.bride), 'Paid of the total'], [late.length, 'Overdue to-dos']]
     .map(([n, l]) => el('div', { className: 'stat', style: l === 'Overdue to-dos' && n ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
   const card = (title, tab, lines) => {
     const go = el('button', { className: 'mini', textContent: 'Open →' }); go.onclick = () => document.querySelector('.tab[data-tab="' + tab + '"]').click();
@@ -2453,7 +2453,7 @@ function renderDash() {
     el('div', { className: 'row', style: 'gap:16px;align-items:center' }, ring, el('div', {},
       el('div', { className: 'cin', style: 'font-size:18px;color:var(--gold2)', textContent: 'Assalamu alaikum' + (ME && ME.name ? ', ' + first(ME.name) : '') }),
       el('div', { className: 'db-muted', textContent: (days ? days + ' days to the wedding · ' : 'Wedding days · ') + 'readiness ' + score + '% across ' + checks.length + ' areas' + (dbAt ? ' · updated ' + new Date(dbAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '') }))),
-    el('div', { className: 'db-kpis' }, ...[[days, 'Days to go'], [ppl(gst), 'Guests RSVPed'], [inr(m.paid.groom + m.paid.bride), 'Paid so far'], [inr(m.total.groom + m.total.bride), 'Total planned'], [lateT.length + overdue.length + msgDue.length, 'Overdue items']]
+    el('div', { className: 'db-kpis' }, ...[[days, 'Days to go'], [ppl(gst), 'Total people · ' + pl(gst.length, 'group', 'groups')], [ppl(side('groom')), "Groom's side · " + pl(side('groom').length, 'group', 'groups')], [ppl(side('bride')), "Bride's side · " + pl(side('bride').length, 'group', 'groups')], [inr(m.paid.groom + m.paid.bride), 'Paid so far'], [inr(m.total.groom + m.total.bride), 'Total planned'], [lateT.length + overdue.length + msgDue.length, 'Overdue items']]
       .map(([n, l]) => el('div', {}, el('b', { textContent: n }), el('span', { textContent: l })))),
     refresh);
 
@@ -2489,7 +2489,7 @@ function renderDash() {
   const newWeek = gst.filter(g => g.created_at && Date.now() - new Date(g.created_at).getTime() < 7 * 864e5);
   const cards = [
     card('Guests & RSVPs', 'guests',
-      line('RSVPs', pl(gst.length, 'party', 'parties') + ' · ' + ppl(gst) + ' people'), line("Groom's side · Bride's side", ppl(side('groom')) + ' · ' + ppl(side('bride'))),
+      line('RSVPs', pl(gst.length, 'party', 'parties') + ' · ' + ppl(gst) + ' people'), line("Groom's side", ppl(side('groom')) + ' people · ' + pl(side('groom').length, 'group', 'groups')), line("Bride's side", ppl(side('bride')) + ' people · ' + pl(side('bride').length, 'group', 'groups')),
       ...evs.flatMap(([e, n, plan]) => { const c = ppl(gst.filter(g => g.days.includes(e))); return [line(n, c + ' of ' + plan), bar(c, plan, c > plan ? 'bad' : '')]; }),
       line('Vegetarians', String(gst.reduce((n, g) => n + Math.min(g.veg || 0, g.guests), 0))), line('New this week', pl(newWeek.length, 'party', 'parties') + ' · ' + ppl(newWeek) + ' people'),
       line('Invited who replied', repl + ' of ' + invites.length), bar(repl, invites.length, 'ok'), crew.length ? line('Vendor crew passes', ppl(crew) + ' people') : ''),
