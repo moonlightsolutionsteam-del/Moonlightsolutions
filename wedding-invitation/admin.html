@@ -243,6 +243,7 @@
   .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
   .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
   .tab[data-tab=access]::before { content:'\f084'; }
+  .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; }
   #refresh::before { content:'\f2f1'; } #export::before { content:'\f56d'; } #logout::before { content:'\f2f5'; }
   .tab[aria-selected=true]::before { animation:icWiggle .5s var(--spring); }
   @keyframes icWiggle { 0% { transform:scale(.6) rotate(-20deg); } 100% { transform:none; } }
@@ -296,6 +297,8 @@
       <button class="tab" role="tab" data-tab="invited" aria-selected="false">Invited</button>
       <button class="tab" role="tab" data-tab="names" aria-selected="false">All names</button>
       <button class="tab" role="tab" data-tab="rooms" aria-selected="false">Rooms</button>
+      <button class="tab" role="tab" data-tab="seating" aria-selected="false">Seating</button>
+      <button class="tab" role="tab" data-tab="travel" aria-selected="false">Travel &amp; diet</button>
       <button class="tab" role="tab" data-tab="food" aria-selected="false">Food counts</button>
       <button class="tab" role="tab" data-tab="scan" aria-selected="false">Door</button>
       <button class="tab" role="tab" data-tab="announce" aria-selected="false">Announce</button>
@@ -308,6 +311,7 @@
       <button class="tab" role="tab" data-tab="menu" aria-selected="false">Menu</button>
       <button class="tab" role="tab" data-tab="vendors" aria-selected="false">Vendors</button>
       <button class="tab" role="tab" data-tab="todo" aria-selected="false">To-do &amp; team</button>
+      <button class="tab" role="tab" data-tab="gifts" aria-selected="false">Gifts</button>
     </div>
     <div class="tabs" role="tablist" aria-label="Panel" style="margin-top:-6px">
       <span class="tg">Panel</span>
@@ -395,6 +399,35 @@
       <div id="rCards"></div>
     </section>
 
+    <!-- Seating for the Nikah and the Reception -->
+    <section id="tab-seating" hidden>
+      <div class="bar"><select id="sEv" aria-label="Which function"><option value="2">Nikah (Thu morning)</option><option value="3">Reception (Thu evening)</option></select>
+        <select id="sSide" aria-label="Which side"><option value="">Both sides</option><option value="groom">Groom's side</option><option value="bride">Bride's side</option></select></div>
+      <div class="stats" id="sStats"></div>
+      <details class="panel" style="margin-bottom:14px" id="sEditBox">
+        <summary class="cin" style="cursor:pointer;color:var(--gold2)">Tables for this function</summary>
+        <p class="muted" style="margin:10px 0 8px">List each table and how many it seats. Tip: name them so the decor team can label them (Table 1, Family table, Elders…).</p>
+        <div id="sEdit" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn ghost sm" id="sAdd" type="button">+ Add table</button><button class="btn ghost sm" id="sAdd10" type="button">+ Add 10 tables of 10</button><button class="btn sm" id="sSave" type="button">Save tables</button></div>
+        <p class="err" id="sMsg" role="status"></p>
+      </details>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px"><i class="fas fa-chair"></i>Not seated yet</h2>
+      <div id="sUnseated" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px"></div>
+      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:6px 0 10px"><i class="fas fa-table-cells"></i>Tables</h2>
+      <div id="sCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px"></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost sm" id="sPrint" type="button">🖨 Print table list</button></div>
+    </section>
+
+    <!-- Travel, pickups and dietary notes -->
+    <section id="tab-travel" hidden>
+      <div class="stats" id="tvStats"></div>
+      <div class="bar"><select id="tvShow" aria-label="Show"><option value="">Everyone</option><option value="pickup">Needs a pickup</option><option value="unknown">Not told us yet</option><option value="diet">Has a dietary note</option></select>
+        <input type="search" id="tvQ" placeholder="Search names" aria-label="Search names"></div>
+      <div id="tvRows" style="display:flex;flex-direction:column;gap:6px"></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn sm" id="tvCopy" type="button">Copy pickup list for WhatsApp</button></div>
+      <p class="muted" id="tvMsg"></p>
+    </section>
+
     <!-- Plates per meal for the caterer -->
     <section id="tab-food" hidden>
       <p class="muted" style="margin-top:0">Plates to order for each meal, from the RSVPs so far. Vendor crews are counted separately. Add a few extra plates for walk-ins.</p>
@@ -402,6 +435,7 @@
         <thead><tr><th>When</th><th>Meal</th><th>Guests</th><th>Veg</th><th>Non-veg</th><th>Vendor crew</th></tr></thead>
         <tbody id="fRows"></tbody>
       </table></div>
+      <div class="panel" id="fDiet" style="margin-top:12px"></div>
       <div class="row" style="gap:8px;margin-top:12px"><button class="btn sm" id="fCopy">Copy for WhatsApp</button></div>
       <p class="muted" id="fMsg"></p>
     </section>
@@ -428,6 +462,7 @@
     <section id="tab-budget" hidden>
       <div id="bTop" class="b-top"></div>
       <div class="panel" id="bSettle" style="margin:12px 0"></div>
+      <details class="panel" id="bChartBox" style="margin-bottom:12px"><summary class="cin" style="cursor:pointer;color:var(--gold2)">📊 Where the money goes</summary><div id="bChart" style="margin-top:10px"></div></details>
       <div class="panel" id="bLoose" hidden style="margin-bottom:12px;border-color:var(--warn)"></div>
 
       <div class="b-sec">
@@ -513,12 +548,34 @@
 
       <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px"><i class="fas fa-user-shield"></i>People on duty</h2>
       <div class="scroll"><table style="min-width:760px">
-        <thead><tr><th>Role</th><th>What they do</th><th>Day 1 (Wed)</th><th>Day 2 (Thu)</th></tr></thead>
+        <thead><tr><th>Role</th><th>What they do</th><th>Day 1 (Wed)</th><th>Day 2 (Thu)</th><th>Run sheet</th></tr></thead>
         <tbody id="dRows"></tbody>
       </table></div>
 
       <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:22px 0 10px"><i class="fas fa-truck-medical"></i>Emergency details</h2>
       <div class="panel" id="emBox" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- Gifts & envelopes, and thank-yous -->
+    <section id="tab-gifts" hidden>
+      <div class="stats" id="gStats"></div>
+      <div class="panel" style="margin-bottom:12px">
+        <p class="cin" style="margin:0 0 8px;color:var(--gold2)"><i class="fas fa-gift"></i>Record a gift or envelope</p>
+        <div class="row" style="gap:8px;align-items:flex-end">
+          <label class="muted" style="flex:2 1 200px">From<input id="gFrom" list="gNames" maxlength="80" placeholder="Guest or family name" style="width:100%"></label>
+          <label class="muted" style="flex:1 1 150px">Given to<select id="gSide" style="width:100%"><option value="groom">Groom's family</option><option value="bride">Bride's family</option></select></label>
+          <label class="muted" style="flex:1 1 120px">Type<select id="gType" style="width:100%"><option>Cash / envelope</option><option>Gift</option><option>Gold / jewellery</option><option>Other</option></select></label>
+          <label class="muted" style="flex:1 1 110px">Amount (₹)<input id="gAmt" type="number" min="0" style="width:100%"></label>
+          <label class="muted" style="flex:2 1 180px">What it is<input id="gWhat" maxlength="120" placeholder="e.g. dinner set, gold coin" style="width:100%"></label>
+          <label class="muted" style="flex:1 1 140px">Received by<input id="gBy" maxlength="40" placeholder="e.g. Simran" style="width:100%"></label>
+          <button class="btn sm" id="gAdd" type="button">Save</button>
+        </div>
+        <datalist id="gNames"></datalist>
+        <p class="err" id="gMsg" role="status"></p>
+      </div>
+      <div class="bar"><select id="gShow" aria-label="Show"><option value="">All gifts</option><option value="todo">Still to thank</option><option value="done">Thanked</option></select><input type="search" id="gQ" placeholder="Search" aria-label="Search gifts"></div>
+      <div id="gRows" style="display:flex;flex-direction:column;gap:6px"></div>
+      <p class="muted" style="font-size:12px">Each family sees only its own gifts; Nadeem sees both.</p>
     </section>
 
     <!-- Changes from the family logins wait here for the super admin -->
@@ -607,6 +664,7 @@
         </form>
         <div id="result" class="result" hidden aria-live="polite"></div>
       </div>
+      <div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost sm" id="gatePrint" type="button">🖨 Print the gate list (backup if phones or signal fail)</button></div>
       <div class="panel" style="margin-top:12px">
         <p class="cin" style="margin:0 0 8px;color:var(--gold2)"><i class="fas fa-magnifying-glass"></i>No pass? Find the guest by name or phone</p>
         <input type="search" id="findQ" placeholder="Type a name or phone number" aria-label="Find a guest" style="width:100%">
@@ -629,6 +687,7 @@
         <p class="muted" style="margin:6px 0 10px;font-size:13px">Every message from now until after the wedding, in order. Tap <b>Open</b> to load it below, send it, then tap <b>Mark sent</b> for your side so nobody sends it twice.</p>
         <div id="mpList" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
+      <div class="panel" id="siteBox" style="margin-bottom:14px"></div>
       <div class="panel" id="aComposer">
         <label class="muted" style="display:block;margin-bottom:10px">Message
           <select id="aTpl" style="width:100%;margin-top:4px"></select></label>
@@ -684,6 +743,7 @@
 
 <div id="toast" hidden role="status"></div>
 <script src="jsQR.js"></script>
+<script src="qrcode.js"></script>
 <script>
 const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Prl5rew1ifRF7WyYNopZSA_wt-JaT4a';
@@ -747,7 +807,7 @@ $('loginForm').addEventListener('submit', async e => {
 });
 $('logout').onclick = signOut;
 function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue(); }
-async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
+async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); if (!$('tab-seating').hidden) renderSeating(); if (!$('tab-travel').hidden) renderTravel(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
 $('refresh').onclick = load;
 function flash(msg) { $('count').textContent = msg; }
 
@@ -959,6 +1019,7 @@ $('nChits').onclick = () => {
 
 // ---------- WhatsApp ----------
 const SITE = 'https://moonlightsolutions-wedding-invitati.vercel.app/';
+let album = '';  // shared photo album link (set on the Announce tab)
 // Indian mobile numbers: keep the digits and add 91 when it is missing
 function waNum(p) {
   let d = String(p || '').replace(/\D/g, '');
@@ -1152,12 +1213,15 @@ function foodRows() {
   });
 }
 function renderFood() {
+  const dn = active().filter(g => (g.diet || '').trim());
+  $('fDiet').replaceChildren(el('b', { className: 'cin', style: 'color:var(--gold2)', textContent: '🥗 Dietary notes for the caterer' }), ...(dn.length ? dn.map(g => el('div', { style: 'font-size:14px;margin-top:4px' }, el('b', { textContent: g.name }), ' (' + g.guests + (g.guests > 1 ? ' people' : ' person') + '): ' + g.diet)) : [el('div', { className: 'muted', style: 'font-size:13px;margin-top:4px', textContent: 'None yet. Add allergies, diabetic, Jain or baby food needs on the Travel & diet tab.' })]));
   $('fRows').replaceChildren(...foodRows().map(r => el('tr', {}, el('td', { className: 'muted', textContent: r.when, style: 'white-space:nowrap' }), el('td', { textContent: r.meal, style: 'font-weight:600' }),
     el('td', { textContent: r.n }), el('td', { textContent: r.veg }), el('td', { textContent: r.non }), el('td', { className: 'muted', textContent: r.crew }))));
 }
 $('fCopy').onclick = async () => {
+  const dn = active().filter(g => (g.diet || '').trim());
   const text = 'Nadeem & Dariya wedding: plates per meal (from RSVPs on ' + new Date().toLocaleDateString([], { day: 'numeric', month: 'short' }) + ')\n\n' +
-    foodRows().map(r => r.when + ' · ' + r.meal + ': ' + r.n + ' guests (' + r.veg + ' veg, ' + r.non + ' non-veg)' + (r.crew ? ' + ' + r.crew + ' crew' : '')).join('\n');
+    foodRows().map(r => r.when + ' · ' + r.meal + ': ' + r.n + ' guests (' + r.veg + ' veg, ' + r.non + ' non-veg)' + (r.crew ? ' + ' + r.crew + ' crew' : '')).join('\n') + (dn.length ? '\n\nDietary notes:\n' + dn.map(g => '• ' + g.name + ' (' + g.guests + '): ' + g.diet).join('\n') : '');
   try { await navigator.clipboard.writeText(text); $('fMsg').textContent = 'Copied. Paste it into WhatsApp for the caterer.'; } catch (e) { $('fMsg').textContent = text; }
 };
 
@@ -1233,7 +1297,7 @@ $('aTpl').replaceChildren(...[['plan', 'Message plan (in order)'], ['day', 'On t
   const og = el('optgroup', { label }); MSGS.forEach((m, i) => { if (m.group === g) og.append(el('option', { value: i, textContent: (m.date ? fmtDay(m.date) + ' · ' : '') + m.title })); }); return og;
 }));
 function pickMsg(m) {
-  curMsg = m; $('aTpl').value = MSGS.indexOf(m); $('aText').value = m.text || ''; $('aWho').value = m.who;
+  curMsg = m; $('aTpl').value = MSGS.indexOf(m); $('aText').value = (m.text || '').replace('[paste the album link here]', album || '[paste the album link here]'); $('aWho').value = m.who;
   $('aFiles').replaceChildren(...((m.files || []).length ? [el('span', { className: 'muted', style: 'font-size:12px' }, '📎 Attach:'), ...m.files.map(f => el('a', { className: 'mini', href: fileUrl(f), target: '_blank', rel: 'noopener', download: f, textContent: FILEN[f] || f }))] : []));
   $('aShare').hidden = !((m.files || []).length && navigator.canShare);
   renderAnnounce();
@@ -1311,7 +1375,7 @@ $('pwSave').onclick = async () => {
 };
 
 // ---------- planning data (budget, payments, vendors, to-dos, duties) ----------
-let plan = [], cap = 300000, emergency = {}, opinions = [];
+let plan = [], cap = 300000, emergency = {}, opinions = [], tablesCfg = {}, liveNote = null;
 const inr = n => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
 const items = k => plan.filter(x => x.kind === k && !x.removed);
 let receipts = [];
@@ -1343,6 +1407,9 @@ async function loadPlan() {
     const b = st.find(x => x.key === 'budget'); cap = b && b.value && b.value.cap != null ? +b.value.cap : 300000;
     const em = st.find(x => x.key === 'emergency'); emergency = em ? em.value : {};
     const r = st.find(x => x.key === 'rooms'); if (r && Array.isArray(r.value)) rooms = r.value;
+    const tb = st.find(x => x.key === 'tables'); tablesCfg = tb && tb.value && typeof tb.value === 'object' ? tb.value : {};
+    const al = st.find(x => x.key === 'album'); album = al && al.value ? al.value.url || '' : '';
+    const lv = st.find(x => x.key === 'live'); liveNote = lv ? lv.value : null;
     renderPlan();
   } catch (e) { if (e.message !== 'forbidden') flash('Could not load the planning data.'); }
 }
@@ -1352,6 +1419,9 @@ function renderPlan() {
   if (!$('tab-budget').hidden) renderBudget();
   if (!$('tab-vendors').hidden) renderVendors();
   if (!$('tab-todo').hidden) renderTodo();
+  if (!$('tab-gifts').hidden) renderGifts();
+  if (!$('tab-seating').hidden) renderSeating();
+  if (!$('tab-announce').hidden) renderSiteBox();
   if (!$('viewDlg').hidden) renderViewDlg();
 }
 // Save one item's data; the change is stamped with who made it
@@ -1620,6 +1690,7 @@ function addLineBtn(group, label) {
   return b;
 }
 function renderBudget() {
+  renderChart();
   const m = money(), pays = items('payment'), bl = costLines();
   const wTotal = m.total.groom + m.total.bride, wPaid = m.paid.groom + m.paid.bride;
   $('bTop').replaceChildren(
@@ -1817,6 +1888,8 @@ function renderOverview() {
     ...(() => { const w = plan.filter(x => !x.removed && VIEW_KINDS[x.kind] && openViews(x).length); return w.length ? [card('Views to settle', w[0].kind === 'budget' ? 'budget' : w[0].kind === 'vendor' ? 'vendors' : 'menu', [w.length + (w.length > 1 ? ' items have' : ' item has') + " a family's view waiting", ...w.slice(0, 4).map(x => '• ' + itemTitle(x) + ' (' + openViews(x).map(o => SIDEN[o.side].replace(' family', '')).join(' + ') + ')')])] : []; })(),
     (() => { const due = PLAN.filter(m => ['due', 'late'].includes(stepState(m))), nx = PLAN.find(m => stepState(m) === 'soon');
       return card('Messages', 'announce', [...due.map(m => warn('Send now: ' + m.title)), nx ? 'Next: ' + nx.title + ' · ' + fmtDay(nx.date) + ' (in ' + daysTo(nx.date) + ' days)' : 'All planned messages sent']); })(),
+    (() => { const du = vendorDues(), soon = du.filter(x => x.days <= 45);
+      return card('Vendor payments due', 'vendors', du.length ? (soon.length ? soon.slice(0, 5).map(x => (x.days < 0 ? warn : (t => t))((x.v.data.name || x.v.data.area) + ': ' + x.what + ' ' + (x.days < 0 ? 'overdue since ' : 'due ') + fmtDay(x.dt) + (x.left != null ? ' · ' + inr(x.left) + ' left' : ''))) : ['Nothing due in the next 45 days', 'Next: ' + (du[0].v.data.name || du[0].v.data.area) + ' ' + du[0].what + ' on ' + fmtDay(du[0].dt)]) : ['No due dates yet. Add "Advance due by" and "Balance due by" on each vendor card.']); })(),
     card('Rooms (Wednesday night)', 'rooms', [roomed + ' of ' + stayN + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
 }
 
@@ -1875,7 +1948,7 @@ function renderTodo() {
       el('td', {}, pick(t, 'area', ['Planning', 'Guests', 'Rooms', 'Food', 'Nikah', 'On the day'])), el('td', {}, x));
   }) : [el('tr', {}, el('td', { colSpan: 6, className: 'empty', textContent: show === 'late' ? 'Nothing overdue. 👏' : 'Nothing here.' }))]));
   $('dRows').replaceChildren(...items('duty').map(d => el('tr', {}, el('td', { style: 'font-weight:600' }, cell(d, 'role', { max: 60 })), el('td', { className: 'muted', style: 'min-width:240px' }, cell(d, 'what', { max: 200 })),
-    el('td', {}, cell(d, 'day1', { max: 80, ph: 'Name' })), el('td', {}, cell(d, 'day2', { max: 80, ph: 'Name' })))));
+    el('td', {}, cell(d, 'day1', { max: 80, ph: 'Name' })), el('td', {}, cell(d, 'day2', { max: 80, ph: 'Name' })), el('td', { style: 'white-space:nowrap' }, runSheetBtns(d)))));
   const EM = [['hospital', 'Nearest hospital'], ['hospital_phone', 'Hospital phone'], ['distance', 'Distance / time from the resort'], ['doctor', 'Doctor on call (name & phone)'], ['manager', 'Resort duty manager (name & phone)'], ['firstaid', 'First aid kit has']];
   $('emBox').replaceChildren(...EM.map(([k, l]) => {
     const inp = el('input', { value: emergency[k] || '', maxLength: 120, style: 'width:100%' });
@@ -1911,7 +1984,7 @@ function planName(id, kind, data) {
   if (kind === 'payment' && d) return 'payment of ' + inr(d.amount) + ' by ' + (d.person ? d.person + ', ' : '') + (d.by || '') + ' for ' + (d.item ? (plan.find(b => b.id === d.item) || { data: {} }).data.item || 'an item' : (d.label || 'something else') + ' (one-off)');
   return (KINDN[kind] || kind) + (d ? ' "' + (d.item || d.name || d.title || d.area || d.role || d.meal || '') + '"' : '');
 }
-const KINDN = { budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' };
+const KINDN = { gift: 'gift', budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' };
 function actArea(a) {
   if (a.tbl === 'rsvps') return a.changes && (a.changes.checkins || a.changes.checked_in) && a.action === 'update' ? 'door' : 'guests';
   if (a.tbl === 'invites') return 'guests';
@@ -2065,13 +2138,205 @@ $('uAdd').onclick = async () => {
   catch (e) { m.textContent = 'Could not create it. That passphrase may already be in use, so try another.'; }
 };
 
+
+// ---------- seating for the Nikah and the Reception ----------
+const seatEv = () => $('sEv').value;
+const seatTables = ev => (tablesCfg[ev] || []).filter(t => t.name);
+const seatOf = (g, ev) => (g.seating || {})[ev] || '';
+const seatGuests = ev => active().filter(g => !/^vendor/i.test(g.side) && g.days.includes(+ev));
+const seatUsed = (ev, name) => seatGuests(ev).filter(g => seatOf(g, ev) === name).reduce((n, g) => n + g.guests, 0);
+function seatPicker(g, ev) {
+  const sel = el('select', { style: 'min-width:170px' }); sel.append(el('option', { value: '', textContent: 'Choose a table' }));
+  seatTables(ev).forEach(t => { const free = (+t.seats || 0) - seatUsed(ev, t.name); sel.append(el('option', { value: t.name, textContent: t.name + ' · ' + (free > 0 ? free + ' free of ' + t.seats : 'full (' + t.seats + ')') })); });
+  const cur = seatOf(g, ev); if (cur && ![...sel.options].some(o => o.value === cur)) sel.append(el('option', { value: cur, textContent: cur }));
+  sel.value = cur;
+  if (otherFam(g.side)) { sel.disabled = true; sel.title = LOCK_T; }
+  sel.onchange = async () => { const m = Object.assign({}, g.seating || {}, { [ev]: sel.value }); if (!sel.value) delete m[ev];
+    try { await rpc('admin_update', { p_id: g.id, p_fields: { seating: m } }); g.seating = m; renderSeating(); } catch (e) { sel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; } };
+  return sel;
+}
+function renderSeating() {
+  if (!$('sEv')) return;
+  const ev = seatEv(), sd = $('sSide').value, all = seatGuests(ev), list = sd ? all.filter(g => sideOf(g) === sd) : all, tbs = seatTables(ev);
+  const ppl = list.reduce((n, g) => n + g.guests, 0), seated = list.filter(g => seatOf(g, ev)).reduce((n, g) => n + g.guests, 0), seats = tbs.reduce((n, t) => n + (+t.seats || 0), 0);
+  $('sStats').replaceChildren(...[[ppl, 'Coming to the ' + EV_SHORT[ev]], [seated, 'Seated'], [ppl - seated, 'Still to seat'], [tbs.length + ' / ' + seats, 'Tables / seats']].map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  // table editor
+  const rows = (tablesCfg[ev] || []).slice();
+  const addRow = t => { const r = el('div', { className: 'row', style: 'gap:6px' }, el('input', { className: 'st-name', value: t ? t.name : '', placeholder: 'Table name', maxLength: 40, style: 'flex:2 1 160px' }), el('input', { className: 'st-seats num', type: 'number', min: 1, value: t ? t.seats : 10, style: 'flex:1 1 80px;max-width:110px' }));
+    const x = el('button', { className: 'mini', type: 'button', textContent: '×' }); x.onclick = () => r.remove(); r.append(x); $('sEdit').append(r); };
+  $('sEdit').replaceChildren(); (rows.length ? rows : [null]).forEach(addRow);
+  $('sAdd').onclick = () => addRow(null);
+  $('sAdd10').onclick = () => { $('sEdit').querySelectorAll('.row').forEach(r => { if (!r.querySelector('.st-name').value.trim()) r.remove(); }); const have = $('sEdit').querySelectorAll('.row').length; for (let i = 1; i <= 10; i++) addRow({ name: 'Table ' + (have + i), seats: 10 }); };
+  $('sSave').onclick = async () => {
+    const list2 = [...$('sEdit').querySelectorAll('.row')].map(r => ({ name: r.querySelector('.st-name').value.trim(), seats: Math.max(1, +r.querySelector('.st-seats').value || 1) })).filter(t => t.name);
+    if (new Set(list2.map(t => t.name.toLowerCase())).size !== list2.length) { $('sMsg').style.color = 'var(--bad)'; $('sMsg').textContent = 'Two tables have the same name.'; return; }
+    const next = Object.assign({}, tablesCfg, { [ev]: list2 });
+    try { await rpc('admin_setting_set', { p_name: 'tables', p_value: next }); tablesCfg = next; $('sMsg').style.color = 'var(--ok)'; $('sMsg').textContent = 'Saved ' + list2.length + ' tables.'; renderSeating(); }
+    catch (e) { $('sMsg').style.color = queued(e) ? 'var(--warn)' : 'var(--bad)'; $('sMsg').textContent = queued(e) ? 'Sent to Nadeem for approval.' : 'Could not save. Try again.'; }
+  };
+  const un = list.filter(g => !seatOf(g, ev)).sort((a, b) => b.guests - a.guests);
+  $('sUnseated').replaceChildren(...(un.length ? un.map(g => el('div', { className: 'panel row', style: 'padding:10px 12px;gap:10px;align-items:center;justify-content:space-between' },
+    el('div', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person') + ' · ' + g.side.replace(' Guest', '') + (g.veg ? ' · ' + g.veg + ' veg' : '') })), tbs.length ? seatPicker(g, ev) : el('span', { className: 'muted', textContent: 'Add tables above first' }))) :
+    [el('p', { className: 'muted', textContent: list.length ? 'Everyone is seated.' : 'No one has RSVPed for this function yet.' })]));
+  $('sCards').replaceChildren(...tbs.map(t => { const inT = all.filter(g => seatOf(g, ev) === t.name), used = inT.reduce((n, g) => n + g.guests, 0), over = used > t.seats;
+    return el('div', { className: 'panel', style: 'padding:12px;' + (over ? 'border-color:var(--bad)' : '') },
+      el('div', { className: 'row', style: 'justify-content:space-between;align-items:baseline' }, el('b', { className: 'cin', textContent: t.name }), el('span', { style: 'color:' + (over ? 'var(--bad)' : used === +t.seats ? 'var(--ok)' : 'var(--gold2)'), textContent: used + ' / ' + t.seats + (over ? ' · too many' : '') })),
+      ...inT.map(g => el('div', { style: 'margin-top:6px;font-size:13px' }, el('div', { className: 'row', style: 'gap:6px;align-items:center' }, el('b', { textContent: g.name + ' (' + g.guests + ')' }), seatPicker(g, ev)),
+        (g.members || []).length ? el('div', { className: 'muted', style: 'font-size:12px', textContent: g.members.map(m => m.name).join(', ') }) : '')),
+      inT.length ? '' : el('p', { className: 'muted', style: 'margin:6px 0 0;font-size:12px', textContent: 'Empty' })); }));
+}
+['sEv', 'sSide'].forEach(id => $(id).addEventListener('change', renderSeating));
+$('sPrint').onclick = () => { const ev = seatEv(), all = seatGuests(ev);
+  printPage('Seating · ' + EV_SHORT[ev], '<h1>Seating · ' + esc(EV_SHORT[ev]) + '</h1>' + seatTables(ev).map(t => { const inT = all.filter(g => seatOf(g, ev) === t.name);
+    return '<h2>' + esc(t.name) + ' <small>' + inT.reduce((n, g) => n + g.guests, 0) + ' / ' + t.seats + '</small></h2><ul>' + inT.map(g => '<li><b>' + esc(g.name) + '</b> (' + g.guests + ')' + ((g.members || []).length ? ': ' + esc(g.members.map(m => m.name).join(', ')) : '') + '</li>').join('') + '</ul>'; }).join('')); };
+
+// ---------- travel, pickups and dietary notes ----------
+const T_MODES = ['', 'Own car', 'Needs a pickup', 'Cab / taxi', 'Bus or train', 'Flight', 'Staying nearby'];
+const travelMode = g => String(g.travel || '').split(' — ')[0];
+const travelNote = g => String(g.travel || '').split(' — ').slice(1).join(' — ');
+async function saveGuest(g, fields, node) { try { await rpc('admin_update', { p_id: g.id, p_fields: fields }); Object.assign(g, fields); if (node) { node.style.borderColor = 'var(--ok)'; setTimeout(() => node.style.borderColor = '', 900); } return true; } catch (e) { if (node) node.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; return false; } }
+function renderTravel() {
+  if (!$('tvRows')) return;
+  const all = active().filter(g => !/^vendor/i.test(g.side)), sum = a => a.reduce((n, g) => n + g.guests, 0);
+  const pick = all.filter(g => travelMode(g) === 'Needs a pickup'), unk = all.filter(g => !travelMode(g)), diet = all.filter(g => (g.diet || '').trim());
+  $('tvStats').replaceChildren(...[[sum(pick), 'Need a pickup'], [sum(all.filter(g => travelMode(g) === 'Own car')), 'Coming by own car'], [sum(unk), 'Not told us yet'], [diet.length, 'Families with a dietary note']].map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  const show = $('tvShow').value, q = $('tvQ').value.trim().toLowerCase();
+  const list = all.filter(g => (!show || (show === 'pickup' ? travelMode(g) === 'Needs a pickup' : show === 'unknown' ? !travelMode(g) : (g.diet || '').trim())) && (!q || g.name.toLowerCase().includes(q)));
+  $('tvRows').replaceChildren(...(list.length ? list.map(g => {
+    const lock = otherFam(g.side), mode = el('select', { disabled: lock, title: lock ? LOCK_T : '' }); T_MODES.forEach(m => mode.append(el('option', { value: m, textContent: m || 'How are they coming?' }))); mode.value = travelMode(g);
+    const note = el('input', { value: travelNote(g), placeholder: 'Arrival time, place, who picks up', maxLength: 150, disabled: lock, style: 'flex:2 1 220px' });
+    const dt = el('input', { value: g.diet || '', placeholder: 'e.g. 1 nut allergy, 1 diabetic, baby food', maxLength: 200, disabled: lock, style: 'flex:2 1 220px' });
+    const saveT = () => saveGuest(g, { travel: mode.value ? mode.value + (note.value.trim() ? ' — ' + note.value.trim() : '') : (note.value.trim() ? ' — ' + note.value.trim() : '') }, mode).then(() => renderTravelStats());
+    mode.onchange = saveT; note.onchange = saveT; dt.onchange = () => saveGuest(g, { diet: dt.value.trim() }, dt).then(() => renderTravelStats());
+    return el('div', { className: 'panel', style: 'padding:10px 12px' },
+      el('div', {}, el('b', { textContent: g.name }), el('span', { className: 'muted', textContent: ' · ' + g.guests + (g.guests > 1 ? ' people' : ' person') + ' · ' + g.side.replace(' Guest', '') + ' · ' + g.days.map(d => EV_SHORT[d]).join(', ') + (waNum(g.phone) ? ' · ' + g.phone : '') })),
+      el('div', { className: 'row', style: 'gap:8px;margin-top:6px;align-items:center' }, mode, note),
+      el('div', { className: 'row', style: 'gap:8px;margin-top:6px;align-items:center' }, el('span', { className: 'muted', style: 'font-size:13px', textContent: '🥗 Diet:' }), dt));
+  }) : [el('p', { className: 'muted', textContent: 'No one here.' })]));
+}
+function renderTravelStats() { const keep = document.activeElement; if (!$('tab-travel').hidden && !(keep && keep.closest && keep.closest('#tvRows'))) renderTravel(); }
+['tvShow', 'tvQ'].forEach(id => $(id).addEventListener('input', renderTravel));
+$('tvCopy').onclick = async () => {
+  const pick = active().filter(g => travelMode(g) === 'Needs a pickup');
+  const text = 'Pickups for Nadeem & Dariya\'s wedding (' + pick.reduce((n, g) => n + g.guests, 0) + ' people)\n\n' + (pick.map(g => '• ' + g.name + ' (' + g.guests + ')' + (g.phone && !/Hidden/.test(g.phone) ? ' · ' + g.phone : '') + (travelNote(g) ? ' · ' + travelNote(g) : '')).join('\n') || 'No pickups yet.');
+  try { await navigator.clipboard.writeText(text); $('tvMsg').textContent = 'Copied. Paste it into WhatsApp for whoever is driving.'; } catch (e) { $('tvMsg').textContent = text; }
+};
+
+// ---------- printable pages (gate list, seating, album QR) ----------
+const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function printPage(title, body) {
+  const w = window.open('', '_blank'); if (!w) { toast('Allow pop-ups to print.'); return; }
+  w.document.write('<!doctype html><meta charset="utf-8"><title>' + esc(title) + '</title><style>body{font:13px/1.4 system-ui,sans-serif;margin:24px;color:#111}h1{font-size:20px;margin:0 0 4px}h2{font-size:15px;margin:16px 0 4px}small{color:#666;font-weight:400}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}th{background:#f2f2f2}tr{page-break-inside:avoid}.code{font:700 14px monospace;letter-spacing:.08em}.box{width:16px;height:16px;border:1.5px solid #333;display:inline-block}@media print{button{display:none}}</style>' + body + '<p><button onclick="print()">Print</button></p>');
+  w.document.close(); setTimeout(() => { try { w.print(); } catch (e) {} }, 400);
+}
+$('gatePrint').onclick = () => {
+  const list = active().slice().sort((a, b) => a.name.localeCompare(b.name));
+  printPage('Gate list', '<h1>Nadeem & Dariya · gate list</h1><p><small>' + list.length + ' passes · ' + list.reduce((n, g) => n + g.guests, 0) + ' people · printed ' + new Date().toLocaleString() + '. Tick the box for each function as they arrive.</small></p><table><thead><tr><th>Name</th><th>Pass</th><th>People</th><th>Side</th><th>Coming to</th><th>Room / table</th><th>Day 1</th><th>Nikah</th><th>Recep.</th></tr></thead><tbody>' +
+    list.map(g => '<tr><td><b>' + esc(g.name) + '</b>' + ((g.members || []).length ? '<br><small>' + esc(g.members.map(m => m.name).join(', ')) + '</small>' : '') + '</td><td class="code">' + esc(g.pass_code) + '</td><td>' + g.guests + '</td><td>' + esc(g.side.replace(' Guest', '')) + '</td><td>' + g.days.map(d => esc(EV_SHORT[d])).join(', ') + '</td><td>' + esc([roomsText(g), (g.seating || {})[2] ? 'Nikah: ' + g.seating[2] : '', (g.seating || {})[3] ? 'Recep: ' + g.seating[3] : ''].filter(Boolean).join(' · ')) + '</td>' +
+      [1, 2, 3].map(d => '<td>' + (g.days.includes(d) ? '<span class="box"></span>' : '—') + '</td>').join('') + '</tr>').join('') + '</tbody></table>');
+};
+
+// ---------- gifts & envelopes, with thank-yous ----------
+function renderGifts() {
+  if (!$('gRows')) return;
+  const gs = items('gift'), sum = a => a.reduce((n, x) => n + (+x.data.amount || 0), 0), done = gs.filter(x => x.data.thanked);
+  $('gStats').replaceChildren(...[[gs.length, 'Gifts recorded'], [inr(sum(gs.filter(x => x.data.side === 'groom'))), "Cash to groom's family"], [inr(sum(gs.filter(x => x.data.side === 'bride'))), "Cash to bride's family"], [done.length + ' / ' + gs.length, 'Thanked']]
+    .filter((r, i) => ME && ME.owner || i === 0 || i === 3 || (i === 1 ? mySide() === 'groom' : mySide() === 'bride'))
+    .map(([n, l]) => el('div', { className: 'stat' }, el('b', { textContent: n }), el('span', { textContent: l }))));
+  $('gNames').replaceChildren(...active().map(g => el('option', { value: g.name })));
+  if (mySide()) { $('gSide').value = mySide(); $('gSide').disabled = true; }
+  const show = $('gShow').value, q = $('gQ').value.trim().toLowerCase();
+  const list = gs.filter(x => (!show || (show === 'done') === !!x.data.thanked) && (!q || JSON.stringify(x.data).toLowerCase().includes(q))).sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  $('gRows').replaceChildren(...(list.length ? list.map(x => {
+    const d = x.data, guest = active().find(g => g.name.trim().toLowerCase() === String(d.name || '').trim().toLowerCase()), ph = guest && waNum(guest.phone);
+    const msg = 'Assalamu Alaikum ' + first(d.name) + ' 🌙\n\nJazakAllah Khair for your love, duas and ' + (/cash|envelope/i.test(d.type) ? 'your generous gift' : 'the lovely ' + (d.what || 'gift')) + ' at Nadeem & Dariya\'s wedding. It means a lot to us. 🤍\n\nMay Allah bless you and your family.';
+    const th = el('button', { className: d.thanked ? 'mini' : 'btn sm', type: 'button', textContent: d.thanked ? '✓ Thanked' : 'Mark thanked' });
+    th.onclick = async () => { try { await savePlan(x, { thanked: !d.thanked, thanked_at: d.thanked ? null : today() }); renderGifts(); } catch (e) {} };
+    const wa = ph ? el('a', { className: 'mini', href: waLink(guest.phone, msg), target: '_blank', rel: 'noopener', textContent: 'WhatsApp thank-you' }) : '';
+    if (wa) wa.addEventListener('click', () => { if (!d.thanked) savePlan(x, { thanked: true, thanked_at: today() }).then(renderGifts).catch(() => {}); });
+    const rm = el('button', { className: 'mini', type: 'button', textContent: '×', title: 'Remove' }); rm.onclick = () => { if (confirm('Remove this gift from ' + d.name + '?')) removePlan(x); };
+    return el('div', { className: 'panel row', style: 'padding:10px 12px;gap:10px;align-items:center;justify-content:space-between;' + (d.thanked ? 'opacity:.75' : '') },
+      el('div', { style: 'min-width:0;flex:1 1 240px' }, el('b', { textContent: d.name || 'Unknown' }), el('span', { className: 'muted', textContent: ' · to ' + (d.side === 'bride' ? "bride's" : "groom's") + ' family' }),
+        el('div', { style: 'font-size:13px' }, (d.type || 'Gift') + (+d.amount ? ' · ' + inr(d.amount) : '') + (d.what ? ' · ' + d.what : '') + (d.by ? ' · received by ' + d.by : '') + (d.thanked && d.thanked_at ? ' · thanked ' + fmtDay(d.thanked_at) : ''))),
+      el('div', { className: 'row', style: 'gap:6px;align-items:center' }, wa, th, rm));
+  }) : [el('p', { className: 'muted', textContent: gs.length ? 'Nothing matches.' : 'No gifts recorded yet. Use the form above on the day, or afterwards.' })]));
+}
+['gShow', 'gQ'].forEach(id => $(id).addEventListener('input', renderGifts));
+$('gAdd').onclick = async () => {
+  const from = $('gFrom').value.trim(), msg = $('gMsg');
+  if (!from) { msg.style.color = 'var(--bad)'; msg.textContent = 'Who is it from?'; return; }
+  try { await savePlan(null, { name: from, side: mySide() || $('gSide').value, type: $('gType').value, amount: +$('gAmt').value || null, what: $('gWhat').value.trim(), by: $('gBy').value.trim(), thanked: false }, 'gift');
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Saved.'; ['gFrom', 'gAmt', 'gWhat'].forEach(id => $(id).value = ''); renderGifts(); }
+  catch (e) { msg.style.color = queued(e) ? 'var(--warn)' : 'var(--bad)'; msg.textContent = queued(e) ? 'Sent to Nadeem for approval.' : 'Could not save. Try again.'; }
+};
+
+// ---------- vendor payment reminders (for the Overview) ----------
+function vendorDues() {
+  const out = [];
+  items('vendor').forEach(v => {
+    const ls = (v.data.budget_ids || []).map(id => items('budget').find(b => b.id === id)).filter(Boolean), c = ls.reduce((n, b) => n + cost(b), 0), pd = ls.reduce((n, b) => n + paidFor(b.id), 0);
+    [['adv_due', 'advance'], ['bal_due', 'balance']].forEach(([k, what]) => { const dt = v.data[k]; if (!dt) return; if (what === 'balance' && ls.length && c - pd <= 0) return; if (what === 'advance' && pd > 0) return;
+      out.push({ v, what, dt, days: daysTo(dt), left: ls.length ? c - pd : null }); });
+  });
+  return out.sort((a, b) => a.dt.localeCompare(b.dt));
+}
+
+// ---------- spend chart ----------
+function renderChart() {
+  if (!$('bChart')) return;
+  const ls = costLines().map(x => ({ x, c: cost(x), p: paidFor(x.id) })).filter(r => r.c > 0).sort((a, b) => b.c - a.c), max = ls.length ? ls[0].c : 1;
+  const grpCol = { shared: 'var(--gold2)', groom: '#7fc7ff', bride: '#ff9ccf' };
+  $('bChart').replaceChildren(el('div', { className: 'muted', style: 'font-size:12px;margin-bottom:6px' }, 'Each bar is one cost; the green part is what has been paid. Colour: ', el('b', { style: 'color:var(--gold2)', textContent: 'split' }), ' · ', el('b', { style: 'color:#7fc7ff', textContent: "groom's" }), ' · ', el('b', { style: 'color:#ff9ccf', textContent: "bride's" })),
+    ...ls.map(r => el('div', { style: 'display:grid;grid-template-columns:minmax(0,1.3fr) 2fr 90px;gap:8px;align-items:center;font-size:12px;margin:3px 0' },
+      el('span', { style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap', title: r.x.data.item, textContent: r.x.data.item }),
+      el('div', { style: 'height:12px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;position:relative' },
+        el('i', { style: 'position:absolute;inset:0 auto 0 0;width:' + (r.c / max * 100) + '%;background:' + grpCol[r.x.data.group] + ';opacity:.55;border-radius:99px' }),
+        el('i', { style: 'position:absolute;inset:0 auto 0 0;width:' + (Math.min(r.p, r.c) / max * 100) + '%;background:var(--ok);border-radius:99px' })),
+      el('span', { style: 'text-align:right;font-variant-numeric:tabular-nums', textContent: inr(r.c) }))));
+}
+
+// ---------- on the invitation site: live note and photo album ----------
+function renderSiteBox() {
+  if (!$('siteBox')) return;
+  const ln = liveNote && liveNote.text ? liveNote : null;
+  const ta = el('textarea', { rows: 2, maxLength: 280, placeholder: 'e.g. Haldi is starting on the lawn now! 🌼', value: ln ? ln.text : '', style: 'width:100%' });
+  const post = el('button', { className: 'btn sm', type: 'button', textContent: ln ? 'Update on the site' : 'Post on the site' }), clr = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Take it down', hidden: !ln });
+  const setLive = async v => { try { await rpc('admin_setting_set', { p_name: 'live', p_value: v }); liveNote = v; toast(v.text ? 'Posted on the invitation site ✓' : 'Taken down ✓'); renderSiteBox(); } catch (e) { if (!queued(e)) toast('Could not save. Try again.'); } };
+  post.onclick = () => { const t = ta.value.trim(); if (t) setLive({ text: t, at: new Date().toISOString(), by: meLabel() }); };
+  clr.onclick = () => setLive({ text: '', at: new Date().toISOString(), by: meLabel() });
+  const al = el('input', { type: 'url', placeholder: 'https://photos.app.goo.gl/…', value: album, style: 'flex:1 1 260px' }), alSave = el('button', { className: 'btn sm', type: 'button', textContent: 'Save link' });
+  alSave.onclick = async () => { const u = al.value.trim(); if (u && !/^https:\/\//.test(u)) { toast('Paste the full https:// link of the shared album.'); return; } try { await rpc('admin_setting_set', { p_name: 'album', p_value: { url: u } }); album = u; toast(u ? 'Album link saved ✓ It now shows on the invitation site.' : 'Album link removed'); renderSiteBox(); } catch (e) { if (!queued(e)) toast('Could not save. Try again.'); } };
+  const qrBox = el('div', { style: 'margin-top:8px' });
+  if (album && window.qrcode) { const q = qrcode(0, 'M'); q.addData(album); q.make(); qrBox.innerHTML = q.createSvgTag({ cellSize: 4, margin: 2 }); qrBox.firstChild.style.background = '#fff'; qrBox.firstChild.style.borderRadius = '8px';
+    const pr = el('button', { className: 'btn ghost sm', type: 'button', textContent: '🖨 Print QR card for the tables', style: 'margin-left:10px;vertical-align:top' });
+    pr.onclick = () => { const q2 = qrcode(0, 'M'); q2.addData(album); q2.make(); printPage('Share your photos', '<div style="text-align:center;margin-top:40px"><h1 style="font-size:28px">Share your photos 📸</h1><p style="font-size:16px">Nadeem &amp; Dariya · 20–21 January 2027</p>' + q2.createSvgTag({ cellSize: 8, margin: 2 }) + '<p style="font-size:15px">Scan to add your photos and videos to our album</p><p><small>' + esc(album) + '</small></p></div>'); };
+    qrBox.append(pr); }
+  $('siteBox').replaceChildren(
+    el('h2', { className: 'cin', style: 'font-size:15px;color:var(--gold2);margin:0 0 6px' }, el('i', { className: 'fas fa-globe' }), ' On the invitation site'),
+    el('p', { className: 'muted', style: 'margin:0 0 8px;font-size:13px' }, 'A short note shown at the top of the invitation site for everyone, for example during the wedding days. On 20–21 January the site also shows what is happening now and next by itself.'),
+    ta, el('div', { className: 'row', style: 'gap:8px;margin-top:6px;align-items:center' }, post, clr, ln ? el('span', { className: 'muted', style: 'font-size:12px', textContent: 'Live now · posted ' + new Date(ln.at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + (ln.by ? ' by ' + ln.by : '') }) : ''),
+    el('p', { className: 'cin', style: 'margin:14px 0 6px;color:var(--gold2)' }, '📸 Shared photo album'),
+    el('p', { className: 'muted', style: 'margin:0 0 6px;font-size:13px' }, 'Create a shared album in Google Photos (Share → Create link, allow others to add photos) and paste the link. Guests see a "Share your photos" button on the invitation site, and you can print a QR card for the tables.'),
+    el('div', { className: 'row', style: 'gap:8px;align-items:center' }, al, alSave), qrBox);
+}
+
+// ---------- coordinator run sheets ----------
+function runSheetBtns(d) {
+  const url = SITE + 'team.html?d=' + d.id, who = [d.data.day1, d.data.day2].filter(Boolean).join(' / ');
+  const cp = el('button', { className: 'mini', type: 'button', textContent: 'Copy link' }); cp.onclick = async () => { try { await navigator.clipboard.writeText(url); toast('Run sheet link copied ✓'); } catch (e) { prompt('Copy this link', url); } };
+  const wa = el('a', { className: 'mini', href: 'https://wa.me/?text=' + encodeURIComponent('Assalamu Alaikum' + (who ? ' ' + first(who) : '') + ' 🌙\n\nJazakAllah Khair for taking on "' + d.data.role + '" at Nadeem & Dariya\'s wedding. Your run sheet with timings, your role and who to call is here:\n' + url), target: '_blank', rel: 'noopener', textContent: 'WhatsApp' });
+  const op = el('a', { className: 'mini', href: 'team.html?d=' + d.id, target: '_blank', rel: 'noopener', textContent: 'Open' });
+  return el('span', { className: 'row', style: 'gap:4px' }, op, cp, wa);
+}
+
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['guests', 'invited', 'names', 'rooms', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  ['guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan();
   if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
   if (['overview', 'budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
-  if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') { renderAnnounce(); loadMsgs(); loadInvites().then(renderAnnounce); if (!plan.length) loadPlan().then(renderAnnounce); }
+  if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') { renderSiteBox(); renderAnnounce(); loadMsgs(); loadInvites().then(renderAnnounce); if (!plan.length) loadPlan().then(renderAnnounce); }
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
 }));
