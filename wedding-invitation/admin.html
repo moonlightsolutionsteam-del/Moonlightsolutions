@@ -1471,6 +1471,20 @@ function menuCostOf(it) {
   return { ms, total: ms.reduce((n, m) => n + mealCost(m), 0), missing: ms.filter(m => !(+m.data.rate > 0)) };
 }
 const lineOfMeal = m => items('budget').find(b => (b.data.menu || []).includes(m.id));
+// Who pays for one meal. The budget follows: a line holding only this meal changes section;
+// a line shared with other meals lets this one go to its own line under the new payer.
+async function setMealPayer(m, v) {
+  const bl = lineOfMeal(m);
+  if (!bl || !ME || !ME.owner) return savePlan(m, { payer: v });  // family logins: saved as their view
+  if (bl.data.group !== v) {
+    if ((bl.data.menu || []).length <= 1) await savePlan(bl, { group: v, split_groom: null });
+    else {
+      await savePlan(bl, { menu: bl.data.menu.filter(x => x !== m.id) });
+      await savePlan(null, { group: v, item: m.data.meal + ' (' + (m.data.when || '').replace(/ ·.*/, '') + ')', budget: mealCost(m), agreed: null, status: bl.data.status || 'To close', notes: 'Moved out of "' + bl.data.item + '"', menu: [m.id] }, 'budget');
+    }
+  }
+  if (m.data.payer !== v) await savePlan(m, { payer: v });
+}
 const payerOf = m => { const b = lineOfMeal(m); return b ? b.data.group : m.data.payer; };
 const cost = it => { if (it.data.status === 'Not needed') return 0; const mc = menuCostOf(it); if (mc && !mc.missing.length) return mc.total; return it.data.agreed != null && it.data.agreed !== '' ? +it.data.agreed : +it.data.budget || 0; };
 const vendorsOf = it => items('vendor').filter(v => (v.data.budget_ids || []).includes(it.id));
@@ -1716,7 +1730,10 @@ function renderMenu() {
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('div', {}, el('div', { className: 'by', textContent: it.data.when }), el('b', { className: 'cin', textContent: it.data.meal })), pick(it, 'status', M_STATUS)),
       lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
       lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
-      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const bl = lineOfMeal(it); if (bl) return el('div', { style: 'padding:6px 0;color:var(--text)', title: 'Set by the budget line this meal is counted in' }, PAYER[bl.data.group] || bl.data.group); const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t }))); s.value = viewVal(it, 'payer'); if (isMine(it, 'payer')) s.classList.add('vw-mine'); s.onchange = async () => { try { await savePlan(it, { payer: s.value }); renderMenu(); } catch (e) {} }; return s; })())),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t })));
+        s.value = mySide() ? viewVal(it, 'payer') || payerOf(it) : payerOf(it); if (isMine(it, 'payer')) s.classList.add('vw-mine');
+        s.onchange = async () => { const was = payerOf(it); try { await setMealPayer(it, s.value); renderPlan(); } catch (e) { s.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; if (!queued(e)) s.value = was; } };
+        return s; })())),
       el('div', { className: 'by', style: 'margin-top:4px', textContent: 'From RSVPs: ' + pl.n + ' guests (' + pl.veg + ' veg) + 5% spare = ' + pl.auto + ' plates' + (pl.crew ? ' · plus ' + pl.crew + ' vendor crew' : '') + ' · estimate ' + inr(mealCost(it)) }),
       (() => { const bl = lineOfMeal(it); return el('div', { className: 'by', style: 'margin-top:2px;color:' + (bl ? 'var(--gold2)' : 'var(--warn)') }, bl ? '💰 Counted in the budget line "' + bl.data.item + '"' + (+it.data.rate > 0 ? '' : ' · add a price per plate so the budget uses it') : '⚠ Not in the budget yet. Add it from Budget & payments.'); })(),
       lab('Notes for the caterer', cell(it, 'notes', { area: true, rows: 2, max: 400 })),
