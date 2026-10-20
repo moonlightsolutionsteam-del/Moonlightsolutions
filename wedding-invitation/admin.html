@@ -386,6 +386,7 @@
     <section id="tab-budget" hidden>
       <div class="stats" id="bStats"></div>
       <div class="panel" id="bSettle" style="margin-bottom:14px"></div>
+      <div class="panel" id="bLoose" hidden style="margin-bottom:14px;border-color:var(--warn)"></div>
       <div class="scroll"><table style="min-width:900px">
         <thead><tr><th>Item</th><th class="money">Budget</th><th class="money">Agreed price</th><th class="money">Paid</th><th class="money">Balance</th><th>Status</th><th>Vendor / notes</th><th></th></tr></thead>
         <tbody id="bRows"></tbody>
@@ -1316,7 +1317,7 @@ async function removePlan(it) { await rpc('admin_plan_remove', { p_id: it.id, p_
 const VIEW_KINDS = {
   menu: [['dishes', 'Dishes'], ['veg', 'Vegetarian option'], ['rate', '₹ per plate'], ['plates', 'Plates'], ['payer', 'Paid by'], ['status', 'Status'], ['notes', 'Notes for the caterer']],
   vendor: [['area', 'Area'], ['name', 'Vendor / business'], ['contact', 'Contact person'], ['phone', 'Phone'], ['quote', 'Quote / amount'], ['status', 'Status'], ['owner', 'Handled by'], ['scope', 'What they cover'], ['upi', 'UPI ID'], ['bank', 'Bank account'], ['ifsc', 'IFSC'], ['adv_due', 'Advance due by'], ['bal_due', 'Balance due by'], ['notes', 'Notes']],
-  budget: [['item', 'Item'], ['budget', 'Budget'], ['agreed', 'Agreed price'], ['split_groom', "Groom's family %"], ['group', 'Section'], ['status', 'Status'], ['notes', 'Notes']]
+  budget: [['item', 'Item'], ['budget', 'Budget'], ['agreed', 'Agreed price'], ['split_groom', "Groom's family %"], ['group', 'Section'], ['status', 'Status'], ['notes', 'Notes'], ['menu', 'Menu meals']]
 };
 const SIDEN = { groom: "Groom's family", bride: "Bride's family" };
 const mySide = () => ME && !ME.owner ? (ME.fam[0] === 'G' ? 'groom' : 'bride') : null;
@@ -1334,7 +1335,7 @@ async function saveView(it, side, patch, note) {
   if (mySide()) toast("Saved as your family's view ✓ Nadeem will pick the final.");
   return it;
 }
-const fmtField = (k, v) => v == null || v === '' ? '—' : k === 'payer' || k === 'group' ? (PAYER[v] || v) : typeof v === 'number' && /rate|budget|agreed/.test(k) ? inr(v) : String(v);
+const fmtField = (k, v) => Array.isArray(v) ? (v.map(id => { const x = plan.find(y => y.id === id); return x ? x.data.meal || x.data.item : '?'; }).join(', ') || '—') : v == null || v === '' ? '—' : k === 'payer' || k === 'group' ? (PAYER[v] || v) : typeof v === 'number' && /rate|budget|agreed/.test(k) ? inr(v) : String(v);
 function viewsBtn(it) {
   if (!VIEW_KINDS[it.kind]) return '';
   const n = openViews(it).length, sd = mySide();
@@ -1415,7 +1416,40 @@ const stamp = it => it.updated_by ? el('div', { className: 'by', textContent: 'U
 // ---------- budget & payments ----------
 const GROUPS = [['shared', 'Shared 50/50'], ['bride', "Bride's family"], ['groom', "Groom's family"]];
 const B_STATUS = ['To close', 'Quoted', 'Booked', 'Advance paid', 'Paid in full', 'Not needed'];
-const cost = it => it.data.status === 'Not needed' ? 0 : (it.data.agreed != null && it.data.agreed !== '' ? +it.data.agreed : +it.data.budget || 0);
+// Menu meals linked to a budget line set its cost (price per plate × plates) once every linked meal has a price
+const linkedMeals = it => (it.data.menu || []).map(id => plan.find(x => x.id === id && !x.removed)).filter(Boolean);
+const mealCost = m => (+m.data.rate || 0) * platesFor(m).plates;
+function menuCostOf(it) {
+  const ms = linkedMeals(it); if (!ms.length) return null;
+  return { ms, total: ms.reduce((n, m) => n + mealCost(m), 0), missing: ms.filter(m => !(+m.data.rate > 0)) };
+}
+const lineOfMeal = m => items('budget').find(b => (b.data.menu || []).includes(m.id));
+const payerOf = m => { const b = lineOfMeal(m); return b ? b.data.group : m.data.payer; };
+const cost = it => { if (it.data.status === 'Not needed') return 0; const mc = menuCostOf(it); if (mc && !mc.missing.length) return mc.total; return it.data.agreed != null && it.data.agreed !== '' ? +it.data.agreed : +it.data.budget || 0; };
+const vendorsOf = it => items('vendor').filter(v => (v.data.budget_ids || []).includes(it.id));
+// A small pop-up list of tick boxes to link items together
+function linkPicker(btn, title, options, chosen, onSave) {
+  const box = el('div', { className: 'panel', style: 'position:absolute;z-index:40;min-width:280px;max-width:380px;max-height:320px;overflow:auto;padding:10px;margin-top:4px;background:#075c66;box-shadow:0 10px 30px rgba(0,0,0,.45)' });
+  box.append(el('b', { className: 'cin', style: 'display:block;margin-bottom:6px;color:var(--gold2)', textContent: title }));
+  const ticks = options.map(o => { const c = el('input', { type: 'checkbox', checked: chosen.includes(o.id) }); box.append(el('label', { style: 'display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:4px 0' }, c, el('span', {}, o.label, o.hint ? el('span', { className: 'muted', textContent: ' · ' + o.hint }) : ''))); return [o.id, c]; });
+  const ok = el('button', { className: 'btn sm', type: 'button', textContent: 'Save' }), no = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Cancel' });
+  box.append(el('div', { className: 'row', style: 'gap:6px;margin-top:8px' }, ok, no));
+  no.onclick = () => box.remove();
+  ok.onclick = async () => { ok.disabled = true; try { await onSave(ticks.filter(([, c]) => c.checked).map(([id]) => id)); box.remove(); renderPlan(); } catch (e) { ok.disabled = false; if (queued(e)) box.remove(); } };
+  const wrap = btn.parentNode; wrap.style.position = 'relative'; wrap.querySelectorAll(':scope > .panel').forEach(x => x.remove()); wrap.append(box);
+}
+const mealLabel = m => m.data.meal + (m.data.when ? ' (' + m.data.when.replace(/ ·.*/, '') + ')' : '');
+// Under a budget line: which meals and vendors feed it
+function lineLinks(it) {
+  const mc = menuCostOf(it), vs = vendorsOf(it), out = el('div', { style: 'font-size:12px;margin-top:3px' });
+  if (mc) out.append(el('div', { style: 'color:' + (mc.missing.length ? 'var(--warn)' : 'var(--gold2)') }, '🍽 From the menu: ' + mc.ms.map(m => m.data.meal + ' ' + (+m.data.rate > 0 ? inr(mealCost(m)) : '(no price)')).join(' + ') + (mc.missing.length ? ' · using the budget figure until every meal has a price' : ' = ' + inr(mc.total))));
+  if (vs.length) out.append(el('div', { className: 'muted' }, '🤝 Vendor: ' + vs.map(v => v.data.name || v.data.area).join(', ')));
+  const b = el('button', { className: 'mini', type: 'button', textContent: mc ? 'Change meals' : 'Link menu meals', title: 'Take this line\'s cost from the menu (price per plate × plates)' });
+  b.onclick = () => linkPicker(b, 'Meals that make up this cost', items('menu').map(m => { const o = lineOfMeal(m); return { id: m.id, label: mealLabel(m), hint: o && o.id !== it.id ? 'now in "' + o.data.item.slice(0, 30) + '"' : (+m.data.rate > 0 ? inr(mealCost(m)) : 'no price yet') }; }), it.data.menu || [],
+    async ids => { for (const o of items('budget')) if (o.id !== it.id && (o.data.menu || []).some(x => ids.includes(x))) await savePlan(o, { menu: o.data.menu.filter(x => !ids.includes(x)) }); await savePlan(it, { menu: ids }); });
+  out.append(el('div', { style: 'margin-top:3px' }, b));
+  return out;
+}
 const paidFor = (id, fam) => items('payment').filter(p => p.data.item === id && (!fam || p.data.by === fam)).reduce((n, p) => n + (+p.data.amount || 0), 0);
 // The groom's family's % of a line: set per line, otherwise 50 for shared, 100 for groom's lines, 0 for bride's
 const gPct = it => it.data.split_groom != null && it.data.split_groom !== '' ? Math.min(100, Math.max(0, +it.data.split_groom)) : it.data.group === 'groom' ? 100 : it.data.group === 'bride' ? 0 : 50;
@@ -1444,6 +1478,13 @@ function renderBudget() {
   $('bSettle').replaceChildren(el('b', { className: 'cin', textContent: 'Settling up: ' }),
     el('span', { textContent: 'groom\'s family has paid ' + inr(m.paid.groom) + ' of its ' + inr(m.total.groom) + ', bride\'s family ' + inr(m.paid.bride) + ' of its ' + inr(m.total.bride) + '. ' }),
     el('b', { style: 'color:' + (diff ? 'var(--warn)' : 'var(--ok)'), textContent: diff > 0 ? "Bride's family owes groom's family " + inr(diff) + ' for its share of what has been paid.' : diff < 0 ? "Groom's family owes bride's family " + inr(-diff) + ' for its share of what has been paid.' : 'Both families are even on what has been paid.' }));
+  const loose = items('menu').filter(mm => !lineOfMeal(mm));
+  $('bLoose').hidden = !loose.length;
+  $('bLoose').replaceChildren(el('b', { className: 'cin', style: 'color:var(--warn)', textContent: '🍽 On the menu but not in the budget' }),
+    el('div', { className: 'muted', style: 'font-size:13px;margin:2px 0 6px', textContent: 'These meals are not counted in any total or split yet. Add each one, or link it to an existing line with "Link menu meals".' }),
+    ...loose.map(mm => { const a = el('button', { className: 'mini', type: 'button', textContent: '+ Add to budget' });
+      a.onclick = async () => { try { await savePlan(null, { group: mm.data.payer || 'shared', item: mm.data.meal + ' (' + (mm.data.when || '').replace(/ ·.*/, '') + ')', budget: mealCost(mm), agreed: null, status: 'To close', notes: '', menu: [mm.id] }, 'budget'); renderPlan(); } catch (e) {} };
+      return el('div', { className: 'row', style: 'gap:8px;align-items:center;justify-content:space-between;font-size:14px;margin:3px 0' }, el('span', {}, el('b', { textContent: mealLabel(mm) }), el('span', { className: 'muted', textContent: ' · ' + (+mm.data.rate > 0 ? inr(mealCost(mm)) + ' (' + inr(mm.data.rate) + ' × ' + platesFor(mm).plates + ')' : 'no price yet') + ' · ' + (PAYER[mm.data.payer] || 'Shared 50/50') })), a); }));
   const body = $('bRows'); body.replaceChildren();
   GROUPS.forEach(([k, label]) => {
     const list = items('budget').filter(x => x.data.group === k);
@@ -1452,9 +1493,10 @@ function renderBudget() {
       const c = cost(it), paid = paidFor(it.id), over = it.data.agreed != null && it.data.agreed !== '' && +it.data.agreed > +it.data.budget;
       const x = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); x.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
       body.append(el('tr', {},
-        el('td', { style: 'min-width:260px' }, cell(it, 'item', { max: 200 }), stamp(it), viewsBtn(it)),
+        el('td', { style: 'min-width:260px' }, cell(it, 'item', { max: 200 }), lineLinks(it), stamp(it), viewsBtn(it)),
         el('td', { className: 'money' }, cell(it, 'budget', { num: true })),
-        el('td', { className: 'money' }, cell(it, 'agreed', { num: true, ph: '—' }), over ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(+it.data.agreed - it.data.budget) + ' over' }) : ''),
+        (() => { const mc = menuCostOf(it); if (mc && !mc.missing.length) return el('td', { className: 'money', title: 'Set by the menu: price per plate × plates' }, el('b', { textContent: inr(mc.total) }), el('div', { className: 'by', textContent: 'from the menu' }), mc.total > +it.data.budget ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(mc.total - it.data.budget) + ' over' }) : '');
+          return el('td', { className: 'money' }, cell(it, 'agreed', { num: true, ph: '—' }), over ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(+it.data.agreed - it.data.budget) + ' over' }) : ''); })(),
         el('td', { className: 'money', textContent: inr(paid) }),
         el('td', { className: 'money', style: c - paid > 0 ? 'color:var(--warn)' : 'color:var(--ok)', textContent: inr(c - paid) }),
         el('td', {}, pick(it, 'status', B_STATUS)),
@@ -1477,7 +1519,8 @@ function renderBudget() {
       const pct = cell(it, 'split_groom', { num: true, ph: String(gPct(it)) }); pct.max = 100; pct.style.maxWidth = '70px';
       const due = v => el('td', { className: 'money', style: v > 0 ? 'color:var(--warn)' : v < 0 ? 'color:var(--ok)' : '', textContent: v < 0 ? inr(-v) + ' extra' : inr(v) });
       // Edit the cost here: it sets the agreed price (the budget figure shows until a price is agreed)
-      const price = cell(it, 'agreed', { num: true, ph: String(+it.data.budget || 0) }); price.style.minWidth = '115px'; price.style.maxWidth = '130px'; price.title = 'Agreed price. Leave blank to use the budget of ' + inr(it.data.budget);
+      const mcw = menuCostOf(it), price = mcw && !mcw.missing.length ? el('span', { title: 'Set by the menu' }, el('b', { textContent: inr(mcw.total) }), el('div', { className: 'by', textContent: 'from the menu' })) : cell(it, 'agreed', { num: true, ph: String(+it.data.budget || 0) });
+      if (!(mcw && !mcw.missing.length)) { price.style.minWidth = '115px'; price.style.maxWidth = '130px'; price.title = 'Agreed price. Leave blank to use the budget of ' + inr(it.data.budget); }
       const sec = el('select', { title: 'Move this line to another section' }); GROUPS.forEach(([gk, gl]) => sec.append(el('option', { value: gk, textContent: gl })));
       sec.value = viewVal(it, 'group'); if (isMine(it, 'group')) sec.classList.add('vw-mine'); sec.onchange = async () => { try { await savePlan(it, { group: sec.value, split_groom: null }); renderPlan(); } catch (e) { sec.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; sec.value = it.data.group; } };
       const rm = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); rm.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
@@ -1582,7 +1625,7 @@ function approve(it, fam) {
 }
 function renderMenu() {
   const ms = items('menu'), sum = f => ms.reduce((a, it) => a + f(it), 0);
-  const est = k => ms.filter(it => it.data.payer === k).reduce((a, it) => a + (+it.data.rate || 0) * platesFor(it).plates, 0);
+  const est = k => ms.filter(it => payerOf(it) === k).reduce((a, it) => a + mealCost(it), 0);
   $('mStats').replaceChildren(...[[ms.filter(it => it.data.status === 'Final').length + ' / ' + ms.length, 'Meals final'],
     [ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' / ' + ms.length, 'Approved by both families'],
     [inr(sum(it => (+it.data.rate || 0) * platesFor(it).plates)), 'Food estimate (plates × rate)'],
@@ -1595,8 +1638,9 @@ function renderMenu() {
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('div', {}, el('div', { className: 'by', textContent: it.data.when }), el('b', { className: 'cin', textContent: it.data.meal })), pick(it, 'status', M_STATUS)),
       lab('Dishes', cell(it, 'dishes', { area: true, rows: 2, max: 400 })),
       lab('Vegetarian option', cell(it, 'veg', { max: 200 })),
-      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t }))); s.value = viewVal(it, 'payer'); if (isMine(it, 'payer')) s.classList.add('vw-mine'); s.onchange = async () => { try { await savePlan(it, { payer: s.value }); renderMenu(); } catch (e) {} }; return s; })())),
-      el('div', { className: 'by', style: 'margin-top:4px', textContent: 'From RSVPs: ' + pl.n + ' guests (' + pl.veg + ' veg) + 5% spare = ' + pl.auto + ' plates' + (pl.crew ? ' · plus ' + pl.crew + ' vendor crew' : '') + ' · estimate ' + inr((+it.data.rate || 0) * pl.plates) }),
+      el('div', { className: 'row', style: 'gap:6px' }, lab('₹ per plate', cell(it, 'rate', { num: true })), lab('Plates' + (pl.manual ? ' (set by hand)' : ''), pi), lab('Paid by', (() => { const bl = lineOfMeal(it); if (bl) return el('div', { style: 'padding:6px 0;color:var(--text)', title: 'Set by the budget line this meal is counted in' }, PAYER[bl.data.group] || bl.data.group); const s = el('select', {}); Object.entries(PAYER).forEach(([v, t]) => s.append(el('option', { value: v, textContent: t }))); s.value = viewVal(it, 'payer'); if (isMine(it, 'payer')) s.classList.add('vw-mine'); s.onchange = async () => { try { await savePlan(it, { payer: s.value }); renderMenu(); } catch (e) {} }; return s; })())),
+      el('div', { className: 'by', style: 'margin-top:4px', textContent: 'From RSVPs: ' + pl.n + ' guests (' + pl.veg + ' veg) + 5% spare = ' + pl.auto + ' plates' + (pl.crew ? ' · plus ' + pl.crew + ' vendor crew' : '') + ' · estimate ' + inr(mealCost(it)) }),
+      (() => { const bl = lineOfMeal(it); return el('div', { className: 'by', style: 'margin-top:2px;color:' + (bl ? 'var(--gold2)' : 'var(--warn)') }, bl ? '💰 Counted in the budget line "' + bl.data.item + '"' + (+it.data.rate > 0 ? '' : ' · add a price per plate so the budget uses it') : '⚠ Not in the budget yet. Add it from Budget & payments.'); })(),
       lab('Notes for the caterer', cell(it, 'notes', { area: true, rows: 2, max: 400 })),
       el('div', { className: 'row', style: 'gap:8px;margin-top:8px' }, approve(it, 'groom'), approve(it, 'bride')),
       el('div', { className: 'row', style: 'margin-top:6px;justify-content:space-between;align-items:center' }, stamp(it), viewsBtn(it)));
@@ -1660,6 +1704,10 @@ function renderVendors() {
         v.data.upi ? (() => { const c = el('button', { className: 'mini', textContent: 'Copy' }); c.onclick = () => navigator.clipboard && navigator.clipboard.writeText(v.data.upi); return c; })() : ''),
       el('div', { className: 'row', style: 'gap:6px' }, lab('Bank account', cell(v, 'bank', { max: 40 })), lab('IFSC', cell(v, 'ifsc', { max: 20 }))),
       el('div', { className: 'row', style: 'gap:6px' }, lab('Advance due by', cell(v, 'adv_due', { date: true })), lab('Balance due by', cell(v, 'bal_due', { date: true }))),
+      (() => { const ls = (v.data.budget_ids || []).map(id => items('budget').find(b => b.id === id)).filter(Boolean), c = ls.reduce((n, b) => n + cost(b), 0), pd = ls.reduce((n, b) => n + paidFor(b.id), 0);
+        const lk = el('button', { className: 'mini', type: 'button', textContent: ls.length ? 'Change' : 'Link budget lines' });
+        lk.onclick = () => linkPicker(lk, 'Budget lines this vendor is paid from', items('budget').map(b => ({ id: b.id, label: b.data.item, hint: inr(cost(b)) })), v.data.budget_ids || [], ids => savePlan(v, { budget_ids: ids }));
+        return el('div', { style: 'margin-top:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px' }, ls.length ? el('div', {}, '💰 In the budget: ', el('b', { textContent: inr(c) }), ' · paid ' + inr(pd) + ' · ', el('b', { style: 'color:' + (c - pd > 0 ? 'var(--warn)' : 'var(--ok)'), textContent: inr(c - pd) + ' left' }), el('div', { className: 'muted', style: 'font-size:12px' }, ls.map(b => b.data.item).join(' · '))) : el('span', { className: 'muted' }, 'Not linked to the budget yet. '), ' ', lk); })(),
       lab('What they cover', cell(v, 'scope', { area: true, rows: 3, max: 600 })),
       lab('Notes (terms, advance, dates)', cell(v, 'notes', { area: true, rows: 2, max: 600 })),
       el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;margin-top:8px' }, stamp(v), el('div', { className: 'row', style: 'gap:6px' }, viewsBtn(v), x)));
@@ -1714,12 +1762,12 @@ const MONEYK = ['amount', 'agreed', 'budget', 'cost', 'advance', 'paid'];
 function fmtV(k, v) {
   if (v == null || v === '') return '—';
   if (typeof v === 'boolean') return v ? 'yes' : 'no';
-  if (Array.isArray(v)) return v.length ? v.map(x => x && typeof x === 'object' ? (x.name || '?') : (k === 'days' ? DAY_CHIP[x] || x : x)).join(', ') : 'none';
+  if (Array.isArray(v)) return v.length ? v.map(x => { if (x && typeof x === 'object') return x.name || '?'; if (k === 'days') return DAY_CHIP[x] || x; const it = typeof x === 'string' && plan.find(y => y.id === x); return it ? it.data.meal || it.data.item || it.data.area : x; }).join(', ') : 'none';
   if (typeof v === 'object') { const e = Object.entries(v); return !e.length ? 'none' : e.every(([, x]) => typeof x !== 'object') ? e.map(([a, x]) => a + ' → ' + (x === '' ? 'no room' : x)).join(', ') : e.length + ' entries'; }
   if (typeof v === 'number' && MONEYK.some(m => k.includes(m))) return inr(v);
   const t = String(v); return t.length > 60 ? t.slice(0, 57) + '…' : t;
 }
-const FIELDN = { note: 'note', members: 'family names', removed_members: 'removed names', accommodation: 'room', room_map: 'rooms per person', table_no: 'table', veg: 'veg meals', days: 'functions', guests: 'people' };
+const FIELDN = { menu: 'menu meals', budget_ids: 'budget lines', note: 'note', members: 'family names', removed_members: 'removed names', accommodation: 'room', room_map: 'rooms per person', table_no: 'table', veg: 'veg meals', days: 'functions', guests: 'people' };
 const fieldName = k => FIELDN[k] || k.replace(/^data\./, '').replace(/_/g, ' ').replace(/^ok groom$/, "groom's approval").replace(/^ok bride$/, "bride's approval").replace(/^by$/, 'paid by').replace(/^ref$/, 'UTR / ref').replace(/^how$/, 'paid via');
 function planName(id, kind, data) {
   const it = plan.find(x => x.id === id), d = data || (it ? it.data : null);
