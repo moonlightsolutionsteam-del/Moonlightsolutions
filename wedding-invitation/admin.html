@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="admin.webmanifest">
+<meta name="theme-color" content="#0b7d86">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wedding Panel">
+<link rel="apple-touch-icon" href="panel-icon-192.png">
 <title>Wedding Panel — Nadeem & Dariya</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -249,7 +254,7 @@
   .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
   .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
   .tab[data-tab=access]::before { content:'\f084'; } #toSite::before { content:'\f004'; }
-  .tab[data-tab=dash]::before { content:'\f625'; } .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; } .tab[data-tab=games]::before { content:'\f091'; }
+  .tab[data-tab=dash]::before { content:'\f625'; } .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; } .tab[data-tab=games]::before { content:'\f091'; } .tab[data-tab=remind]::before { content:'\f34e'; }
   #refresh::before { content:'\f2f1'; } #export::before { content:'\f56d'; } #logout::before { content:'\f2f5'; }
   .tab[aria-selected=true]::before { animation:icWiggle .5s var(--spring); }
   @keyframes icWiggle { 0% { transform:scale(.6) rotate(-20deg); } 100% { transform:none; } }
@@ -264,6 +269,24 @@
     *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
     #sparkle { display:none; }
   }
+</style>
+<style id="remind-ui">
+  .rm-cols { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:12px; align-items:start; }
+  @media (max-width:900px) { .rm-cols { grid-template-columns:1fr; } }
+  .rm-h { margin:12px 0 4px; font:700 12px 'Cinzel',serif; letter-spacing:.08em; text-transform:uppercase; color:var(--gold2); }
+  .rm-row { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--line); }
+  .rm-row .dot { width:9px; height:9px; border-radius:50%; margin-top:6px; flex:none; }
+  .rm-row .t { flex:1; min-width:0; } .rm-row .t b { font-weight:600; } .rm-row .t small { display:block; color:var(--mute); font-size:12px; }
+  .rm-row .acts { display:flex; flex-wrap:wrap; gap:4px; justify-content:flex-end; }
+  .rm-now { border:1px solid var(--gold); border-radius:12px; padding:10px 12px; margin:8px 0; background:rgba(245,184,46,.08); }
+  .rm-now b.big { display:block; font:700 18px 'Cinzel',serif; color:var(--gold2); }
+  .cue { display:grid; grid-template-columns:78px 1fr auto; gap:8px; align-items:start; padding:7px 0; border-top:1px solid var(--line); font-size:14px; }
+  .cue.done { opacity:.5; } .cue.done .ct { text-decoration:line-through; }
+  .cue .tm { font-weight:700; color:var(--gold2); font-variant-numeric:tabular-nums; } .cue .tm s { display:block; font-weight:400; color:var(--mute); font-size:11px; }
+  .cue small { display:block; color:var(--mute); font-size:12px; }
+  .cue.next { background:rgba(245,184,46,.10); border-radius:8px; }
+  #remBell:not([hidden]) { border-color:var(--warn); color:var(--warn); }
+  @media (max-width:600px) { .rm-row { flex-wrap:wrap; } .rm-row .t { flex:1 1 calc(100% - 20px); } .rm-row .acts { flex:1 1 100%; justify-content:flex-start; padding-left:19px; } .cue { grid-template-columns:64px 1fr auto; } }
 </style>
 <style id="dash-ui">
   .db-head { display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; justify-content:space-between; }
@@ -315,6 +338,7 @@
       <h1><span class="script" style="font-size:30px">Nadeem &amp; Dariya</span> &nbsp;Wedding Panel</h1>
       <div class="row" style="gap:8px">
         <button class="btn sm" id="apprPill" hidden></button>
+        <button class="btn ghost sm" id="remBell" type="button" hidden title="Reminders due"></button>
         <a class="btn ghost sm" id="toSite" href="./" style="text-decoration:none">Wedding website</a>
         <button class="btn ghost sm" id="moreBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="More">⋯</button>
         <div id="hdrMore">
@@ -351,6 +375,7 @@
       <button class="tab" role="tab" data-tab="todo" aria-selected="false">To-do &amp; team</button>
       <button class="tab" role="tab" data-tab="gifts" aria-selected="false">Gifts</button>
       <button class="tab" role="tab" data-tab="games" aria-selected="false">Games</button>
+      <button class="tab" role="tab" data-tab="remind" aria-selected="false">Reminders</button>
     </div>
     <div class="tabs" role="tablist" aria-label="Panel" style="margin-top:-6px">
       <span class="tg">Panel</span>
@@ -598,6 +623,32 @@
     </section>
 
     <!-- Gifts & envelopes, and thank-yous -->
+    <!-- Reminders: what's due for me, my own reminders, phone notifications and the wedding-day run of show -->
+    <section id="tab-remind" hidden>
+      <div class="panel" id="rmPush" style="margin-bottom:12px"></div>
+      <div class="rm-cols">
+        <div>
+          <div class="panel" id="rmFeed"></div>
+          <div class="panel" style="margin-top:12px">
+            <p class="cin" style="margin:0 0 8px;color:var(--gold2)" id="rmFormTitle"><i class="fas fa-plus"></i>Add a reminder</p>
+            <div class="row" style="gap:8px;align-items:flex-end">
+              <label class="muted" style="flex:3 1 220px">What<input id="rmTitle" maxlength="200" placeholder="e.g. Call the decorator about the stage" style="width:100%"></label>
+              <label class="muted" style="flex:1 1 170px">When (India time)<input id="rmAt" type="datetime-local" style="width:100%"></label>
+              <label class="muted" style="flex:1 1 150px">For<select id="rmAud" style="width:100%"></select></label>
+            </div>
+            <div class="row" style="gap:8px;align-items:flex-end;margin-top:6px">
+              <label class="muted" style="flex:3 1 220px">Note (optional)<input id="rmNote" maxlength="500" style="width:100%"></label>
+              <label class="muted" style="display:flex;gap:6px;align-items:center;flex:1 1 130px"><input type="checkbox" id="rmDaily"> Every day</label>
+              <button class="btn sm" id="rmSave" type="button">Save reminder</button>
+              <button class="btn ghost sm" id="rmCancel" type="button" hidden>Cancel edit</button>
+            </div>
+            <p class="err" id="rmMsg" role="status"></p>
+          </div>
+        </div>
+        <div class="panel" id="rmShow"></div>
+      </div>
+    </section>
+
     <!-- Games & prizes: schedule, Face-Off score, prizes and supplies -->
     <section id="tab-games" hidden>
       <div class="stats" id="gmStats"></div>
@@ -863,7 +914,7 @@ $('loginForm').addEventListener('submit', async e => {
 $('logout').onclick = signOut;
 $('moreBtn').onclick = e => { e.stopPropagation(); const o = $('hdrMore').classList.toggle('open'); $('moreBtn').setAttribute('aria-expanded', o); };
 document.addEventListener('click', e => { if (!e.target.closest('#moreBtn')) { $('hdrMore').classList.remove('open'); $('moreBtn').setAttribute('aria-expanded', 'false'); } });
-function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue();
+function enter() { $('login').hidden = true; $('app').hidden = false; cacheGuests(); render(); clearInterval(timer); timer = setInterval(() => { if ((!$('tab-guests').hidden && !document.activeElement.closest('#rows') && !$('rows').querySelector('.nl')) || !$('tab-scan').hidden) load(); }, 30000); flushQueue(); loadPlan().then(loadRems).catch(() => {});
   const hashTab = /^#\w+$/.test(location.hash) && document.querySelector('.tabs .tab[data-tab="' + location.hash.slice(1) + '"]');
   if (hashTab && !hashTab.hidden) hashTab.click(); else if (ME && ME.owner && !$('dashTab').hidden) $('dashTab').click(); }
 async function load() { try { guests = await rpc('admin_list'); cacheGuests(); setOffline(false); render(); if (!$('tab-scan').hidden) renderDoor(); if (!$('tab-names').hidden) renderNames(); if (!$('tab-invited').hidden) renderInvites(); if (!$('tab-rooms').hidden) renderRooms(); if (!$('tab-food').hidden) renderFood(); if (!$('tab-seating').hidden) renderSeating(); if (!$('tab-travel').hidden) renderTravel(); } catch (e) { if (e.message !== 'forbidden') { flash('Could not refresh. Retrying soon.'); if (isNetErr(e)) setOffline(true); } } }
@@ -1470,6 +1521,7 @@ async function loadPlan() {
     const tb = st.find(x => x.key === 'tables'); tablesCfg = tb && tb.value && typeof tb.value === 'object' ? tb.value : {};
     const al = st.find(x => x.key === 'album'); album = al && al.value ? al.value.url || '' : '';
     const lv = st.find(x => x.key === 'live'); liveNote = lv ? lv.value : null;
+    const dl = st.find(x => x.key === 'delay'); delaySet = dl && dl.value ? dl.value : {};
     renderPlan();
   } catch (e) { if (e.message !== 'forbidden') flash('Could not load the planning data.'); }
 }
@@ -2018,7 +2070,7 @@ function planName(id, kind, data) {
   if (kind === 'payment' && d) return 'payment of ' + inr(d.amount) + ' by ' + (d.person ? d.person + ', ' : '') + (d.by || '') + ' for ' + (d.item ? (plan.find(b => b.id === d.item) || { data: {} }).data.item || 'an item' : (d.label || 'something else') + ' (one-off)');
   return (KINDN[kind] || kind) + (d ? ' "' + (d.item || d.name || d.title || d.area || d.role || d.meal || '') + '"' : '');
 }
-const KINDN = { game: 'game', gift: 'gift', budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' };
+const KINDN = { cue: 'run-of-show cue', game: 'game', gift: 'gift', budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' };
 function actArea(a) {
   if (a.tbl === 'rsvps') return a.changes && (a.changes.checkins || a.changes.checked_in) && a.action === 'update' ? 'door' : 'guests';
   if (a.tbl === 'invites') return 'guests';
@@ -2449,12 +2501,169 @@ $('gmPrizes').onclick = () => {
     gs.map(x => { const d = x.data, st = PRIZE_ST.indexOf(d.prize_status || 'To buy'), bx = i => '<td>' + (st >= i ? '✓' : '<span class="box"></span>') + '</td>'; return '<tr><td>' + esc(d.name) + '</td><td>' + esc(d.prize) + '</td><td>' + (+d.prize_qty || 1) + '</td><td>' + inr(d.prize_cost) + '</td>' + bx(1) + bx(2) + bx(3) + '</tr>'; }).join('') + '</tbody></table>');
 };
 
+// ---------- reminders, wedding-day cues and phone notifications ----------
+// The server (supabase/functions/wedding-notify, every 5 minutes) sends the phone notifications;
+// this tab shows the same things, lets anyone add reminders and runs the wedding-day cues.
+const VAPID = 'BJ0VUWWGkn1Li1mXisu3PbZ-ljQl4BQN9hkCFnmRNkcNe1pU-eogENRTlf7Q2MSLuhmFIooAVZk_4pKaumYcCkw';
+const AUD = { me: 'Just me', admin: 'Nadeem (admin)', groom: "Groom's family", bride: "Bride's family", all: 'Everyone' };
+const WD = { 1: '2027-01-20', 2: '2027-01-21' };
+let rems = [], cueSt = [], delaySet = {}, rmEdit = null, rmDay = null;
+const T0 = Date.now(), NOWQ = new URLSearchParams(location.search).get('now');
+const nowMs = () => NOWQ ? Date.parse(NOWQ.length <= 16 ? NOWQ + ':00+05:30' : NOWQ) + (Date.now() - T0) : Date.now();
+const istStr = ms => new Date(ms + 330 * 60000).toISOString().slice(0, 16);
+const istDay = ms => istStr(ms).slice(0, 10);
+const fromIst = v => Date.parse(v + ':00+05:30');
+const tTxt = ms => new Date(ms).toLocaleTimeString([], { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit' });
+const dTxt = ms => new Date(ms).toLocaleDateString([], { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short' });
+const ownerMatch = o => !ME || ME.owner || !/groom|bride/i.test(o || '') || (/bride/i.test(o) ? mySide() === 'bride' : mySide() === 'groom');
+const remAt = r => { let t = Date.parse(r.at); if (r.repeat === 'daily') { const n = nowMs(); if (n > t) { t = fromIst(istDay(n) + istStr(t).slice(10)); if (t < n - 3600e3) t += 864e5; } } return t; };
+const cueAt = c => { const date = WD[c.data.day || 1], m = gmMins(c.data.time); if (!date || m === 9999) return null; const late = delaySet.day === date ? +delaySet.minutes || 0 : 0;
+  return Date.parse(date + 'T' + String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0') + ':00+05:30') + late * 60000; };
+const cueDone = c => cueSt.some(x => x.cue_id === c.id && x.done);
+const cueMine = c => { const w = c.data.who || 'all'; return w === 'all' || !ME || ME.owner || w === mySide(); };
+const cues = () => items('cue').map(c => ({ c, at: cueAt(c) })).filter(x => x.at).sort((a, b) => a.at - b.at);
+
+async function loadRems() {
+  try { const [r, c] = await Promise.all([rpc('admin_reminders'), rpc('admin_cues_status')]); rems = r || []; cueSt = c || []; } catch (e) {}
+  renderRemind(); renderBell();
+}
+// Everything due for this login: my reminders, my family's to-dos and payments, messages to send, approvals, and today's cues
+function remFeed() {
+  const n = nowMs(), out = [], nine = d => Date.parse(d + 'T09:00:00+05:30');
+  rems.filter(r => !r.done).forEach(r => out.push({ at: remAt(r), title: r.title, sub: AUD[r.aud] + (r.repeat ? ' · every day' : '') + (r.by_name ? ' · set by ' + r.by_name : '') + (r.note ? ' · ' + r.note : ''), kind: 'rem', r }));
+  items('task').filter(t => !t.data.done && t.data.due && daysTo(t.data.due) <= 3 && ownerMatch(t.data.owner)).forEach(t => out.push({ at: nine(t.data.due), title: t.data.title || 'To-do', sub: 'To-do · ' + (t.data.owner || 'Both'), kind: 'auto', tab: 'todo' }));
+  vendorDues().filter(x => x.days <= 7 && ownerMatch(x.v.data.owner)).forEach(x => out.push({ at: nine(x.dt), title: 'Pay ' + (x.v.data.name || x.v.data.area) + ' (' + x.what + ')', sub: 'Vendor payment' + (x.left != null ? ' · ' + inr(x.left) + ' left' : ''), kind: 'auto', tab: 'vendors' }));
+  PLAN.filter(m => ['due', 'late'].includes(stepState(m))).forEach(m => out.push({ at: nine(m.date), title: 'Send: ' + m.title, sub: 'Message plan', kind: 'auto', tab: 'announce' }));
+  if (ME && ME.owner) { const k = pend.filter(x => x.status === 'pending').length; if (k) out.push({ at: n - 60000, title: k + (k > 1 ? ' family requests' : ' family request') + ' to approve', sub: 'Approvals', kind: 'auto', tab: 'approvals' }); }
+  const day = istDay(n);
+  if (day === WD[1] || day === WD[2]) cues().filter(x => istDay(x.at) === day && !cueDone(x.c) && cueMine(x.c) && x.at > n - 30 * 60000).forEach(x => out.push({ at: x.at, title: x.c.data.title, sub: 'Run of show · ' + (x.c.data.place || ''), kind: 'cue', c: x.c }));
+  return out.sort((a, b) => a.at - b.at);
+}
+function renderBell() {
+  if (!$('remBell') || !ME) return;
+  const end = fromIst(istDay(nowMs()) + 'T23:59'), k = remFeed().filter(x => x.at <= end).length;
+  $('remBell').hidden = !k; $('remBell').textContent = '⏰ ' + k + ' due';
+}
+async function remSaveRow(r, patch) {
+  const v = Object.assign({ title: r.title, at: r.at, aud: r.aud, note: r.note, repeat: r.repeat }, patch);
+  await rpc('admin_reminder_save', { p_id: r.id, p_title: v.title, p_at: new Date(v.at).toISOString(), p_aud: v.aud, p_note: v.note, p_repeat: v.repeat }); await loadRems();
+}
+function renderRemind() {
+  if (!$('rmFeed') || !ME) return;
+  const n = nowMs(), end = fromIst(istDay(n) + 'T23:59'), feed = remFeed();
+  const groups = [['Overdue', x => x.at < n - 60000], ['Today', x => x.at >= n - 60000 && x.at <= end], ['Next 7 days', x => x.at > end && x.at <= end + 7 * 864e5], ['Later', x => x.at > end + 7 * 864e5]];
+  const row = x => {
+    const late = x.at < n - 60000, acts = el('div', { className: 'acts' });
+    if (x.kind === 'rem') {
+      const r = x.r, mine = r.uid === ME.id || ME.owner;
+      const b = (t, f) => { const e = el('button', { className: 'mini', type: 'button', textContent: t }); e.onclick = async () => { e.disabled = true; try { await f(); } catch (err) { toast('Could not save. Try again.'); } e.disabled = false; }; return e; };
+      acts.append(b('✓ Done', () => rpc('admin_reminder_done', { p_id: r.id, p_done: true }).then(loadRems)));
+      if (mine) acts.append(b('+1 hour', () => remSaveRow(r, { at: Math.max(n, x.at) + 3600e3, repeat: '' })), b('Tomorrow 9 AM', () => remSaveRow(r, { at: fromIst(istDay(n + 864e5) + 'T09:00') })),
+        b('Edit', async () => { rmEdit = r; rmFill(r); $('rmTitle').focus(); }), b('×', async () => { if (confirm('Remove this reminder?')) { await rpc('admin_reminder_remove', { p_id: r.id }); await loadRems(); } }));
+    } else if (x.kind === 'cue') {
+      const d = el('button', { className: 'mini', type: 'button', textContent: '✓ Done' }); d.onclick = async () => { try { await rpc('admin_cue_done', { p_id: x.c.id, p_done: true }); await loadRems(); } catch (e) {} }; acts.append(d);
+    } else { const g = el('button', { className: 'mini', type: 'button', textContent: 'Go →' }); g.onclick = () => goTab(x.tab); acts.append(g); }
+    return el('div', { className: 'rm-row' }, el('span', { className: 'dot', style: 'background:' + (late ? 'var(--bad)' : x.kind === 'cue' ? 'var(--gold)' : x.kind === 'rem' ? 'var(--pink2)' : 'var(--gold2)') }),
+      el('div', { className: 't' }, el('b', { textContent: x.title }), el('small', { textContent: (x.at < end && x.at >= fromIst(istDay(n) + 'T00:00') ? tTxt(x.at) : dTxt(x.at) + (x.kind === 'rem' || x.kind === 'cue' ? ' · ' + tTxt(x.at) : '')) + ' · ' + x.sub })), acts);
+  };
+  $('rmFeed').replaceChildren(el('b', { className: 'cin', style: 'color:var(--gold2);font-size:16px' }, '⏰ For you' + (ME.owner ? ' (both families)' : '')),
+    el('div', { className: 'muted', style: 'font-size:12px', textContent: 'Your reminders, your family\'s to-dos and payments due in the next few days, messages to send' + (ME.owner ? ', approvals' : '') + ' and, on the wedding days, the run of show.' }),
+    ...groups.flatMap(([h, f]) => { const xs = feed.filter(f); return xs.length ? [el('div', { className: 'rm-h', textContent: h + ' (' + xs.length + ')' }), ...xs.map(row)] : []; }),
+    feed.length ? '' : el('p', { className: 'muted', textContent: 'Nothing due. 🎉' }),
+    (() => { const dn = rems.filter(r => r.done).slice(0, 5); return dn.length ? el('details', { style: 'margin-top:8px' }, el('summary', { className: 'muted', textContent: 'Done recently (' + dn.length + ')' }),
+      ...dn.map(r => { const u = el('button', { className: 'mini', type: 'button', textContent: 'Undo' }); u.onclick = async () => { await rpc('admin_reminder_done', { p_id: r.id, p_done: false }); loadRems(); };
+        return el('div', { className: 'rm-row' }, el('div', { className: 't' }, el('b', { textContent: r.title }), el('small', { textContent: 'Done by ' + (r.done_by || '?') })), u); })) : ''; })());
+  renderShow(); renderPushBox();
+}
+// Add / edit form
+function rmFill(r) {
+  $('rmAud').replaceChildren(...Object.entries(AUD).filter(([k]) => ME.owner || !(k === 'groom' || k === 'bride') || k === mySide()).map(([k, t]) => el('option', { value: k, textContent: t })));
+  $('rmTitle').value = r ? r.title : ''; $('rmNote').value = r ? r.note : ''; $('rmDaily').checked = !!(r && r.repeat);
+  $('rmAt').value = istStr(r ? Date.parse(r.at) : Math.ceil((nowMs() + 3600e3) / 900e3) * 900e3); $('rmAud').value = r ? r.aud : 'me';
+  $('rmFormTitle').lastChild.textContent = r ? 'Edit reminder' : 'Add a reminder'; $('rmCancel').hidden = !r; $('rmMsg').textContent = '';
+}
+$('rmCancel').onclick = () => { rmEdit = null; rmFill(null); };
+$('rmSave').onclick = async () => {
+  const t = $('rmTitle').value.trim(), v = $('rmAt').value, msg = $('rmMsg');
+  if (!t || !v) { msg.style.color = 'var(--bad)'; msg.textContent = 'Add what and when.'; return; }
+  try { await rpc('admin_reminder_save', { p_id: rmEdit ? rmEdit.id : null, p_title: t, p_at: new Date(fromIst(v)).toISOString(), p_aud: $('rmAud').value, p_note: $('rmNote').value.trim(), p_repeat: $('rmDaily').checked ? 'daily' : '' });
+    msg.style.color = 'var(--ok)'; msg.textContent = 'Saved. ' + ($('rmAud').value === 'me' ? 'You' : AUD[$('rmAud').value]) + ' will be reminded ' + dTxt(fromIst(v)) + ' at ' + tTxt(fromIst(v)) + '.'; rmEdit = null; const keep = msg.textContent; rmFill(null); msg.textContent = keep; await loadRems(); }
+  catch (e) { msg.style.color = 'var(--bad)'; msg.textContent = 'Could not save. Try again.'; }
+};
+// Phone notifications on this device
+const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+async function pushReg() { if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) return null; return (await navigator.serviceWorker.getRegistration('admin.html')) || navigator.serviceWorker.register('admin-sw.js', { scope: './admin.html' }); }
+async function renderPushBox() {
+  const box = $('rmPush'); if (!box) return;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), app = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  let reg = null, sub = null; try { reg = await pushReg(); sub = reg && await reg.pushManager.getSubscription(); } catch (e) {}
+  const st = !reg ? (ios && !app ? 'ios' : 'unsupported') : sub ? 'on' : Notification.permission === 'denied' ? 'blocked' : 'off';
+  const on = el('button', { className: 'btn sm', type: 'button', textContent: '🔔 Turn on notifications on this phone' }), test = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Send a test' }), off = el('button', { className: 'mini', type: 'button', textContent: 'Turn off here' });
+  on.onclick = async () => { on.disabled = true; try {
+    if ((await Notification.requestPermission()) !== 'granted') { toast('Notifications were not allowed. Allow them for this site in your browser settings.'); return renderPushBox(); }
+    const r = await pushReg(), s2 = (await r.pushManager.getSubscription()) || await r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
+    await rpc('admin_push_save', { p_sub: s2.toJSON(), p_ua: navigator.userAgent.slice(0, 200) }); toast('Notifications are on for this device ✓'); } catch (e) { toast('Could not turn on notifications here.'); } renderPushBox(); };
+  test.onclick = async () => { test.disabled = true; try { const r = await fetch(SUPABASE_URL + '/functions/v1/wedding-notify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'test', key: KEY }) }); const j = await r.json(); toast(j.sent ? 'Test sent ✓ It should pop up in a few seconds.' : 'No device got it. Turn notifications on first.'); } catch (e) { toast('Could not send the test.'); } test.disabled = false; };
+  off.onclick = async () => { try { if (sub) await sub.unsubscribe(); toast('Notifications are off on this device.'); } catch (e) {} renderPushBox(); };
+  let dev = null; try { dev = await rpc('admin_push_devices'); } catch (e) {}
+  box.replaceChildren(el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:10px' },
+    el('div', { style: 'flex:1 1 260px' }, el('b', { className: 'cin', style: 'color:var(--gold2)' }, st === 'on' ? '🔔 Notifications are on for this device' : '🔕 Notifications are off on this device'),
+      el('div', { className: 'muted', style: 'font-size:12.5px', textContent: st === 'ios' ? 'On iPhone: tap Share → Add to Home Screen, open the Wedding Panel from your home screen, then turn notifications on there.' :
+        st === 'blocked' ? 'Notifications are blocked for this site. Allow them in your browser\'s site settings, then come back.' : st === 'unsupported' ? 'This browser cannot show notifications. Use Chrome on Android, or add the panel to your iPhone home screen.' :
+        'You get your reminders on time, a 9 AM summary of what is due, and on the wedding days an alert before each cue, even when the panel is closed.' }),
+      dev ? el('div', { className: 'muted', style: 'font-size:12px;margin-top:2px', textContent: 'Devices signed up: ' + dev.all + (dev.people && dev.people.length ? ' (' + dev.people.join(', ') + ')' : '') }) : ''),
+    el('div', { className: 'row', style: 'gap:6px' }, ...(st === 'on' ? [test, off] : st === 'off' ? [on] : []))));
+}
+// Wedding-day run of show: timed cues, an alert before each, "running late" for the admin
+function renderShow() {
+  const box = $('rmShow'); if (!box) return;
+  const n = nowMs(), today = istDay(n), live = today === WD[1] ? 1 : today === WD[2] ? 2 : null;
+  if (rmDay == null) rmDay = live || 1;
+  const day = rmDay, list = cues().filter(x => +(x.c.data.day || 1) === day), late = delaySet.day === WD[day] ? +delaySet.minutes || 0 : 0;
+  const tabs = el('div', { className: 'row', style: 'gap:6px' }, ...[1, 2].map(d => { const b = el('button', { className: d === day ? 'btn sm' : 'btn ghost sm', type: 'button', textContent: d === 1 ? 'Day 1 · Wed 20' : 'Day 2 · Thu 21' }); b.onclick = () => { rmDay = d; renderShow(); }; return b; }));
+  const nextC = list.find(x => !cueDone(x.c) && x.at >= n - 5 * 60000), nowC = list.slice().reverse().find(x => x.at <= n && !cueDone(x.c));
+  const banner = live === day && list.length ? el('div', { className: 'rm-now' }, nowC ? el('div', {}, el('small', { className: 'muted', textContent: 'Now (' + tTxt(nowC.at) + ')' }), el('b', { className: 'big', textContent: nowC.c.data.title })) : '',
+    nextC ? el('div', { style: 'margin-top:6px' }, el('small', { className: 'muted', textContent: 'Next · ' + tTxt(nextC.at) + (nextC.at > n ? ' · in ' + Math.max(1, Math.round((nextC.at - n) / 60000)) + ' min' : '') }), el('b', { textContent: ' ' + nextC.c.data.title })) : el('div', { textContent: 'That\'s a wrap for today 🤍' })) : '';
+  const lateCtl = ME && ME.owner ? (() => { const s2 = el('select', {}); [0, 5, 10, 15, 20, 30, 45, 60].forEach(m => s2.append(el('option', { value: m, textContent: m ? 'Running ' + m + ' min late' : 'On time' }))); s2.value = String(late);
+    s2.onchange = async () => { try { await rpc('admin_setting_set', { p_name: 'delay', p_value: { day: WD[day], minutes: +s2.value } }); delaySet = { day: WD[day], minutes: +s2.value }; toast(+s2.value ? 'Later cues moved by ' + s2.value + ' min; alerts follow ✓' : 'Back on time ✓'); renderShow(); renderBell(); } catch (e) {} }; return s2; })()
+    : late ? el('span', { className: 'muted', style: 'color:var(--warn)', textContent: 'Running ' + late + ' min late' }) : '';
+  const add = ME && ME.owner ? (() => { const b = el('button', { className: 'mini', type: 'button', textContent: '+ Add a cue' }); b.onclick = async () => { try { await savePlan(null, { day, time: '12:00 PM', title: 'New cue', place: '', who: 'all', lead: 10, note: '' }, 'cue'); renderShow(); } catch (e) {} }; return b; })() : '';
+  const pr = el('button', { className: 'mini', type: 'button', textContent: '🖨 Print' }); pr.onclick = () => printPage('Run of show', '<h1>Run of show · ' + (day === 1 ? 'Wed 20 Jan' : 'Thu 21 Jan') + '</h1><table><thead><tr><th>Time</th><th>Cue</th><th>Where</th><th>For</th><th>Note</th><th>Done</th></tr></thead><tbody>' +
+    list.map(x => '<tr><td>' + tTxt(x.at) + '</td><td><b>' + esc(x.c.data.title) + '</b></td><td>' + esc(x.c.data.place || '') + '</td><td>' + esc(AUD[x.c.data.who || 'all']) + '</td><td><small>' + esc(x.c.data.note || '') + '</small></td><td><span class="box"></span></td></tr>').join('') + '</tbody></table>');
+  box.replaceChildren(el('div', { className: 'row', style: 'justify-content:space-between;align-items:center;gap:8px' }, el('b', { className: 'cin', style: 'color:var(--gold2);font-size:16px' }, '📋 Wedding-day run of show'), el('div', { className: 'row', style: 'gap:6px;align-items:center' }, lateCtl, pr, add)),
+    el('div', { className: 'muted', style: 'font-size:12px;margin:2px 0 8px', textContent: 'Each cue alerts its people a few minutes before (the bell time), shifted if you are running late. Tick cues off as they happen.' }), tabs, banner,
+    ...list.map(x => { const d = x.c.data, done = cueDone(x.c), ck = el('input', { type: 'checkbox', checked: done, title: 'Done' });
+      ck.onchange = async () => { try { await rpc('admin_cue_done', { p_id: x.c.id, p_done: ck.checked }); await loadRems(); } catch (e) { ck.checked = !ck.checked; } };
+      const ed = ME && ME.owner ? (() => { const b = el('button', { className: 'mini', type: 'button', textContent: 'Edit' }); b.onclick = () => { const w = b.closest('.cue'); w.replaceChildren(el('div', { style: 'grid-column:1/-1' },
+        el('div', { className: 'row', style: 'gap:6px' }, cell(x.c, 'time', { max: 12 }), cell(x.c, 'title', { max: 120 }), cell(x.c, 'place', { max: 60 })),
+        el('div', { className: 'row', style: 'gap:6px;margin-top:4px;align-items:center' }, pick(x.c, 'who', ['all', 'admin', 'groom', 'bride']), el('label', { className: 'muted', style: 'font-size:12px' }, 'Alert minutes before', cell(x.c, 'lead', { num: true })), cell(x.c, 'note', { max: 200, ph: 'Note' }),
+          (() => { const rm = el('button', { className: 'mini', type: 'button', textContent: 'Remove' }); rm.onclick = () => { if (confirm('Remove this cue?')) removePlan(x.c).then(renderShow); }; return rm; })(),
+          (() => { const ok = el('button', { className: 'mini', type: 'button', textContent: 'Close' }); ok.onclick = () => renderShow(); return ok; })()))); }; return b; })() : '';
+      return el('div', { className: 'cue' + (done ? ' done' : '') + (live === day && nextC && x === nextC ? ' next' : '') },
+        el('div', { className: 'tm' }, tTxt(x.at), late ? el('s', { textContent: d.time }) : ''),
+        el('div', { className: 'ct' }, el('div', { textContent: d.title }), el('small', { textContent: [d.place, AUD[d.who || 'all'], '🔔 ' + (d.lead == null ? 10 : d.lead) + ' min before', d.note].filter(Boolean).join(' · ') })),
+        el('div', { className: 'row', style: 'gap:4px;align-items:center' }, ed, ck)); }),
+    list.length ? '' : el('p', { className: 'muted', textContent: 'No cues for this day yet.' }));
+}
+// While the panel is open: a nudge (toast + buzz) the moment something falls due, in case the phone is on silent
+setInterval(() => {
+  if (!ME || document.visibilityState !== 'visible') return;
+  const n = nowMs(); let seen = []; try { seen = JSON.parse(localStorage.getItem('nd27-nudged') || '[]'); } catch (e) {}
+  remFeed().filter(x => (x.kind === 'rem' || x.kind === 'cue') && x.at <= n + (x.kind === 'cue' ? ((x.c.data.lead == null ? 10 : +x.c.data.lead) * 60000) : 0) && x.at > n - 10 * 60000).forEach(x => {
+    const k = (x.r ? x.r.id : x.c.id) + ':' + x.at; if (seen.includes(k)) return; seen.push(k);
+    toast('⏰ ' + (x.kind === 'cue' ? tTxt(x.at) + ' · ' : '') + x.title); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+  });
+  try { localStorage.setItem('nd27-nudged', JSON.stringify(seen.slice(-200))); } catch (e) {}
+  renderBell(); if (!$('tab-remind').hidden) { renderShow(); }
+}, 30000);
+$('remBell').onclick = () => goTab('remind');
+
 // ---------- dashboard: the whole wedding on one screen ----------
 let dbActs = [], dbAt = 0;
 const goTab = t => { const b = document.querySelector('.tab[data-tab="' + t + '"]'); if (b) { b.click(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
 async function loadDash() {
   renderDash();
-  await Promise.all([load(), loadPlan(), loadInvites(), loadPending(), loadMsgs(), rpc('admin_activity', { p_limit: 80 }).then(r => { dbActs = r || []; }).catch(() => {})]);
+  await Promise.all([load(), loadPlan().then(loadRems), loadInvites(), loadPending(), loadMsgs(), rpc('admin_activity', { p_limit: 80 }).then(r => { dbActs = r || []; }).catch(() => {})]);
   dbAt = Date.now(); renderDash();
 }
 function renderDash() {
@@ -2582,6 +2791,8 @@ function renderDash() {
       const po = gl.filter(x => x.data.prize && !['Wrapped', 'Given', 'Not needed'].includes(x.data.prize_status || 'To buy')).length;
       return card('Games & prizes', 'games', line('Games played', pg.filter(x => x.data.status === 'Done').length + ' of ' + pg.length), line('Face-Off score', "Groom's " + f.pts.groom + ' – ' + f.pts.bride + " Bride's"),
         line('Prizes not yet wrapped', String(po), po && days <= 10 ? 'color:var(--warn)' : ''), line('Prizes & supplies', inr(gl.reduce((n, x) => n + gmCost(x), 0))), nx ? line('Next', nx.data.name + ' · ' + (nx.data.day == 2 ? 'Thu' : 'Wed') + ' ' + (nx.data.time || '')) : ''); })(),
+    (() => { const f = remFeed(), n = nowMs(), late = f.filter(x => x.at < n - 60000).length;
+      return card('Reminders', 'remind', line('Overdue', String(late), late ? 'color:var(--bad)' : ''), ...f.filter(x => x.at >= n - 60000).slice(0, 4).map(x => line(x.title, dTxt(x.at) + (x.kind !== 'auto' ? ' ' + tTxt(x.at) : '')))); })(),
     card('Messages', 'announce',
       ...fams.map(([k, n]) => { const c = PLAN.filter(x => sentBy(x.id, k)).length; return el('div', {}, line(n + ' sent', c + ' of ' + PLAN.length), bar(c, PLAN.length, 'ok')); }),
       msgDue.length ? line('Send now', msgDue.map(x => x.title).join(', '), 'color:var(--bad)') : '', msgNext ? line('Next', msgNext.title + ' · ' + fmtDay(msgNext.date)) : ''),
@@ -2606,8 +2817,8 @@ function renderDash() {
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'games', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
-  if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan(); if (t.dataset.tab === 'games') loadPlan();
+  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'games', 'remind', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan(); if (t.dataset.tab === 'games') loadPlan(); if (t.dataset.tab === 'remind') { rmFill(rmEdit); loadPlan().then(loadRems); loadPending(); loadMsgs(); }
   if (t.dataset.tab === 'dash') loadDash();
   if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
   if (['budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
