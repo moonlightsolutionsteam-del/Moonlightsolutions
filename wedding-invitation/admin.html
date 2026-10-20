@@ -245,7 +245,7 @@
   .tab[data-tab]::before, #refresh::before, #export::before, #logout::before, #toSite::before { font-family:'Font Awesome 6 Free'; font-weight:900; margin-right:7px; font-size:.92em; opacity:.9; display:inline-block; }
   .tab[data-tab=guests]::before { content:'\f0c0'; } .tab[data-tab=invited]::before { content:'\f0e0'; } .tab[data-tab=names]::before { content:'\f0ca'; }
   .tab[data-tab=rooms]::before { content:'\f236'; } .tab[data-tab=food]::before { content:'\f1ec'; } .tab[data-tab=scan]::before { content:'\f52b'; }
-  .tab[data-tab=announce]::before { content:'\f0a1'; } .tab[data-tab=add]::before { content:'\f234'; } .tab[data-tab=overview]::before { content:'\f624'; }
+  .tab[data-tab=announce]::before { content:'\f0a1'; } .tab[data-tab=add]::before { content:'\f234'; }
   .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
   .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
   .tab[data-tab=access]::before { content:'\f084'; } #toSite::before { content:'\f004'; }
@@ -344,8 +344,7 @@
     </div>
     <div class="tabs" role="tablist" aria-label="Planning" style="margin-top:-6px">
       <span class="tg">Planning</span>
-      <button class="tab" role="tab" data-tab="dash" aria-selected="false" id="dashTab" hidden>Dashboard</button>
-      <button class="tab" role="tab" data-tab="overview" aria-selected="false">Overview</button>
+      <button class="tab" role="tab" data-tab="dash" aria-selected="false" id="dashTab">Dashboard</button>
       <button class="tab" role="tab" data-tab="budget" aria-selected="false">Budget &amp; payments</button>
       <button class="tab" role="tab" data-tab="menu" aria-selected="false">Menu</button>
       <button class="tab" role="tab" data-tab="vendors" aria-selected="false">Vendors</button>
@@ -479,18 +478,13 @@
       <p class="muted" id="fMsg"></p>
     </section>
 
-    <!-- Overview: the whole wedding at a glance -->
-    <!-- Master dashboard for the super admin: every area on one screen -->
+    <!-- Dashboard: the whole wedding on one screen (merged with the old Overview) -->
     <section id="tab-dash" hidden>
       <div class="panel db-head" id="dbHead"></div>
       <div class="panel" id="dbAttn" style="margin-top:10px"></div>
       <div class="db-grid" id="dbGrid"></div>
     </section>
 
-    <section id="tab-overview" hidden>
-      <div class="stats" id="oStats"></div>
-      <div id="oCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"></div>
-    </section>
 
     <!-- Catering menu: dishes, plates and both families' approval -->
     <section id="tab-menu" hidden>
@@ -1314,7 +1308,7 @@ const fillMsg = (text, x) => String(text || '').replace(/ ?\{name\}/g, x && x.na
 const daysTo = d => { const n = new Date(); return Math.round((new Date(d + 'T00:00:00') - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 864e5); };
 const fmtDay = d => new Date(d + 'T00:00:00').toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
 const sentBy = (id, side) => sent.find(x => x.step === id && x.side === side);
-async function loadMsgs() { try { sent = await rpc('admin_msgs'); } catch (e) { sent = []; } renderPlanList(); if (!$('tab-overview').hidden) renderOverview(); }
+async function loadMsgs() { try { sent = await rpc('admin_msgs'); } catch (e) { sent = []; } renderPlanList(); renderDash(); }
 function stepState(m) {
   const sides = ME && !ME.owner ? [mySide()] : ['groom', 'bride'], done = sides.every(sd => sentBy(m.id, sd)), dt = daysTo(m.date), end = m.until ? daysTo(m.until) : dt;
   return done ? 'sent' : dt <= 0 && end >= -3 ? 'due' : end < -3 ? 'late' : 'soon';
@@ -1397,7 +1391,7 @@ const meLabel = () => !ME ? '' : ME.owner ? ME.name + ' (Super admin)' : /family
 function showWho() { $('whoBtn').textContent = '👤 ' + (ME ? meLabel() : ''); }
 function setMe(me) {
   ME = me; try { localStorage.setItem('nd27-me', JSON.stringify(me)); } catch (e) {}
-  showWho(); $('accessTab').hidden = !me.owner; $('dashTab').hidden = !me.owner;
+  showWho(); $('accessTab').hidden = !me.owner; 
   ['aSide', 'iSide'].forEach(id => { const sel = $(id); [...sel.options].forEach(o => { o.disabled = otherFam(o.value); }); if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = [...sel.options].find(o => !o.disabled).value; });
   $('aSideF').value = me.owner ? '' : (me.fam[0] === 'G' ? 'groom' : 'bride');
   $('famNote').hidden = me.owner;
@@ -1465,7 +1459,7 @@ async function loadPlan() {
   } catch (e) { if (e.message !== 'forbidden') flash('Could not load the planning data.'); }
 }
 function renderPlan() {
-  if (!$('tab-overview').hidden) renderOverview();
+  renderDash();
   if (!$('tab-menu').hidden) renderMenu();
   if (!$('tab-budget').hidden) renderBudget();
   if (!$('tab-vendors').hidden) renderVendors();
@@ -1916,36 +1910,6 @@ $('mCopy').onclick = async () => {
   try { await navigator.clipboard.writeText(text); $('mMsg').textContent = 'Copied. Paste it into WhatsApp.'; } catch (e) { $('mMsg').textContent = text; }
 };
 
-// ---------- overview ----------
-function renderOverview() {
-  const m = money(), all = active(), gst = all.filter(g => !/^vendor/i.test(g.side)), sum = a => a.reduce((n, g) => n + g.guests, 0);
-  const days = Math.max(0, Math.floor((T(20, '12:00') - Date.now()) / 864e5));
-  const open = items('task').filter(t => !t.data.done), late = open.filter(t => t.data.due && t.data.due < today());
-  const ms = items('menu'), vs = items('vendor'), notBooked = vs.filter(v => /Enquiry|Quotes|To book/.test(v.data.status));
-  const staying = gst.filter(g => g.days.includes(1)), placed = staying.filter(g => !roomless(g)), roomed = staying.reduce((n, g) => n + sleepers(g).length - roomless(g), 0), stayN = staying.reduce((n, g) => n + sleepers(g).length, 0);
-  $('oStats').replaceChildren(...[[days, 'Days to go'], [sum(gst), 'People RSVPed'], [inr(m.paid.groom + m.paid.bride) + ' / ' + inr(m.total.groom + m.total.bride), 'Paid of the total'], [late.length, 'Overdue to-dos']]
-    .map(([n, l]) => el('div', { className: 'stat', style: l === 'Overdue to-dos' && n ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
-  const card = (title, tab, lines) => {
-    const go = el('button', { className: 'mini', textContent: 'Open →' }); go.onclick = () => document.querySelector('.tab[data-tab="' + tab + '"]').click();
-    return el('div', { className: 'panel', style: 'padding:12px' }, el('div', { className: 'row', style: 'justify-content:space-between;align-items:center' }, el('b', { className: 'cin', textContent: title }), go),
-      ...lines.map(l => typeof l === 'string' ? el('div', { style: 'font-size:14px;margin-top:4px', textContent: l }) : l));
-  };
-  const warn = t => el('div', { style: 'font-size:14px;margin-top:4px;color:var(--warn)', textContent: t });
-  $('oCards').replaceChildren(
-    card('Guests', 'guests', ['Day 1: ' + sum(gst.filter(g => g.days.includes(1))) + ' of 100 planned', 'Nikah: ' + sum(gst.filter(g => g.days.includes(2))) + ' of 200 planned', 'Reception: ' + sum(gst.filter(g => g.days.includes(3))) + ' of 200 planned', 'RSVPs close on 15 December']),
-    card('Money', 'budget', ["Groom's family: " + inr(m.paid.groom) + ' paid of ' + inr(m.total.groom), "Bride's family: " + inr(m.paid.bride) + ' paid of ' + inr(m.total.bride),
-      ...(m.total.groom > cap ? [warn("Groom's family is " + inr(m.total.groom - cap) + ' over the cap')] : []), ...(m.total.bride > cap ? [warn("Bride's family is " + inr(m.total.bride - cap) + ' over the cap')] : []),
-      m.settle ? warn((m.settle > 0 ? "Bride's family owes groom's family " : "Groom's family owes bride's family ") + inr(Math.abs(m.settle))) : 'Families are even on payments so far']),
-    card('To-do', 'todo', [open.length + ' still to do · ' + late.length + ' overdue', ...open.sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9'))).slice(0, 4).map(t => (t.data.due < today() ? warn : (x => x))((t.data.due ? new Date(t.data.due).toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' · ' : '') + t.data.title + ' (' + t.data.owner + ')'))]),
-    card('Vendors', 'vendors', [vs.filter(v => /Booked|Paid|Advance/.test(v.data.status)).length + ' booked · ' + notBooked.length + ' still to close', ...notBooked.slice(0, 5).map(v => '• ' + v.data.area + ' (' + v.data.status + ')')]),
-    card('Menu', 'menu', [ms.filter(it => it.data.status === 'Final').length + ' of ' + ms.length + ' meals final', ms.filter(it => it.data.ok_groom && it.data.ok_bride).length + ' approved by both families', ...ms.filter(it => !(it.data.ok_groom && it.data.ok_bride)).slice(0, 3).map(it => '• ' + it.data.meal + ': waiting for ' + [it.data.ok_groom ? '' : "groom's", it.data.ok_bride ? '' : "bride's"].filter(Boolean).join(' and ') + ' approval')]),
-    ...(() => { const w = plan.filter(x => !x.removed && VIEW_KINDS[x.kind] && openViews(x).length); return w.length ? [card('Views to settle', w[0].kind === 'budget' ? 'budget' : w[0].kind === 'vendor' ? 'vendors' : 'menu', [w.length + (w.length > 1 ? ' items have' : ' item has') + " a family's view waiting", ...w.slice(0, 4).map(x => '• ' + itemTitle(x) + ' (' + openViews(x).map(o => SIDEN[o.side].replace(' family', '')).join(' + ') + ')')])] : []; })(),
-    (() => { const due = PLAN.filter(m => ['due', 'late'].includes(stepState(m))), nx = PLAN.find(m => stepState(m) === 'soon');
-      return card('Messages', 'announce', [...due.map(m => warn('Send now: ' + m.title)), nx ? 'Next: ' + nx.title + ' · ' + fmtDay(nx.date) + ' (in ' + daysTo(nx.date) + ' days)' : 'All planned messages sent']); })(),
-    (() => { const du = vendorDues(), soon = du.filter(x => x.days <= 45);
-      return card('Vendor payments due', 'vendors', du.length ? (soon.length ? soon.slice(0, 5).map(x => (x.days < 0 ? warn : (t => t))((x.v.data.name || x.v.data.area) + ': ' + x.what + ' ' + (x.days < 0 ? 'overdue since ' : 'due ') + fmtDay(x.dt) + (x.left != null ? ' · ' + inr(x.left) + ' left' : ''))) : ['Nothing due in the next 45 days', 'Next: ' + (du[0].v.data.name || du[0].v.data.area) + ' ' + du[0].what + ' on ' + fmtDay(du[0].dt)]) : ['No due dates yet. Add "Advance due by" and "Balance due by" on each vendor card.']); })(),
-    card('Rooms (Wednesday night)', 'rooms', [roomed + ' of ' + stayN + ' people have a room', staying.length - placed.length ? warn((staying.length - placed.length) + ' families still to place') : 'Everyone staying has a room']));
-}
 
 // ---------- vendors ----------
 const V_STATUS = ['Enquiry sent', 'Quotes in', 'To book', 'Booked', 'Advance paid', 'Paid in full', 'Own', 'Family'];
@@ -2016,7 +1980,7 @@ $('ntAdd').onclick = async () => {
   try { await savePlan(null, { title: t, owner: $('ntOwner').value, due: $('ntDue').value, area: $('ntArea').value, done: false, done_by: '', done_at: null }, 'task'); $('ntTitle').value = ''; renderTodo(); } catch (e) {}
 };
 // Keep both families' screens current while a planning tab is open (skip while someone is typing)
-setInterval(() => { const on = ['overview', 'budget', 'menu', 'vendors', 'todo'].some(n => !$('tab-' + n).hidden); if (on && KEY && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) loadPlan(); }, 60000);
+setInterval(() => { const on = ['dash', 'budget', 'menu', 'vendors', 'todo'].some(n => !$('tab-' + n).hidden); if (on && KEY && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) loadPlan(); }, 60000);
 
 // ---------- activity: every change, sign-in and wrong passphrase, with who did it ----------
 let acts = [];
@@ -2324,7 +2288,7 @@ $('gAdd').onclick = async () => {
   catch (e) { msg.style.color = queued(e) ? 'var(--warn)' : 'var(--bad)'; msg.textContent = queued(e) ? 'Sent to Nadeem for approval.' : 'Could not save. Try again.'; }
 };
 
-// ---------- vendor payment reminders (for the Overview) ----------
+// ---------- vendor payment reminders (for the Dashboard) ----------
 function vendorDues() {
   const out = [];
   items('vendor').forEach(v => {
@@ -2393,7 +2357,7 @@ $('dCards').onclick = () => {
       '<div class="what">' + esc(d.data.what || '') + '</div>' + qr(SITE + 'team.html?d=' + d.id) + '<div class="scan">Scan for your run sheet: timings, the team and who to call</div></div>').join(''));
 };
 
-// ---------- master dashboard (super admin) ----------
+// ---------- dashboard: the whole wedding on one screen ----------
 let dbActs = [], dbAt = 0;
 const goTab = t => { const b = document.querySelector('.tab[data-tab="' + t + '"]'); if (b) { b.click(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
 async function loadDash() {
@@ -2465,8 +2429,9 @@ function renderDash() {
   if (lateT.length > 5) add(0, pl(lateT.length - 5, 'more overdue to-do', 'more overdue to-dos'), 'todo');
   msgDue.forEach(x => add(0, 'Message to send now: ' + x.title, 'announce'));
   fams.forEach(([k, n]) => { if (m.total[k] > cap) add(0, n + ' is ' + inr(m.total[k] - cap) + ' over the ' + inr(cap) + ' cap', 'budget'); });
-  if (pendN.length) add(1, pendN.length + (pendN.length > 1 ? ' family requests are' : ' family request is') + ' waiting for your approval', 'approvals');
-  if (viewsOpen.length) add(1, viewsOpen.length + (viewsOpen.length > 1 ? ' items have' : ' item has') + ' a family view to settle', checks[11][3]);
+  const owner = !!(ME && ME.owner);
+  if (pendN.length) add(1, owner ? pendN.length + (pendN.length > 1 ? ' family requests are' : ' family request is') + ' waiting for your approval' : pl(pendN.length, 'of your requests is', 'of your requests are') + " waiting for Nadeem's approval", 'approvals');
+  if (viewsOpen.length) add(1, viewsOpen.length + (viewsOpen.length > 1 ? ' items have' : ' item has') + (owner ? ' a family view to settle' : ' a family view waiting for Nadeem'), checks[11][3]);
   dueSoon.forEach(x => add(1, (x.v.data.name || x.v.data.area) + ': ' + x.what + ' due ' + fmtDay(x.dt) + (x.left != null ? ' · ' + inr(x.left) + ' left' : ''), 'vendors'));
   soonT.slice(0, 3).forEach(t => add(1, 'Due this week: ' + t.data.title + ' (' + fmtDay(t.data.due) + ')', 'todo'));
   if (noRoom.length) add(1, noRoom.length + ' staying ' + (noRoom.length > 1 ? 'parties have' : 'party has') + ' people without a room', 'rooms');
@@ -2518,11 +2483,14 @@ function renderDash() {
       line('Duties with both days covered', dutyFilled + ' of ' + duties.length), bar(dutyFilled, duties.length, 'ok'),
       line('Emergency details filled', emFilled + ' of ' + EMK.length), bar(emFilled, EMK.length, emFilled === EMK.length ? 'ok' : 'warn'),
       line('To-dos done', tasks.length - openT.length + ' of ' + tasks.length), bar(tasks.length - openT.length, tasks.length, 'ok')),
+    card('To-do', 'todo',
+      line('Still to do', pl(openT.length, 'task', 'tasks') + (lateT.length ? ' · ' + lateT.length + ' overdue' : ''), lateT.length ? 'color:var(--bad)' : ''),
+      ...openT.slice().sort((a, b) => String(a.data.due || '9').localeCompare(String(b.data.due || '9'))).slice(0, 5).map(t => line(t.data.title || 'Untitled', t.data.due ? fmtDay(t.data.due) : 'no date', t.data.due && t.data.due < today() ? 'color:var(--bad)' : ''))),
     card('Messages', 'announce',
       ...fams.map(([k, n]) => { const c = PLAN.filter(x => sentBy(x.id, k)).length; return el('div', {}, line(n + ' sent', c + ' of ' + PLAN.length), bar(c, PLAN.length, 'ok')); }),
       msgDue.length ? line('Send now', msgDue.map(x => x.title).join(', '), 'color:var(--bad)') : '', msgNext ? line('Next', msgNext.title + ' · ' + fmtDay(msgNext.date)) : ''),
     card('Gifts', 'gifts',
-      line('Gifts recorded', String(gifts.length)), ...fams.map(([k, n]) => line('Cash to ' + n.toLowerCase(), inr(gifts.filter(x => x.data.side === k).reduce((a, x) => a + (+x.data.amount || 0), 0)))),
+      line('Gifts recorded', String(gifts.length)), ...fams.filter(([k]) => owner || k === mySide()).map(([k, n]) => line('Cash to ' + n.toLowerCase(), inr(gifts.filter(x => x.data.side === k).reduce((a, x) => a + (+x.data.amount || 0), 0)))),
       line('Thanked', gifts.filter(x => x.data.thanked).length + ' of ' + gifts.length), bar(gifts.filter(x => x.data.thanked).length, gifts.length, 'ok')),
     card('Website', 'announce',
       line('Live note', liveNote && liveNote.text ? '“' + liveNote.text.slice(0, 40) + (liveNote.text.length > 40 ? '…' : '') + '”' : 'none posted'),
@@ -2542,11 +2510,11 @@ function renderDash() {
 // ---------- tabs ----------
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tabs .tab[data-tab]').forEach(x => x.setAttribute('aria-selected', x === t));
-  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'overview', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
+  ['dash', 'guests', 'invited', 'names', 'rooms', 'seating', 'travel', 'food', 'scan', 'announce', 'add', 'budget', 'menu', 'vendors', 'todo', 'gifts', 'approvals', 'activity', 'access'].forEach(n => $('tab-' + n).hidden = n !== t.dataset.tab);
   if (t.dataset.tab === 'seating') loadPlan().then(renderSeating); if (t.dataset.tab === 'travel') renderTravel(); if (t.dataset.tab === 'gifts') loadPlan();
   if (t.dataset.tab === 'dash') loadDash();
   if (t.dataset.tab === 'activity') loadActivity(); if (t.dataset.tab === 'approvals') loadPending(); if (t.dataset.tab === 'access') loadUsers();
-  if (['overview', 'budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
+  if (['budget', 'menu', 'vendors', 'todo'].includes(t.dataset.tab)) loadPlan();
   if (t.dataset.tab === 'scan') renderDoor(); if (t.dataset.tab === 'announce') { renderSiteBox(); renderAnnounce(); loadMsgs(); loadInvites().then(renderAnnounce); if (!plan.length) loadPlan().then(renderAnnounce); }
   if (t.dataset.tab === 'invited') loadInvites(); if (t.dataset.tab === 'rooms') loadRooms(); if (t.dataset.tab === 'food') renderFood();
   if (t.dataset.tab !== 'scan') stopCam(); if (t.dataset.tab === 'guests') load(); if (t.dataset.tab === 'names') renderNames();
