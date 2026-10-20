@@ -236,13 +236,13 @@
 
 
   /* ---------- icons ---------- */
-  .tab[data-tab]::before, #refresh::before, #export::before, #logout::before { font-family:'Font Awesome 6 Free'; font-weight:900; margin-right:7px; font-size:.92em; opacity:.9; display:inline-block; }
+  .tab[data-tab]::before, #refresh::before, #export::before, #logout::before, #toSite::before { font-family:'Font Awesome 6 Free'; font-weight:900; margin-right:7px; font-size:.92em; opacity:.9; display:inline-block; }
   .tab[data-tab=guests]::before { content:'\f0c0'; } .tab[data-tab=invited]::before { content:'\f0e0'; } .tab[data-tab=names]::before { content:'\f0ca'; }
   .tab[data-tab=rooms]::before { content:'\f236'; } .tab[data-tab=food]::before { content:'\f1ec'; } .tab[data-tab=scan]::before { content:'\f52b'; }
   .tab[data-tab=announce]::before { content:'\f0a1'; } .tab[data-tab=add]::before { content:'\f234'; } .tab[data-tab=overview]::before { content:'\f624'; }
   .tab[data-tab=budget]::before { content:'\f555'; } .tab[data-tab=menu]::before { content:'\f2e7'; } .tab[data-tab=vendors]::before { content:'\f54e'; }
   .tab[data-tab=todo]::before { content:'\f0ae'; } .tab[data-tab=approvals]::before { content:'\f0f3'; } .tab[data-tab=activity]::before { content:'\f1da'; }
-  .tab[data-tab=access]::before { content:'\f084'; }
+  .tab[data-tab=access]::before { content:'\f084'; } #toSite::before { content:'\f004'; }
   .tab[data-tab=seating]::before { content:'\f6c0'; } .tab[data-tab=travel]::before { content:'\f1b9'; } .tab[data-tab=gifts]::before { content:'\f06b'; }
   #refresh::before { content:'\f2f1'; } #export::before { content:'\f56d'; } #logout::before { content:'\f2f5'; }
   .tab[aria-selected=true]::before { animation:icWiggle .5s var(--spring); }
@@ -274,6 +274,7 @@
       <p class="err" id="loginErr" role="alert"></p>
       <p class="muted" style="font-size:12px;margin:4px 0 0" id="loginHint">Everyone has their own passphrase, so the panel knows who made each change.</p>
     </form>
+    <p style="margin:14px 0 0;font-size:13px"><a href="./" style="color:var(--gold2)">← Back to the wedding website</a></p>
   </section>
 
   <main id="app" hidden>
@@ -282,6 +283,7 @@
       <div class="row" style="gap:8px">
         <button class="btn sm" id="apprPill" hidden></button>
         <button class="btn ghost sm" id="whoBtn" title="My account and passphrase"></button>
+        <a class="btn ghost sm" id="toSite" href="./" style="text-decoration:none">Wedding website</a>
         <button class="btn ghost sm" id="refresh">Refresh</button>
         <button class="btn ghost sm" id="export">Export CSV</button>
         <button class="btn ghost sm" id="logout">Sign out</button>
