@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Run Sheet · Nadeem & Dariya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --gold:#f5d27a; --ink:#fff; --soft:rgba(255,255,255,.75); --card:rgba(255,255,255,.08); --line:rgba(255,255,255,.18); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#0c8790 radial-gradient(ellipse at 50% 0%,#15a8a3 0%,#0c868d 45%,#08707b 100%) fixed; color:var(--ink); font:15px/1.5 'Plus Jakarta Sans',sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:24px 16px 48px; }
+  header { text-align:center; margin-bottom:18px; }
+  .names { font-family:'Great Vibes',cursive; font-size:2.4rem; color:var(--gold); line-height:1.1; }
+  .sub { color:var(--soft); font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:14px 0; }
+  h2 { margin:0 0 8px; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); }
+  .role { font-size:1.35rem; font-weight:700; }
+  .what { color:var(--soft); margin-top:4px; }
+  .who { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .who div { background:rgba(0,0,0,.15); border-radius:10px; padding:8px 10px; }
+  .who small { display:block; color:var(--soft); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+  .tabs { display:flex; gap:8px; margin-bottom:10px; }
+  .tabs button { flex:1; border:1px solid var(--line); background:none; color:var(--ink); border-radius:999px; padding:8px; font:600 13px inherit; font-family:inherit; cursor:pointer; }
+  .tabs button.on { background:var(--gold); color:#3a2a06; border-color:var(--gold); }
+  .ev { display:grid; grid-template-columns:118px 1fr; gap:10px; padding:9px 0; border-top:1px solid var(--line); }
+  .ev:first-child { border-top:0; }
+  .ev .t { color:var(--gold); font-weight:600; font-size:13px; }
+  .ev .p { color:var(--soft); font-size:13px; }
+  .ev.pr .n { color:var(--soft); font-style:italic; font-weight:400; }
+  .ev .n { font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td, th { text-align:left; padding:7px 6px; border-top:1px solid var(--line); vertical-align:top; }
+  th { color:var(--soft); font-weight:600; font-size:12px; border-top:0; }
+  tr.me td { background:rgba(245,210,122,.14); }
+  .em div { padding:6px 0; border-top:1px solid var(--line); }
+  .em div:first-child { border-top:0; }
+  .em small { display:block; color:var(--soft); font-size:12px; }
+  .muted { color:var(--soft); }
+  a { color:var(--gold); }
+  .msg { text-align:center; padding:40px 10px; color:var(--soft); }
+  .print { display:block; margin:18px auto 0; background:none; border:1px solid var(--line); color:var(--ink); border-radius:999px; padding:8px 18px; font:inherit; cursor:pointer; }
+  @media (max-width:480px) { .ev { grid-template-columns:96px 1fr; } }
+  @media print {
+    body { background:#fff; color:#000; }
+    .card { border-color:#bbb; } .names, h2, .ev .t, a { color:#7a5a00; }
+    .what, .ev .p, .muted, th, .em small, .who small { color:#444; }
+    .tabs, .print { display:none; } .day { display:block !important; } .day + .day { margin-top:10px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="names">Nadeem &amp; Dariya</div>
+    <div class="sub">Team run sheet · 20–21 Jan 2027 · Greenwood Resort</div>
+  </header>
+  <div id="out"><p class="msg">Loading your run sheet…</p></div>
+</main>
+<script>
+const SUPABASE_URL = 'https://zzpuabrnthdzswwbodsk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Prl5rew1ifRF7WyYNopZSA_wt-JaT4a';
+const EM = [['hospital', 'Nearest hospital'], ['hospital_phone', 'Hospital phone'], ['distance', 'Distance / time from the resort'], ['doctor', 'Doctor on call'], ['manager', 'Resort duty manager'], ['firstaid', 'First aid kit has']];
+const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const tel = t => esc(t).replace(/(\+?\d[\d\s-]{7,}\d)/g, m => '<a href="tel:' + m.replace(/[\s-]/g, '') + '">' + m + '</a>');
+const out = document.getElementById('out');
+const id = new URLSearchParams(location.search).get('d') || '';
+
+// The itinerary lives in the invitation page; read it from there so the two never drift apart
+async function loadDays() {
+  try {
+    const html = await (await fetch('index.html')).text();
+    const i = html.indexOf('const DAYS = ['); if (i < 0) return [];
+    let depth = 0, j = html.indexOf('[', i), q = null;
+    for (; j < html.length; j++) {
+      const c = html[j];
+      if (q) { if (c === '\\') j++; else if (c === q) q = null; continue; }
+      if (c === '"' || c === "'" || c === '`') q = c;
+      else if (c === '[') depth++;
+      else if (c === ']' && --depth === 0) break;
+    }
+    return new Function('return ' + html.slice(html.indexOf('[', i), j + 1))();
+  } catch (e) { return []; }
+}
+
+function dayHtml(d) {
+  const mins = t => { const m = String(t).match(/(\d+):(\d+)\s*(AM|PM)/); return m ? (+m[1] % 12) * 60 + +m[2] + (m[3] === 'PM' ? 720 : 0) : 0; };
+  const rows = d.events.map(e => ({ at: mins(e.time), h: '<div class="ev"><div class="t">' + esc(e.time) + '</div><div><div class="n">' + esc(e.name) + '</div><div class="p">' + esc(e.place || '') + (e.dress ? ' · ' + esc(e.dress) : '') + '</div></div></div>' }));
+  (d.prayers || []).forEach(([n, t]) => rows.push({ at: mins(t) - .5, h: '<div class="ev pr"><div class="t">' + esc(t) + '</div><div class="n">' + esc(n) + ' prayer</div></div>' }));
+  return rows.sort((a, b) => a.at - b.at).map(r => r.h).join('');
+}
+
+async function load() {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) { out.innerHTML = '<p class="msg">This link is missing its duty code. Ask the coordinator to send it again from the Wedding Panel.</p>'; return; }
+  let r, days;
+  try {
+    [r, days] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/rpc/public_runsheet', { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_id: id }) }).then(x => x.ok ? x.json() : Promise.reject(x.status)),
+      loadDays()
+    ]);
+  } catch (e) { out.innerHTML = '<p class="msg">Could not load the run sheet. Check your connection and try again.</p>'; return; }
+  if (!r) { out.innerHTML = '<p class="msg">This duty no longer exists. Ask the coordinator for a fresh link.</p>'; return; }
+  document.title = r.role + ' · Run Sheet';
+  const name = (v, d) => v ? esc(v) : '<span class="muted">Not assigned yet</span>';
+  let h = '<div class="card"><h2>Your duty</h2><div class="role">' + esc(r.role) + '</div><div class="what">' + esc(r.what || '') + '</div>'
+    + '<div class="who"><div><small>Day 1 · Wed 20 Jan</small>' + name(r.day1) + '</div><div><small>Day 2 · Thu 21 Jan</small>' + name(r.day2) + '</div></div></div>';
+  if (days.length) {
+    h += '<div class="card"><h2>Timeline</h2><div class="tabs">' + days.map((d, i) => '<button type="button" data-i="' + i + '"' + (i ? '' : ' class="on"') + '>' + esc(d.tab) + '</button>').join('') + '</div>'
+      + days.map((d, i) => '<div class="day" data-i="' + i + '"' + (i ? ' hidden' : '') + '>' + dayHtml(d) + '</div>').join('') + '</div>';
+  }
+  const em = r.emergency || {}, emRows = EM.filter(([k]) => em[k]);
+  h += '<div class="card em"><h2>In an emergency</h2>' + (emRows.length ? emRows.map(([k, l]) => '<div><small>' + l + '</small>' + tel(em[k]) + '</div>').join('') : '<p class="muted" style="margin:0">Details coming soon. Ask the coordinators.</p>') + '</div>';
+  h += '<div class="card"><h2>Whole team</h2><table><thead><tr><th>Duty</th><th>Day 1</th><th>Day 2</th></tr></thead><tbody>'
+    + (r.team || []).map(t => '<tr' + (t.role === r.role ? ' class="me"' : '') + '><td>' + esc(t.role) + '</td><td>' + (esc(t.day1) || '<span class="muted">–</span>') + '</td><td>' + (esc(t.day2) || '<span class="muted">–</span>') + '</td></tr>').join('') + '</tbody></table></div>';
+  h += '<button class="print" type="button" onclick="print()">Print this run sheet</button>';
+  out.innerHTML = h;
+  // Open on the wedding day it is, if it is one
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  pick(today === '2027-01-21' ? 1 : 0);
+  out.querySelectorAll('.tabs button').forEach(b => b.onclick = () => pick(+b.dataset.i));
+}
+function pick(i) {
+  out.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', +b.dataset.i === i));
+  out.querySelectorAll('.day').forEach(d => d.hidden = +d.dataset.i !== i);
+}
+load();
+</script>
+</body>
+</html>

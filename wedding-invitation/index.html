@@ -159,6 +159,13 @@
         .shimmer { background-size:200% auto; animation:shimmer 6s linear infinite; }
         @keyframes shimmer { to { background-position:200% center; } }
 
+        #liveBar { position:fixed; left:12px; right:76px; bottom:16px; max-width:560px; z-index:45; border-radius:16px; padding:10px 14px 10px 14px; font-size:13px; line-height:1.4; color:#fff8e7; background:rgba(6,78,84,.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(245,184,46,.45); box-shadow:0 10px 30px rgba(0,0,0,.35); animation:liveIn .5s ease both; }
+        #liveBar[hidden] { display:none; }
+        #liveBar .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#ff4f93; margin-right:6px; box-shadow:0 0 0 0 rgba(255,79,147,.6); animation:livePulse 1.6s infinite; vertical-align:middle; }
+        #liveBar b { color:#ffd36b; } #liveBar .note { margin-top:4px; } #liveBar a.alb { display:inline-block; margin-top:6px; padding:4px 10px; border-radius:99px; background:#ffd36b; color:#063f45; font-weight:700; text-decoration:none; }
+        #liveBar .x { position:absolute; top:4px; right:8px; background:none; border:0; color:#fff8e7; opacity:.6; font-size:16px; cursor:pointer; }
+        @keyframes liveIn { from { opacity:0; transform:translateY(20px); } } @keyframes livePulse { 70% { box-shadow:0 0 0 8px rgba(255,79,147,0); } 100% { box-shadow:0 0 0 0 rgba(255,79,147,0); } }
+        @media (prefers-reduced-motion: reduce) { #liveBar, #liveBar .dot { animation:none; } }
         #dust { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
         main, nav, footer { position:relative; z-index:2; }
         ::-webkit-scrollbar { width:8px; } ::-webkit-scrollbar-track { background:#0a7480; }
@@ -355,6 +362,7 @@
             <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow"><i class="fas fa-envelope mr-1.5"></i>RSVP NOW</button>
         </div>
     </nav>
+    <div id="liveBar" hidden role="status" aria-live="polite"><button class="x" type="button" aria-label="Hide for now" onclick="hideLiveBar()">×</button><div id="liveNow"></div><div class="note" id="liveNote" hidden></div><a class="alb" id="liveAlbum" hidden target="_blank" rel="noopener"><i class="fas fa-camera mr-1"></i>Share your photos</a></div>
 
     <main>
         <!-- Hero -->
@@ -584,6 +592,7 @@
         <p class="font-script text-4xl gold-text mb-1 reveal">Nadeem &amp; Dariya</p>
         <p class="text-xs text-ivory-200/60 font-cinzel tracking-widest mb-4"><i class="far fa-calendar mr-1.5"></i>JANUARY 20–21, 2027 • <i class="fas fa-location-dot mx-1.5"></i>GREENWOOD RESORT, BENGALURU</p>
         <p class="text-[11px] text-ivory-200/40">Crafted with warm wishes for our cherished family &amp; friends.</p>
+        <p class="mb-3" id="footAlbum" hidden><a class="text-gold-300 text-sm" target="_blank" rel="noopener"><i class="fas fa-camera mr-1"></i>Our wedding photo album: add yours and see everyone's</a></p>
         <p class="text-[11px] text-ivory-200/60 mb-3">Groom's side: <a class="text-gold-300" href="tel:+919535286680"><i class="fas fa-phone text-[9px] mr-1"></i>Nadeem 95352 86680</a> · <a class="text-gold-300" href="tel:+917411197567"><i class="fas fa-phone text-[9px] mr-1"></i>Simran 74111 97567</a><br>Bride's side: <a class="text-gold-300" href="tel:+919886263952"><i class="fas fa-phone text-[9px] mr-1"></i>Allah Bakash 98862 63952</a> · <a class="text-gold-300" href="tel:+918892004045"><i class="fas fa-phone text-[9px] mr-1"></i>Fatima 88920 04045</a></p>
         <p class="text-[11px] text-ivory-200/40 mt-1">Designed by Moonlight Solutions</p>
     </footer>
@@ -1309,6 +1318,54 @@
             if (playing) { a.pause(); playing = false; i.className = 'fas fa-music'; }
             else a.play().then(() => { playing = true; i.className = 'fas fa-pause'; }).catch(() => {});
         }
+
+        // ---------- happening now (20–21 Jan), live note from the family, shared photo album ----------
+        // Preview any moment with ?now=2027-01-20T17:00 (India time)
+        const LIVE_DATES = ['2027-01-20', '2027-01-21'];
+        let live = { live: null, album: '' };
+        function istNow() {
+            const q = new URLSearchParams(location.search).get('now');
+            const d = q ? new Date(q.length <= 16 ? q + ':00+05:30' : q) : new Date();
+            const t = new Date(d.getTime() + 330 * 60000);
+            return { date: t.toISOString().slice(0, 10), m: t.getUTCHours() * 60 + t.getUTCMinutes(), ms: d.getTime() };
+        }
+        const liveMins = t => { const m = String(t).match(/(\d+):(\d+)\s*(AM|PM)/); return m ? (+m[1] % 12) * 60 + +m[2] + (m[3] === 'PM' ? 720 : 0) : 0; };
+        const spanOf = ev => { const parts = String(ev.time).split('–'); const a = liveMins(parts[0]); return [a, parts[1] ? liveMins(parts[1]) : a + 30]; };
+        function nowNext() {
+            const n = istNow(), di = LIVE_DATES.indexOf(n.date);
+            if (di < 0) return null;
+            const evs = DAYS[di].events.map(e => ({ e, s: spanOf(e) }));
+            const cur = evs.filter(x => x.s[0] <= n.m && n.m < x.s[1]).pop();
+            let nxt = evs.find(x => x.s[0] > n.m), tomorrow = false;
+            if (!nxt && di === 0) { nxt = { e: DAYS[1].events[0] }; tomorrow = true; }
+            return { cur: cur && cur.e, nxt: nxt && nxt.e, tomorrow, day: di };
+        }
+        function hideLiveBar() { try { sessionStorage.setItem('nd-live-hide', String(Date.now())); } catch (e) {} document.getElementById('liveBar').hidden = true; }
+        function renderLive() {
+            const bar = document.getElementById('liveBar'), nowEl = document.getElementById('liveNow'), noteEl = document.getElementById('liveNote'), alb = document.getElementById('liveAlbum');
+            const n = istNow(), nn = nowNext(), note = live.live && live.live.text && (n.ms - new Date(live.live.at).getTime()) < 48 * 3600e3 ? live.live.text : '';
+            const afterStart = n.date >= LIVE_DATES[0];
+            nowEl.innerHTML = '';
+            if (nn) {
+                const parts = [];
+                if (nn.cur) parts.push('<span class="dot"></span><b>Now:</b> ' + esc(nn.cur.name) + ' · ' + esc(nn.cur.place || ''));
+                if (nn.nxt) parts.push('<b>' + (nn.tomorrow ? 'Tomorrow' : 'Next') + ':</b> ' + esc(nn.nxt.name) + ' at ' + esc(String(nn.nxt.time).split('–')[0].trim()) + (nn.nxt.place ? ' · ' + esc(nn.nxt.place) : ''));
+                if (!parts.length) parts.push('<b>That\'s a wrap!</b> JazakAllah Khair for celebrating with us 🤍');
+                nowEl.innerHTML = parts.join('<br>');
+            }
+            noteEl.hidden = !note; noteEl.textContent = note ? '📣 ' + note : '';
+            alb.hidden = !(live.album && afterStart); if (live.album) alb.href = live.album;
+            const fa = document.getElementById('footAlbum'); if (fa) { fa.hidden = !live.album; if (live.album) fa.firstElementChild.href = live.album; }
+            let hiddenAt = 0; try { hiddenAt = +sessionStorage.getItem('nd-live-hide') || 0; } catch (e) {}
+            bar.hidden = !(nn || note || !alb.hidden) || Date.now() - hiddenAt < 10 * 60000;
+        }
+        function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+        function loadLive() {
+            if (!SUPABASE_URL) return renderLive();
+            fetch(SUPABASE_URL + '/rest/v1/rpc/public_live', { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: '{}' })
+                .then(r => r.ok ? r.json() : null).then(j => { if (j) live = j; renderLive(); }).catch(renderLive);
+        }
+        loadLive(); setInterval(renderLive, 60000); setInterval(() => { if (document.visibilityState !== 'hidden') loadLive(); }, 180000);
     </script>
 <script>
 // ---------- look & feel layer: haptics and motion only ----------
