@@ -81,6 +81,48 @@
   #toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:60; background:#0b4f57; border:1px solid var(--gold); color:var(--gold2); padding:10px 18px; border-radius:999px; box-shadow:0 8px 30px rgba(0,0,0,.4); font-size:14px; max-width:92vw; text-align:center; }
   [hidden] { display:none !important; }
 </style>
+<style id="budget-ui">
+  .b-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; }
+  .b-card { padding:14px; }
+  .b-card .big { font-size:26px; font-weight:700; color:var(--gold2); font-family:'Cinzel',serif; }
+  .b-card .ln { display:flex; justify-content:space-between; font-size:14px; margin:3px 0; }
+  .b-bar { height:8px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; margin:8px 0 6px; }
+  .b-bar > i { display:block; height:100%; background:linear-gradient(90deg,var(--ok),#9be7b9); border-radius:99px; }
+  .b-sec { margin-top:20px; }
+  .b-sec h2 { font-size:16px; color:var(--gold2); margin:0 0 4px; }
+  .b-sec h2 .muted { font-family:inherit; font-size:12px; font-weight:400; letter-spacing:0; text-transform:none; }
+  .b-help { margin:0 0 8px; font-size:13px; }
+  .b-own { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:12px; }
+  .bl { border:1px solid var(--line); border-radius:12px; margin-bottom:6px; background:rgba(255,255,255,.03); }
+  .bl.open { border-color:var(--gold); background:rgba(255,255,255,.06); }
+  .bl-head { display:grid; grid-template-columns:minmax(0,1fr) 120px 100px 100px; gap:8px; align-items:center; padding:10px 12px; cursor:pointer; }
+  .b-own .bl-head { grid-template-columns:minmax(0,1fr) 105px 95px; }
+  .bl-head .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .bl-head .num small { display:block; font-size:11px; color:var(--muted, #a9d6d4); font-weight:400; }
+  .bl-name b { display:block; }
+  .bl-sub { font-size:12px; color:var(--muted, #a9d6d4); margin-top:2px; }
+  .bl-chip { display:inline-block; font-size:11px; padding:1px 8px; border-radius:99px; border:1px solid var(--line); margin-right:4px; }
+  .bl-body { padding:4px 12px 12px; border-top:1px dashed var(--line); }
+  .bl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px; margin-top:8px; }
+  .bl-grid label { font-size:12px; color:var(--muted, #a9d6d4); display:flex; flex-direction:column; gap:3px; }
+  .bl-grid label > input, .bl-grid label > select, .bl-grid label > textarea { width:100%; }
+  .bl-tot { display:grid; grid-template-columns:minmax(0,1fr) 120px 100px 100px; gap:8px; padding:8px 12px; font-weight:700; }
+  .b-own .bl-tot { grid-template-columns:minmax(0,1fr) 105px 95px; }
+  .bl-tot .num { text-align:right; }
+  .b-colhead { display:grid; grid-template-columns:minmax(0,1fr) 120px 100px 100px; gap:8px; padding:0 12px 4px; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold2); }
+  .b-own .b-colhead { grid-template-columns:minmax(0,1fr) 105px 95px; }
+  .b-colhead span:not(:first-child) { text-align:right; }
+  .pay { display:grid; grid-template-columns:90px minmax(0,1fr) 110px auto; gap:8px; align-items:center; padding:9px 12px; border:1px solid var(--line); border-radius:12px; margin-bottom:6px; }
+  .pay .amt { text-align:right; font-weight:700; }
+  @media (max-width:640px) {
+    .bl-head, .bl-tot, .b-colhead { grid-template-columns:1fr 1fr 1fr !important; }
+    .bl-head .bl-name, .bl-tot > :first-child, .b-colhead > :first-child { grid-column:1 / -1; }
+    .bl-head .num, .bl-tot .num { text-align:left; }
+    .b-colhead span:not(:first-child) { text-align:left; }
+    .pay { grid-template-columns:1fr auto; }
+    .b-own { grid-template-columns:1fr; }
+  }
+</style>
 <style id="ux">
   /* ---------- look & feel layer: visuals and motion only ---------- */
   :root { --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1); --glass:rgba(4,78,88,.55); --glow:0 10px 40px rgba(0,0,0,.22), 0 0 0 1px rgba(245,184,46,.10) inset; }
@@ -384,49 +426,54 @@
 
     <!-- Budget & payments -->
     <section id="tab-budget" hidden>
-      <div class="stats" id="bStats"></div>
-      <div class="panel" id="bSettle" style="margin-bottom:14px"></div>
-      <div class="panel" id="bLoose" hidden style="margin-bottom:14px;border-color:var(--warn)"></div>
-      <div class="scroll"><table style="min-width:900px">
-        <thead><tr><th>Item</th><th class="money">Budget</th><th class="money">Agreed price</th><th class="money">Paid</th><th class="money">Balance</th><th>Status</th><th>Vendor / notes</th><th></th></tr></thead>
-        <tbody id="bRows"></tbody>
-      </table></div>
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px"><i class="fas fa-scale-balanced"></i>Who pays what</h2>
-      <p class="muted" style="margin:0 0 8px;font-size:13px">Each line's split between the families. Shared lines start at 50/50; change the groom's family % on any line (for example 60 for a 60/40 split).</p>
-      <div class="scroll"><table style="min-width:1250px">
-        <thead><tr><th>Item</th><th class="money">Cost</th><th>Groom's %</th><th>Section</th><th class="money">Groom's share</th><th class="money">Bride's share</th><th class="money">Groom's paid</th><th class="money">Bride's paid</th><th class="money">Groom's due</th><th class="money">Bride's due</th><th></th></tr></thead>
-        <tbody id="wRows"></tbody>
-      </table></div>
-      <h2 class="cin" style="font-size:15px;color:var(--gold2);margin:20px 0 6px"><i class="fas fa-people-group"></i>Who has paid, person by person</h2>
-      <div id="people" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"></div>
-      <p class="muted" style="font-size:12px">Shared costs are split 50/50 unless you change the split above. The agreed price is what you finally settle on; until it is filled in, the budget is used for totals. Not included: mehr, outfits, jewellery, bridal makeup, gifts and personal travel.</p>
+      <div id="bTop" class="b-top"></div>
+      <div class="panel" id="bSettle" style="margin:12px 0"></div>
+      <div class="panel" id="bLoose" hidden style="margin-bottom:12px;border-color:var(--warn)"></div>
 
-      <div class="panel" style="margin-top:16px">
-        <p class="cin" style="margin:0 0 10px;color:var(--gold2)"><i class="fas fa-indian-rupee-sign"></i>Record a payment</p>
-        <div class="row" style="gap:8px;align-items:flex-end">
-          <label class="muted" style="flex:3 1 260px">For<select id="pItem" style="width:100%"></select></label>
-          <label class="muted" style="flex:1 1 110px">Amount (₹)<input id="pAmt" type="number" min="1" style="width:100%"></label>
-          <label class="muted" style="flex:1 1 150px">Family<select id="pBy" style="width:100%"><option>Groom's family</option><option>Bride's family</option></select></label>
-          <label class="muted" style="flex:1 1 140px">Person who paid<input id="pPerson" maxlength="40" placeholder="e.g. Nadeem" style="width:100%"></label>
-          <label class="muted" style="flex:1 1 140px">Date<input id="pDate" type="date" style="width:100%"></label>
-          <label class="muted" style="flex:1 1 120px">How<select id="pHow" style="width:100%"><option>UPI</option><option>Cash</option><option>Bank transfer</option><option>Card</option><option>Cheque</option></select></label>
-          <label class="muted" style="flex:1 1 160px">UTR / reference no.<input id="pRef" maxlength="40" placeholder="UPI or bank reference" style="width:100%"></label>
-          <label class="muted" style="flex:2 1 180px">Note<input id="pNote" maxlength="120" placeholder="e.g. advance, balance" style="width:100%"></label>
-          <label class="muted" style="flex:1 1 170px">Receipt photo (optional)<input id="pFile" type="file" accept="image/*" style="width:100%"></label>
-          <button class="btn sm" id="pAdd">Add payment</button>
+      <div class="b-sec">
+        <h2 class="cin"><i class="fas fa-scale-balanced"></i> Split costs <span class="muted">shared by both families</span></h2>
+        <p class="muted b-help">Paid together. Each line is 50/50 unless you change it. Tap a line to see or change its details.</p>
+        <div id="bSplit"></div>
+      </div>
+
+      <div class="b-sec">
+        <h2 class="cin"><i class="fas fa-user-group"></i> Individual costs <span class="muted">each family pays its own</span></h2>
+        <div id="bOwn" class="b-own"></div>
+      </div>
+
+      <div class="b-sec">
+        <div class="row" style="justify-content:space-between;align-items:center;gap:8px">
+          <h2 class="cin" style="margin:0"><i class="fas fa-indian-rupee-sign"></i> Payments</h2>
+          <button class="btn sm" id="pToggle" type="button">+ Record a payment</button>
         </div>
-        <p class="err" id="pMsg" role="status"></p>
+        <div class="panel" id="pForm" hidden style="margin-top:10px">
+          <div class="row" style="gap:8px;align-items:flex-end">
+            <label class="muted" style="flex:3 1 260px">What it was for<select id="pItem" style="width:100%"></select></label>
+            <label class="muted" style="flex:1 1 110px">Amount (₹)<input id="pAmt" type="number" min="1" style="width:100%"></label>
+            <label class="muted" style="flex:1 1 150px">Family<select id="pBy" style="width:100%"><option>Groom's family</option><option>Bride's family</option></select></label>
+            <label class="muted" style="flex:1 1 140px">Person who paid<input id="pPerson" maxlength="40" placeholder="e.g. Nadeem" style="width:100%"></label>
+            <label class="muted" style="flex:1 1 140px">Date<input id="pDate" type="date" style="width:100%"></label>
+            <label class="muted" style="flex:1 1 120px">How<select id="pHow" style="width:100%"><option>UPI</option><option>Cash</option><option>Bank transfer</option><option>Card</option><option>Cheque</option></select></label>
+            <label class="muted" style="flex:1 1 160px">UTR / reference no.<input id="pRef" maxlength="40" placeholder="UPI or bank reference" style="width:100%"></label>
+            <label class="muted" style="flex:2 1 180px">Note<input id="pNote" maxlength="120" placeholder="e.g. advance, balance" style="width:100%"></label>
+            <label class="muted" style="flex:1 1 170px">Receipt photo (optional)<input id="pFile" type="file" accept="image/*" style="width:100%"></label>
+            <button class="btn sm" id="pAdd">Save payment</button>
+          </div>
+          <p class="err" id="pMsg" role="status"></p>
+        </div>
+        <div id="pList" style="margin-top:10px"></div>
       </div>
-      <div class="scroll" style="margin-top:10px"><table style="min-width:1100px">
-        <thead><tr><th>Date</th><th>For</th><th class="money">Amount</th><th>Paid by</th><th>How / reference</th><th>Note</th><th>Receipt</th><th></th></tr></thead>
-        <tbody id="pRows"></tbody>
-      </table></div>
-      <div class="row" style="gap:10px;align-items:center;margin-top:14px">
-        <label class="muted">Budget cap per family (₹) <input id="capIn" type="number" min="0" style="max-width:130px"></label>
-        <button class="btn ghost sm" id="capSave">Save cap</button>
-        <button class="btn ghost sm" id="bCsv">Download budget (CSV)</button>
-      </div>
-      <div class="panel" style="margin-top:14px"><p class="cin" style="margin:0 0 6px;color:var(--gold2)"><i class="fas fa-clock-rotate-left"></i>Recent changes</p><div id="recent"></div></div>
+
+      <details class="panel" style="margin-top:16px">
+        <summary class="cin" style="cursor:pointer;color:var(--gold2)">More: budget cap, download, recent changes</summary>
+        <div class="row" style="gap:10px;align-items:center;margin-top:12px">
+          <label class="muted">Budget cap per family (₹) <input id="capIn" type="number" min="0" style="max-width:130px"></label>
+          <button class="btn ghost sm" id="capSave">Save cap</button>
+          <button class="btn ghost sm" id="bCsv">Download budget (CSV)</button>
+        </div>
+        <p class="muted" style="font-size:12px">Each cost uses its final price once agreed (or the menu, for food), and the estimate until then. Not included: mehr, outfits, jewellery, bridal makeup, gifts and personal travel.</p>
+        <p class="cin" style="margin:12px 0 6px;color:var(--gold2)">Recent changes</p><div id="recent"></div>
+      </details>
     </section>
 
     <!-- Vendors -->
@@ -1466,118 +1513,149 @@ function money() {
     total: { groom: sum(sp, s => s.gs), bride: sum(sp, s => s.bs) },
     paid: { groom: sum(sp, s => s.gp), bride: sum(sp, s => s.bp) }, settle: Math.round(fair) };
 }
+// ---------- Budget & payments, simplified: split costs, individual costs, payments ----------
+const openLines = new Set(), openPays = new Set();
+const famKey = f => f && f[0] === 'B' ? 'bride' : 'groom';
+const statusCol = st => /Paid in full/.test(st) ? 'var(--ok)' : /Advance|Booked/.test(st) ? 'var(--gold2)' : st === 'Not needed' ? 'var(--muted, #a9d6d4)' : 'var(--warn)';
+function famCard(fk, m, pays) {
+  const fam = fk === 'groom' ? "Groom's family" : "Bride's family", share = m.total[fk], paid = m.paid[fk];
+  const splitPart = items('budget').filter(x => x.data.group === 'shared').reduce((n, x) => n + (fk === 'groom' ? lineSplit(x).gs : lineSplit(x).bs), 0), own = share - splitPart;
+  const byP = {}; pays.filter(p => p.data.by === fam).forEach(p => { const k = (p.data.person || 'Not named').trim(); byP[k] = (byP[k] || 0) + (+p.data.amount || 0); });
+  const buf = cap - share, pct = share ? Math.min(100, Math.round(paid / share * 100)) : 0;
+  return el('div', { className: 'panel b-card' },
+    el('b', { className: 'cin', textContent: fam }),
+    el('div', { className: 'big', textContent: inr(share) }),
+    el('div', { className: 'muted', style: 'font-size:12px' }, 'Their share: ' + inr(splitPart) + ' of split costs + ' + inr(own) + ' individual'),
+    el('div', { className: 'b-bar' }, el('i', { style: 'width:' + pct + '%' })),
+    el('div', { className: 'ln' }, el('span', {}, 'Paid'), el('b', { style: 'color:var(--ok)', textContent: inr(paid) })),
+    el('div', { className: 'ln' }, el('span', {}, 'Still to pay'), el('b', { style: 'color:var(--warn)', textContent: inr(share - paid) })),
+    el('div', { className: 'ln' }, el('span', {}, 'Left in the ' + inr(cap) + ' cap'), el('b', { style: 'color:' + (buf < 0 ? 'var(--bad)' : 'inherit'), textContent: buf < 0 ? inr(-buf) + ' over' : inr(buf) })),
+    Object.keys(byP).length ? el('div', { className: 'muted', style: 'font-size:12px;margin-top:6px' }, 'Paid by: ' + Object.entries(byP).sort((a, b) => b[1] - a[1]).map(([n, a]) => n + ' ' + inr(a)).join(' · ')) : '');
+}
+// One cost line: a short summary row; tap it to open the details
+function lineRow(it) {
+  const split = it.data.group === 'shared', sv = lineSplit(it), c = sv.c, paid = sv.gp + sv.bp, left = c - paid, open = openLines.has(it.id), mc = menuCostOf(it), vs = vendorsOf(it);
+  const gp = gPct(it), splitTxt = gp === 50 ? '50 / 50' : gp + ' / ' + (100 - gp);
+  const sub = el('div', { className: 'bl-sub' }, el('span', { className: 'bl-chip', style: 'border-color:' + statusCol(it.data.status) + ';color:' + statusCol(it.data.status), textContent: it.data.status || 'To close' }),
+    mc ? (mc.missing.length ? '🍽 menu (prices missing) ' : '🍽 from the menu ') : '', vs.length ? '🤝 ' + vs.map(v => v.data.name || v.data.area).join(', ') + ' ' : '',
+    openViews(it).length ? el('span', { style: 'color:var(--warn)' }, '· ' + openViews(it).length + ' family view') : '');
+  const head = el('div', { className: 'bl-head', role: 'button', tabIndex: 0, title: open ? 'Close' : 'Open the details' },
+    el('div', { className: 'bl-name' }, el('b', {}, (open ? '▾ ' : '▸ ') + (it.data.item || 'Untitled')), sub),
+    el('div', { className: 'num' }, el('b', { textContent: inr(c) }), el('small', { textContent: split ? splitTxt + ' · ' + inr(sv.gs) + ' + ' + inr(sv.bs) : (it.data.agreed != null && it.data.agreed !== '' || (mc && !mc.missing.length) ? 'final' : 'estimate') })),
+    el('div', { className: 'num' }, el('span', { style: 'color:var(--ok)', textContent: inr(paid) }), el('small', { textContent: split && paid ? 'G ' + inr(sv.gp) + ' · B ' + inr(sv.bp) : 'paid' })),
+    ...(split || true ? [el('div', { className: 'num' }, el('b', { style: 'color:' + (left > 0 ? 'var(--warn)' : 'var(--ok)'), textContent: left > 0 ? inr(left) : '✓' }), el('small', { textContent: left > 0 ? 'left' : 'paid up' }))] : []));
+  head.onclick = e => { if (e.target.closest('input,select,button,a,textarea')) return; open ? openLines.delete(it.id) : openLines.add(it.id); renderBudget(); };
+  head.onkeydown = e => { if (e.key === 'Enter') head.onclick(e); };
+  const row = el('div', { className: 'bl' + (open ? ' open' : '') }, head);
+  if (!open) return row;
+  // Details: everything about this line in one place
+  const type = el('select', {}); [['shared', 'Split between both families'], ['groom', "Groom's family only"], ['bride', "Bride's family only"]].forEach(([v, t]) => type.append(el('option', { value: v, textContent: t })));
+  type.value = viewVal(it, 'group'); if (isMine(it, 'group')) type.classList.add('vw-mine');
+  type.onchange = async () => { try { await savePlan(it, { group: type.value, split_groom: null }); renderPlan(); } catch (e) { type.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; type.value = it.data.group; } };
+  const pct = cell(it, 'split_groom', { num: true, ph: String(gPct(it)) }); pct.max = 100;
+  const lab = (t, n) => el('label', {}, t, n);
+  const linePays = items('payment').filter(p => p.data.item === it.id).sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)));
+  const payBtn = el('button', { className: 'btn sm', type: 'button', textContent: '+ Record a payment for this' });
+  payBtn.onclick = () => { $('pForm').hidden = false; $('pToggle').textContent = 'Close'; $('pItem').value = it.id; $('pAmt').value = left > 0 ? left : ''; $('pAmt').focus(); $('pForm').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  const rm = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Remove this line' }); rm.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
+  row.append(el('div', { className: 'bl-body' },
+    el('div', { className: 'bl-grid' },
+      lab('Name', cell(it, 'item', { max: 200 })),
+      lab('Who pays', type),
+      split ? lab("Groom's family pays (%)", pct) : '',
+      lab('Estimate (₹)', cell(it, 'budget', { num: true })),
+      mc && !mc.missing.length ? lab('Final price', el('div', { style: 'padding:7px 0;font-weight:700' }, inr(mc.total) + ' (from the menu)')) : lab('Final price (₹)', cell(it, 'agreed', { num: true, ph: 'same as estimate' })),
+      lab('Status', pick(it, 'status', B_STATUS)),
+      lab('Notes', cell(it, 'notes', { max: 300, ph: 'Vendor, quote, terms' }))),
+    lineLinks(it),
+    el('div', { style: 'margin-top:10px;font-size:13px' }, el('b', { textContent: 'Payments for this: ' }), linePays.length ? linePays.map(p => fmtDay(p.data.date) + ' ' + inr(p.data.amount) + ' (' + (p.data.person ? p.data.person + ', ' : '') + p.data.by + ')').join(' · ') : el('span', { className: 'muted' }, 'none yet')),
+    el('div', { className: 'row', style: 'gap:8px;margin-top:10px;align-items:center' }, payBtn, viewsBtn(it), el('span', { style: 'flex:1' }), stamp(it), rm)));
+  return row;
+}
+function sectionTotal(list, label) {
+  const sv = list.map(lineSplit), c = sv.reduce((n, x) => n + x.c, 0), pd = sv.reduce((n, x) => n + x.gp + x.bp, 0);
+  return el('div', { className: 'bl-tot' }, el('span', { textContent: label }), el('span', { className: 'num', textContent: inr(c) }), el('span', { className: 'num', style: 'color:var(--ok)', textContent: inr(pd) }), el('span', { className: 'num', style: 'color:var(--warn)', textContent: inr(c - pd) }));
+}
+const colHead = () => el('div', { className: 'b-colhead' }, el('span', { textContent: 'Item' }), el('span', { textContent: 'Cost' }), el('span', { textContent: 'Paid' }), el('span', { textContent: 'Left' }));
+function addLineBtn(group, label) {
+  const b = el('button', { className: 'btn ghost sm', type: 'button', textContent: label });
+  b.onclick = async () => { try { const row = await savePlan(null, { group, item: 'New cost', budget: 0, agreed: null, status: 'To close', notes: '' }, 'budget'); openLines.add(row.id); renderBudget(); } catch (e) {} };
+  return b;
+}
 function renderBudget() {
-  const m = money();
-  $('bStats').replaceChildren(...[
-    [inr(m.total.groom), "Groom's family total"], [inr(cap - m.total.groom), "Groom's buffer left (cap " + inr(cap) + ')'], [inr(m.paid.groom), "Paid by groom's family"],
-    [inr(m.total.bride), "Bride's family total"], [inr(cap - m.total.bride), "Bride's buffer left (cap " + inr(cap) + ')'], [inr(m.paid.bride), "Paid by bride's family"],
-    [inr(m.shared + m.own.bride + m.own.groom), 'Wedding total'], [inr(m.shared + m.own.bride + m.own.groom - m.paid.bride - m.paid.groom), 'Still to pay']]
-    .map(([n, l]) => el('div', { className: 'stat', style: /buffer/.test(l) && /-/.test(n) ? 'border-color:var(--bad)' : '' }, el('b', { textContent: n }), el('span', { textContent: l }))));
-  // Who owes whom, on what has been paid so far, by each line's split
+  const m = money(), pays = items('payment'), bl = items('budget');
+  const wTotal = m.total.groom + m.total.bride, wPaid = m.paid.groom + m.paid.bride;
+  $('bTop').replaceChildren(
+    el('div', { className: 'panel b-card' }, el('b', { className: 'cin', textContent: 'Whole wedding' }), el('div', { className: 'big', textContent: inr(wTotal) }),
+      el('div', { className: 'muted', style: 'font-size:12px' }, inr(m.shared) + ' split · ' + inr(m.own.groom + m.own.bride) + ' individual'),
+      el('div', { className: 'b-bar' }, el('i', { style: 'width:' + (wTotal ? Math.min(100, Math.round(wPaid / wTotal * 100)) : 0) + '%' })),
+      el('div', { className: 'ln' }, el('span', {}, 'Paid so far'), el('b', { style: 'color:var(--ok)', textContent: inr(wPaid) })),
+      el('div', { className: 'ln' }, el('span', {}, 'Still to pay'), el('b', { style: 'color:var(--warn)', textContent: inr(wTotal - wPaid) }))),
+    famCard('groom', m, pays), famCard('bride', m, pays));
   const diff = m.settle;
-  $('bSettle').replaceChildren(el('b', { className: 'cin', textContent: 'Settling up: ' }),
-    el('span', { textContent: 'groom\'s family has paid ' + inr(m.paid.groom) + ' of its ' + inr(m.total.groom) + ', bride\'s family ' + inr(m.paid.bride) + ' of its ' + inr(m.total.bride) + '. ' }),
-    el('b', { style: 'color:' + (diff ? 'var(--warn)' : 'var(--ok)'), textContent: diff > 0 ? "Bride's family owes groom's family " + inr(diff) + ' for its share of what has been paid.' : diff < 0 ? "Groom's family owes bride's family " + inr(-diff) + ' for its share of what has been paid.' : 'Both families are even on what has been paid.' }));
+  $('bSettle').replaceChildren(el('b', { className: 'cin', textContent: '⚖ Settling up: ' }),
+    el('b', { style: 'color:' + (diff ? 'var(--warn)' : 'var(--ok)'), textContent: diff > 0 ? "Bride's family owes groom's family " + inr(diff) : diff < 0 ? "Groom's family owes bride's family " + inr(-diff) : 'Both families are even' }),
+    el('span', { className: 'muted', textContent: ' on the split costs paid so far.' }));
+  // Meals on the menu that no cost line counts yet
   const loose = items('menu').filter(mm => !lineOfMeal(mm));
   $('bLoose').hidden = !loose.length;
   $('bLoose').replaceChildren(el('b', { className: 'cin', style: 'color:var(--warn)', textContent: '🍽 On the menu but not in the budget' }),
-    el('div', { className: 'muted', style: 'font-size:13px;margin:2px 0 6px', textContent: 'These meals are not counted in any total or split yet. Add each one, or link it to an existing line with "Link menu meals".' }),
+    el('div', { className: 'muted', style: 'font-size:13px;margin:2px 0 6px', textContent: 'Not counted in any total yet. Add each one, or open a food line and use "Link menu meals".' }),
     ...loose.map(mm => { const a = el('button', { className: 'mini', type: 'button', textContent: '+ Add to budget' });
       a.onclick = async () => { try { await savePlan(null, { group: mm.data.payer || 'shared', item: mm.data.meal + ' (' + (mm.data.when || '').replace(/ ·.*/, '') + ')', budget: mealCost(mm), agreed: null, status: 'To close', notes: '', menu: [mm.id] }, 'budget'); renderPlan(); } catch (e) {} };
       return el('div', { className: 'row', style: 'gap:8px;align-items:center;justify-content:space-between;font-size:14px;margin:3px 0' }, el('span', {}, el('b', { textContent: mealLabel(mm) }), el('span', { className: 'muted', textContent: ' · ' + (+mm.data.rate > 0 ? inr(mealCost(mm)) + ' (' + inr(mm.data.rate) + ' × ' + platesFor(mm).plates + ')' : 'no price yet') + ' · ' + (PAYER[mm.data.payer] || 'Shared 50/50') })), a); }));
-  const body = $('bRows'); body.replaceChildren();
-  GROUPS.forEach(([k, label]) => {
-    const list = items('budget').filter(x => x.data.group === k);
-    body.append(el('tr', { className: 'grp' }, el('td', { colSpan: 8, textContent: label + (k === 'shared' ? ' (each family pays half)' : '') })));
-    list.forEach(it => {
-      const c = cost(it), paid = paidFor(it.id), over = it.data.agreed != null && it.data.agreed !== '' && +it.data.agreed > +it.data.budget;
-      const x = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); x.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
-      body.append(el('tr', {},
-        el('td', { style: 'min-width:260px' }, cell(it, 'item', { max: 200 }), lineLinks(it), stamp(it), viewsBtn(it)),
-        el('td', { className: 'money' }, cell(it, 'budget', { num: true })),
-        (() => { const mc = menuCostOf(it); if (mc && !mc.missing.length) return el('td', { className: 'money', title: 'Set by the menu: price per plate × plates' }, el('b', { textContent: inr(mc.total) }), el('div', { className: 'by', textContent: 'from the menu' }), mc.total > +it.data.budget ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(mc.total - it.data.budget) + ' over' }) : '');
-          return el('td', { className: 'money' }, cell(it, 'agreed', { num: true, ph: '—' }), over ? el('div', { className: 'by', style: 'color:var(--bad)', textContent: inr(+it.data.agreed - it.data.budget) + ' over' }) : ''); })(),
-        el('td', { className: 'money', textContent: inr(paid) }),
-        el('td', { className: 'money', style: c - paid > 0 ? 'color:var(--warn)' : 'color:var(--ok)', textContent: inr(c - paid) }),
-        el('td', {}, pick(it, 'status', B_STATUS)),
-        el('td', { style: 'min-width:200px' }, cell(it, 'notes', { max: 300, ph: 'Vendor, quote, terms' })),
-        el('td', {}, x)));
-    });
-    const add = el('button', { className: 'btn ghost sm', textContent: '+ Add a line to ' + label });
-    add.onclick = async () => { try { await savePlan(null, { group: k, item: 'New item', budget: 0, agreed: null, status: 'To close', notes: '' }, 'budget'); renderBudget(); } catch (e) {} };
-    const tb = list.reduce((n, x) => n + (+x.data.budget || 0), 0), tc = list.reduce((n, x) => n + cost(x), 0), tp = list.reduce((n, x) => n + paidFor(x.id), 0);
-    body.append(el('tr', { className: 'tot' }, el('td', {}, add), el('td', { className: 'money', textContent: inr(tb) }), el('td', { className: 'money', textContent: inr(tc) }),
-      el('td', { className: 'money', textContent: inr(tp) }), el('td', { className: 'money', textContent: inr(tc - tp) }), el('td', { colSpan: 3 })));
-  });
-  // Who pays what, line by line
-  const wb = $('wRows'); wb.replaceChildren();
-  const tot = { c: 0, gs: 0, bs: 0, gp: 0, bp: 0, gd: 0, bd: 0 };
-  GROUPS.forEach(([k, label]) => {
-    wb.append(el('tr', { className: 'grp' }, el('td', { colSpan: 11, textContent: label })));
-    items('budget').filter(x => x.data.group === k).forEach(it => {
-      const sv = lineSplit(it); Object.keys(tot).forEach(f => tot[f] += sv[f]);
-      const pct = cell(it, 'split_groom', { num: true, ph: String(gPct(it)) }); pct.max = 100; pct.style.maxWidth = '70px';
-      const due = v => el('td', { className: 'money', style: v > 0 ? 'color:var(--warn)' : v < 0 ? 'color:var(--ok)' : '', textContent: v < 0 ? inr(-v) + ' extra' : inr(v) });
-      // Edit the cost here: it sets the agreed price (the budget figure shows until a price is agreed)
-      const mcw = menuCostOf(it), price = mcw && !mcw.missing.length ? el('span', { title: 'Set by the menu' }, el('b', { textContent: inr(mcw.total) }), el('div', { className: 'by', textContent: 'from the menu' })) : cell(it, 'agreed', { num: true, ph: String(+it.data.budget || 0) });
-      if (!(mcw && !mcw.missing.length)) { price.style.minWidth = '115px'; price.style.maxWidth = '130px'; price.title = 'Agreed price. Leave blank to use the budget of ' + inr(it.data.budget); }
-      const sec = el('select', { title: 'Move this line to another section' }); GROUPS.forEach(([gk, gl]) => sec.append(el('option', { value: gk, textContent: gl })));
-      sec.value = viewVal(it, 'group'); if (isMine(it, 'group')) sec.classList.add('vw-mine'); sec.onchange = async () => { try { await savePlan(it, { group: sec.value, split_groom: null }); renderPlan(); } catch (e) { sec.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; sec.value = it.data.group; } };
-      const rm = el('button', { className: 'mini', textContent: '×', title: 'Remove this line' }); rm.onclick = () => { if (confirm('Remove "' + it.data.item + '"?')) removePlan(it); };
-      wb.append(el('tr', {}, el('td', { style: 'min-width:240px' }, cell(it, 'item', { max: 200 }), viewsBtn(it)), el('td', { className: 'money' }, price, it.data.status === 'Not needed' ? el('div', { className: 'by', textContent: 'Not needed: counts as ₹0' }) : ''), el('td', {}, pct), el('td', {}, sec),
-        el('td', { className: 'money', textContent: inr(sv.gs) }), el('td', { className: 'money', textContent: inr(sv.bs) }),
-        el('td', { className: 'money', textContent: inr(sv.gp) }), el('td', { className: 'money', textContent: inr(sv.bp) }), due(sv.gd), due(sv.bd), el('td', {}, rm)));
-    });
-    const add = el('button', { className: 'btn ghost sm', textContent: '+ Add a line to ' + label });
-    add.onclick = async () => { try { await savePlan(null, { group: k, item: 'New item', budget: 0, agreed: null, status: 'To close', notes: '' }, 'budget'); renderBudget(); } catch (e) {} };
-    wb.append(el('tr', {}, el('td', { colSpan: 11 }, add)));
-  });
-  wb.append(el('tr', { className: 'tot' }, el('td', { textContent: 'Total' }), el('td', { className: 'money', textContent: inr(tot.c) }), el('td'), el('td'),
-    ...['gs', 'bs', 'gp', 'bp', 'gd', 'bd'].map(f => el('td', { className: 'money', textContent: inr(tot[f]) })), el('td')));
-  // Person by person, within each family
-  const pays0 = items('payment');
-  $('people').replaceChildren(...["Groom's family", "Bride's family"].map(fam => {
-    const mine = pays0.filter(p => p.data.by === fam), byP = {};
-    mine.forEach(p => { const k = (p.data.person || 'Not named').trim(); byP[k] = (byP[k] || 0) + (+p.data.amount || 0); });
-    const share = fam[0] === 'G' ? m.total.groom : m.total.bride, paid = fam[0] === 'G' ? m.paid.groom : m.paid.bride;
-    return el('div', { className: 'panel', style: 'padding:12px' }, el('b', { className: 'cin', textContent: fam }),
-      el('div', { className: 'muted', style: 'font-size:13px;margin:4px 0 8px', textContent: 'Share ' + inr(share) + ' · paid ' + inr(paid) + ' · still to pay ' + inr(share - paid) }),
-      ...(Object.keys(byP).length ? Object.entries(byP).sort((a, b) => b[1] - a[1]).map(([n, a]) => el('div', { className: 'row', style: 'justify-content:space-between;font-size:14px;margin:2px 0' }, el('span', { textContent: n }), el('b', { className: 'money', textContent: inr(a) }))) :
-        [el('p', { className: 'muted', style: 'margin:0;font-size:13px', textContent: 'No payments yet.' })]));
-  }));
-  // Payment form and log
+  // Split costs
+  const sh = bl.filter(x => x.data.group === 'shared');
+  $('bSplit').replaceChildren(colHead(), ...sh.map(lineRow), sectionTotal(sh, 'Split total'), el('div', { style: 'margin-top:6px' }, addLineBtn('shared', '+ Add a split cost')));
+  // Individual costs, one column per family
+  $('bOwn').replaceChildren(...[['groom', "Groom's family"], ['bride', "Bride's family"]].map(([k, label]) => { const ls = bl.filter(x => x.data.group === k);
+    return el('div', {}, el('b', { className: 'cin', style: 'display:block;margin:0 0 6px;color:var(--gold2)', textContent: label }), el('div', { className: 'b-colhead' }, el('span', { textContent: 'Item' }), el('span', { textContent: 'Cost' }), el('span', { textContent: 'Left' })),
+      ...ls.map(lineRow), sectionTotal(ls, label + ' total'), el('div', { style: 'margin-top:6px' }, addLineBtn(k, '+ Add a cost'))); }));
+  // Individual columns show cost and left only
+  $('bOwn').querySelectorAll('.bl-head, .bl-tot').forEach(r => { const n = r.querySelectorAll(':scope > .num'); if (n.length === 3) n[1].remove(); });
+  // Payment form choices: every cost line, grouped the same way
   const sel = $('pItem'), keep = sel.value; sel.replaceChildren();
-  GROUPS.forEach(([k, label]) => { const og = el('optgroup', { label }); items('budget').filter(x => x.data.group === k).forEach(x => og.append(el('option', { value: x.id, textContent: x.data.item }))); sel.append(og); });
+  [['shared', 'Split costs'], ['groom', "Groom's family"], ['bride', "Bride's family"]].forEach(([k, label]) => { const og = el('optgroup', { label }); bl.filter(x => x.data.group === k).forEach(x => og.append(el('option', { value: x.id, textContent: x.data.item }))); sel.append(og); });
   if (keep) sel.value = keep;
   if (!$('pDate').value) $('pDate').value = new Date().toISOString().slice(0, 10);
   if (ME && !$('pBy').dataset.set) { $('pBy').value = ME.fam; $('pPerson').value = ME.name; $('pBy').dataset.set = 1; }
-  const pays = items('payment').sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)));
-  $('pRows').replaceChildren(...(pays.length ? pays.map(p => {
-    const b = plan.find(x => x.id === p.data.item), x = el('button', { className: 'mini', textContent: '×' });
-    x.onclick = () => { if (confirm('Remove this payment of ' + inr(p.data.amount) + '?')) removePlan(p); };
-    const rs = receipts.filter(r => r.payment_id === p.id), rc = el('td', {});
-    rs.forEach((r, i) => { const v = el('button', { className: 'mini', textContent: 'View' + (rs.length > 1 ? ' ' + (i + 1) : '') }); v.onclick = () => showReceipt(r.id); rc.append(v, ' '); });
-    const up = el('label', { className: 'mini', style: 'cursor:pointer', textContent: rs.length ? '+ add' : '+ Upload' }), f = el('input', { type: 'file', accept: 'image/*', hidden: true });
-    f.onchange = async () => { if (f.files[0]) { up.textContent = 'Uploading…'; try { await addReceipt(p.id, f.files[0]); renderBudget(); } catch (e) { up.textContent = 'Failed, retry'; } } };
-    up.append(f); rc.append(up);
-    const forSel = el('select', { style: 'width:100%;min-width:180px' });
-    GROUPS.forEach(([k, label]) => { const og = el('optgroup', { label }); items('budget').filter(y => y.data.group === k).forEach(y => og.append(el('option', { value: y.id, textContent: y.data.item }))); forSel.append(og); });
-    if (!b) forSel.prepend(el('option', { value: p.data.item, textContent: '(removed item)' }));
-    forSel.value = p.data.item;
-    forSel.onchange = async () => { try { await savePlan(p, { item: forSel.value }); renderPlan(); } catch (e) { forSel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; forSel.value = p.data.item; } };
-    const amt = cell(p, 'amount', { num: true }); amt.style.minWidth = '110px'; amt.style.maxWidth = '130px';
-    const dt = cell(p, 'date', { date: true }); dt.style.minWidth = '130px';
-    return el('tr', {}, el('td', {}, dt), el('td', {}, forSel), el('td', { className: 'money' }, amt),
-      el('td', { style: 'min-width:160px' }, cell(p, 'person', { max: 60, ph: 'Who paid' }), pick(p, 'by', ["Groom's family", "Bride's family"])),
-      el('td', { style: 'min-width:150px' }, pick(p, 'how', ['UPI', 'Cash', 'Bank transfer', 'Card', 'Cheque']), cell(p, 'ref', { max: 60, ph: 'UTR / ref' })),
-      el('td', { style: 'min-width:180px' }, cell(p, 'note', { max: 300, ph: 'Note' }), stamp(p)), rc, el('td', {}, x));
-  }) : [el('tr', {}, el('td', { colSpan: 8, className: 'empty', textContent: 'No payments recorded yet.' }))]));
+  // Payment history: one line each; Edit opens the full details
+  const list = pays.slice().sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)));
+  $('pList').replaceChildren(...(list.length ? list.map(p => {
+    const b = plan.find(x => x.id === p.data.item), rs = receipts.filter(r => r.payment_id === p.id), open = openPays.has(p.id);
+    const ed = el('button', { className: 'mini', type: 'button', textContent: open ? 'Done' : 'Edit' }); ed.onclick = () => { open ? openPays.delete(p.id) : openPays.add(p.id); renderBudget(); };
+    const rc = el('span', {}); rs.forEach((r, i) => { const v = el('button', { className: 'mini', type: 'button', textContent: '🧾' + (rs.length > 1 ? ' ' + (i + 1) : '') }); v.onclick = () => showReceipt(r.id); rc.append(v, ' '); });
+    const wrap = el('div', {}, el('div', { className: 'pay' },
+      el('span', { className: 'muted', textContent: fmtDay(p.data.date) }),
+      el('div', { style: 'min-width:0' }, el('b', { textContent: b ? b.data.item : '(removed item)' }), el('div', { className: 'bl-sub', textContent: (p.data.person ? p.data.person + ', ' : '') + p.data.by + (p.data.how ? ' · ' + p.data.how : '') + (p.data.ref ? ' · ' + p.data.ref : '') + (p.data.note ? ' · ' + p.data.note : '') + (b && b.data.group === 'shared' ? ' · split cost' : b ? ' · individual' : '') })),
+      el('span', { className: 'amt', textContent: inr(p.data.amount) }),
+      el('span', { style: 'white-space:nowrap' }, rc, ed)));
+    if (open) {
+      const forSel = el('select', { style: 'width:100%' });
+      [['shared', 'Split costs'], ['groom', "Groom's family"], ['bride', "Bride's family"]].forEach(([k, label]) => { const og = el('optgroup', { label }); bl.filter(y => y.data.group === k).forEach(y => og.append(el('option', { value: y.id, textContent: y.data.item }))); forSel.append(og); });
+      if (!b) forSel.prepend(el('option', { value: p.data.item, textContent: '(removed item)' }));
+      forSel.value = p.data.item;
+      forSel.onchange = async () => { try { await savePlan(p, { item: forSel.value }); renderPlan(); } catch (e) { forSel.style.borderColor = queued(e) ? 'var(--warn)' : 'var(--bad)'; forSel.value = p.data.item; } };
+      const up = el('label', { className: 'mini', style: 'cursor:pointer', textContent: rs.length ? '+ Add receipt' : '+ Upload receipt' }), f = el('input', { type: 'file', accept: 'image/*', hidden: true });
+      f.onchange = async () => { if (f.files[0]) { up.textContent = 'Uploading…'; try { await addReceipt(p.id, f.files[0]); renderBudget(); } catch (e) { up.textContent = 'Failed, retry'; } } };
+      up.append(f);
+      const x = el('button', { className: 'btn ghost sm', type: 'button', textContent: 'Remove payment' }); x.onclick = () => { if (confirm('Remove this payment of ' + inr(p.data.amount) + '?')) removePlan(p); };
+      const lab = (t, n) => el('label', {}, t, n);
+      wrap.append(el('div', { className: 'bl-body', style: 'border:1px solid var(--gold);border-top:0;border-radius:0 0 12px 12px;margin:-6px 0 6px' }, el('div', { className: 'bl-grid' },
+        lab('Date', cell(p, 'date', { date: true })), lab('What it was for', forSel), lab('Amount (₹)', cell(p, 'amount', { num: true })),
+        lab('Family', pick(p, 'by', ["Groom's family", "Bride's family"])), lab('Person who paid', cell(p, 'person', { max: 60, ph: 'Who paid' })),
+        lab('How', pick(p, 'how', ['UPI', 'Cash', 'Bank transfer', 'Card', 'Cheque'])), lab('UTR / ref', cell(p, 'ref', { max: 60 })), lab('Note', cell(p, 'note', { max: 300 }))),
+        el('div', { className: 'row', style: 'gap:8px;margin-top:8px;align-items:center' }, up, el('span', { style: 'flex:1' }), stamp(p), x)));
+    }
+    return wrap;
+  }) : [el('p', { className: 'muted', textContent: 'No payments recorded yet.' })]));
   $('capIn').value = cap;
   const rec = plan.filter(x => x.updated_by).sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))).slice(0, 8);
   $('recent').replaceChildren(...(rec.length ? rec.map(x => el('div', { style: 'font-size:13px;margin:3px 0' }, el('span', { className: 'muted', textContent: new Date(x.updated_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' · ' }),
     el('b', { textContent: x.updated_by }), ' ' + (x.removed ? 'removed ' : 'updated ') + ({ budget: 'budget line', payment: 'payment', vendor: 'vendor', task: 'to-do', duty: 'duty', menu: 'menu' }[x.kind]) + ': ' + (x.kind === 'payment' ? inr(x.data.amount) + ' by ' + x.data.by + ' for ' + ((plan.find(b => b.id === x.data.item) || { data: {} }).data.item || 'an item') : (x.data.item || x.data.title || x.data.area || x.data.role || x.data.meal || '')))) :
     [el('p', { className: 'muted', style: 'margin:0', textContent: 'No changes yet.' })]));
 }
+$('pToggle').onclick = () => { const f = $('pForm'); f.hidden = !f.hidden; $('pToggle').textContent = f.hidden ? '+ Record a payment' : 'Close'; if (!f.hidden) $('pItem').focus(); };
 $('pAdd').onclick = async () => {
   const amt = Math.round(+$('pAmt').value), msg = $('pMsg');
   if (!$('pItem').value || !(amt > 0)) { msg.style.color = 'var(--bad)'; msg.textContent = 'Choose what it was for and enter the amount.'; return; }
