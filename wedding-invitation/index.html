@@ -9,7 +9,7 @@
     <!-- Link preview (WhatsApp, iMessage, Facebook); og:image must be a full URL -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Nadeem & Dariya · Wedding Invitation">
-    <meta property="og:description" content="20–21 January 2027 · Greenwood Resort, Bengaluru. Kindly RSVP by 15 December 2026 for your entry pass.">
+    <meta property="og:description" content="20–21 January 2027 · Greenwood Resort, Bengaluru. Please reply by 15 December 2026 to get your entry pass.">
     <meta property="og:image" content="https://moonlightsolutions-wedding-invitati.vercel.app/og.jpg">
     <meta property="og:url" content="https://moonlightsolutions-wedding-invitati.vercel.app/">
     <meta property="og:image:width" content="1200">
@@ -267,6 +267,8 @@
         .reveal.in .sec-ic { animation:secIc 1s var(--spring) both; }
         @keyframes secIc { from { transform:scale(.3) rotate(-60deg); opacity:0; } to { transform:none; opacity:1; } }
         .meal-ic { flex:none; width:2.3rem; height:2.3rem; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffd36b; font-size:.9rem; background:rgba(245,184,46,.12); border:1px solid rgba(245,184,46,.45); }
+        .words-btn { font-family:'Cinzel',serif; font-size:10px; letter-spacing:.08em; color:rgba(255,253,250,.85); border:1px solid rgba(245,184,46,.45); border-radius:999px; padding:.3rem .65rem; background:rgba(0,0,0,.12); white-space:nowrap; }
+        .words-btn:hover { border-color:#ffd36b; color:#fff0b8; }
         .dish.veg { background:rgba(58,166,85,.18); border-color:rgba(120,210,140,.45); color:#d9f5df; } .dish.veg i { font-size:.62rem; color:#8fe0a2; }
         .dish { font-size:.72rem; line-height:1.2; padding:.25rem .55rem; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(245,184,46,.22); color:rgba(255,253,250,.88); }
         #tabs button::before { font-family:'Font Awesome 6 Free'; font-weight:900; margin-right:.45rem; }
@@ -277,6 +279,7 @@
         }
     </style>
     <link rel="stylesheet" href="site.css">
+    <script src="simple-words.js"></script>
 </head>
 <body class="selection:bg-gold-500 selection:text-emerald-950">
     <div id="scroll-progress" aria-hidden="true"></div>
@@ -343,7 +346,10 @@
                 <a href="#venues" class="hover:text-gold-400 transition-colors">VENUES</a>
                 <a href="#guide" class="hover:text-gold-400 transition-colors">GOOD TO KNOW</a>
             </div>
-            <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow"><i class="fas fa-envelope mr-1.5"></i>RSVP NOW</button>
+            <div class="flex items-center gap-2">
+                <button type="button" id="wordsBtn" class="words-btn" title="Switch between simple words and formal English"></button>
+                <button onclick="openRsvp()" class="rsvp-cta btn-gold px-5 py-1.5 rounded-full font-cinzel text-xs font-bold tracking-widest glow"><i class="fas fa-envelope mr-1.5"></i>RSVP NOW</button>
+            </div>
         </div>
     </nav>
     <div id="liveBar" hidden role="status" aria-live="polite"><button class="x" type="button" aria-label="Hide for now" onclick="hideLiveBar()">×</button><div id="liveNow"></div><div class="note" id="liveNote" hidden></div><a class="alb" id="liveAlbum" hidden target="_blank" rel="noopener"><i class="fas fa-camera mr-1"></i>Share your photos</a></div>
@@ -1229,7 +1235,7 @@
             } catch (err) { text('QR unavailable', qy + qs / 2, '16px sans-serif', '#064e57'); }
             text('PASS CODE', 906, '500 12px "Plus Jakarta Sans", sans-serif', '#ffd36b', 6);
             text(p.code, 950, '600 36px Cinzel, serif', gold, 8);
-            text('Please show this pass at the entrance', 992, 'italic 15px "Plus Jakarta Sans", sans-serif', '#fff0b8');
+            text((window.simpleT || String)('Please show this pass at the entrance'), 992, 'italic 15px "Plus Jakarta Sans", sans-serif', '#fff0b8');
         }
         function savePass() {
             const cv = document.getElementById('pass-cv');
@@ -1431,6 +1437,37 @@
         const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle('ux-on', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-45% 0px -50% 0px' });
         links.forEach(a => { const sec = document.querySelector(a.getAttribute('href')); if (sec) io.observe(sec); });
     }
+})();
+</script>
+<script>
+// ---------- simple words (default) or formal English ----------
+// Swaps each piece of text for its simple version from simple-words.js; the button in the top bar switches back.
+(() => {
+    const W = window.SIMPLE_WORDS || {}, ATTRS = ['placeholder', 'aria-label', 'title'];
+    let mode = 'simple'; try { mode = localStorage.getItem('nd27-words') || 'simple'; } catch (e) {}
+    const norm = t => t.replace(/\s+/g, ' ').trim();
+    window.simpleT = t => (mode === 'simple' && W[norm(t)]) || t;
+    const fixText = n => {
+        if (n.__o == null) n.__o = n.nodeValue;
+        const k = norm(n.__o), v = mode === 'simple' && W[k];
+        const want = v ? n.__o.match(/^\s*/)[0] + v + n.__o.match(/\s*$/)[0] : n.__o;
+        if (n.nodeValue !== want) n.nodeValue = want;
+    };
+    const fixEl = e => ATTRS.forEach(a => { if (!e.hasAttribute(a)) return; const key = 'o' + a.replace('-', ''); if (e.dataset[key] == null) e.dataset[key] = e.getAttribute(a);
+        const v = mode === 'simple' && W[norm(e.dataset[key])]; e.setAttribute(a, v || e.dataset[key]); });
+    const walk = root => {
+        if (root.nodeType === 3) return fixText(root);
+        if (root.nodeType !== 1 || /^(SCRIPT|STYLE)$/.test(root.nodeName)) return;
+        fixEl(root);
+        const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT); let n;
+        while ((n = w.nextNode())) { if (n.nodeType === 3) { if (!/^(SCRIPT|STYLE)$/.test(n.parentNode.nodeName)) fixText(n); } else fixEl(n); }
+    };
+    const btn = document.getElementById('wordsBtn');
+    const apply = () => { walk(document.body); document.documentElement.dataset.words = mode; if (btn) btn.textContent = mode === 'simple' ? 'FORMAL ENGLISH' : 'SIMPLE WORDS'; };
+    new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(walk))).observe(document.body, { childList: true, subtree: true });
+    if (btn) btn.addEventListener('click', () => { mode = mode === 'simple' ? 'formal' : 'simple'; try { localStorage.setItem('nd27-words', mode); } catch (e) {} apply();
+        const p = typeof loadPass === 'function' && loadPass(), cv = document.getElementById('pass-cv'); if (p && cv && typeof drawPass === 'function') drawPass(cv, p); });
+    apply();
 })();
 </script>
 </body>
