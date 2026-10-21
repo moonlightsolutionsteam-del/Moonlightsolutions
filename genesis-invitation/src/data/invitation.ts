@@ -2,7 +2,7 @@
 
 export interface EventDetails {
   title: string;
-  dateLabel: string; // e.g. "Wednesday"
+  dateLabel: string; // e.g. "Friday"
   day: string;
   monthYear: string;
   weekday: string;
@@ -46,24 +46,24 @@ export interface MemberPanel {
 
 export const event: EventDetails = {
   title: 'Genesis Internationale – Official Meeting',
-  dateLabel: 'Wednesday',
-  day: '21',
+  dateLabel: 'Friday',
+  day: '23',
   monthYear: 'October 2026',
-  weekday: 'Wednesday',
+  weekday: 'Friday',
   timeLabel: '12:00 pm to 2:30 pm',
   venue: 'Star Hotel',
   city: 'Mumbai',
   venueMapUrl: '',
   noticeDate: '17/10/2026',
-  startISO: '2026-10-21T12:00:00',
-  endISO: '2026-10-21T14:30:00',
+  startISO: '2026-10-23T12:00:00',
+  endISO: '2026-10-23T14:30:00',
 };
 
 export const welcomeLine = 'You are warmly welcomed to our official meeting.';
 
 // Wrap a phrase in **double asterisks** to highlight it in gold.
 export const agenda: string[] = [
-  'An agenda is scheduled for **21st October 2026** at a **Star Hotel, Mumbai**. The meeting will be held for around 2 to 3 hours (**12:00 pm to 2:30 pm**), with all the notable people mentioned below.',
+  'An agenda is scheduled for **23rd October 2026** at a **Star Hotel, Mumbai**. The meeting will be held for around 2 to 3 hours (**12:00 pm to 2:30 pm**), with all the notable people mentioned below.',
   'The context of the meeting is about the **receipt of the final order copy** regarding the fund transaction, and also about the **allocation and distribution of funds** to each individual under our company.',
 ];
 
@@ -103,12 +103,12 @@ export const peopleGroups: PersonGroup[] = [
 
 export const timeline: TimelineEntry[] = [
   { date: '17 Oct', title: 'Notice of meeting and agenda issued' },
-  { date: '21 Oct', title: 'Meeting in Mumbai', note: '12:00 pm to 2:30 pm, Star Hotel' },
+  { date: '23 Oct', title: 'Meeting in Mumbai', note: '12:00 pm to 2:30 pm, Star Hotel' },
   {
-    date: '23 Oct',
+    date: '24 Oct',
     title: 'Return to Tamil Nadu',
     quote:
-      'After successfully completing that meetup, I’ll mostly return to Tamil Nadu by 23rd October 2026. By that time, all of our company members will come to know the result and success story of our 24 years of hustle.',
+      'After successfully completing that meetup, I’ll mostly return to Tamil Nadu by 24th October 2026. By that time, all of our company members will come to know the result and success story of our 24 years of hustle.',
   },
   {
     date: '26 Oct',
@@ -172,4 +172,4 @@ export const signature = { with: 'With faith,', name: 'P Ravikumar', company: 'G
 
 export const footer = 'Genesis Internationale · Chennai, Tamil Nadu';
 
-export const shareText = 'You are warmly invited to the Genesis Internationale official meeting, 21 October 2026, Star Hotel, Mumbai.';
+export const shareText = 'You are warmly invited to the Genesis Internationale official meeting, 23 October 2026, Star Hotel, Mumbai.';
